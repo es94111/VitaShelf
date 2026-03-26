@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.2.3",
+  "currentVersion": "2.2.4",
   "releases": [
+    {
+      "version": "2.2.4",
+      "date": "2026-03-26",
+      "type": "fixed",
+      "summary": "購買紀錄匯出格式對齊匯入範本",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "匯出購買紀錄欄位改為與下載購買紀錄範本一致，欄位名稱與順序完全對齊"
+        },
+        {
+          "category": "changed",
+          "description": "網頁版本資訊更新為 v2.2.4"
+        }
+      ]
+    },
     {
       "version": "2.2.3",
       "date": "2026-03-26",
