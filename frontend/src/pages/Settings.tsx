@@ -11,7 +11,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const APP_VERSION = '2.1.1'
+const APP_VERSION = '2.1.2'
 const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -567,6 +567,7 @@ function ImportSection() {
 
 function AboutSection() {
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
+  const [updating, setUpdating] = useState(false)
 
   const remoteVersionQuery = useQuery({
     queryKey: ['remote-version', REMOTE_CHANGELOG_BLOB_URL],
@@ -597,6 +598,23 @@ function AboutSection() {
   async function checkNow() {
     await remoteVersionQuery.refetch()
     setLastCheckedAt(new Date())
+  }
+
+  async function runUpdate() {
+    setUpdating(true)
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys()
+        await Promise.all(keys.map((key) => caches.delete(key)))
+      }
+
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(regs.map((reg) => reg.unregister()))
+      }
+    } finally {
+      window.location.href = `${window.location.pathname}?updated=${Date.now()}`
+    }
   }
 
   return (
@@ -643,6 +661,16 @@ function AboutSection() {
         >
           {remoteVersionQuery.isFetching ? <LoadingSpinner size="sm" /> : '立即檢查更新'}
         </button>
+        {hasNewVersion && (
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => { void runUpdate() }}
+            disabled={updating}
+          >
+            {updating ? <LoadingSpinner size="sm" /> : '立即更新'}
+          </button>
+        )}
         <a
           href={REMOTE_CHANGELOG_BLOB_URL}
           target="_blank"

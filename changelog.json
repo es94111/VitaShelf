@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.1.1",
+  "currentVersion": "2.1.2",
   "releases": [
+    {
+      "version": "2.1.2",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "新增網頁內更新按鈕",
+      "changes": [
+        {
+          "category": "added",
+          "description": "偵測到新版本時，設定頁顯示『立即更新』按鈕，可在網頁上直接執行更新流程"
+        },
+        {
+          "category": "changed",
+          "description": "更新流程會清除前端快取並重新載入頁面，以套用最新部署版本"
+        }
+      ]
+    },
     {
       "version": "2.1.1",
       "date": "2026-03-26",
