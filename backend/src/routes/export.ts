@@ -18,18 +18,19 @@ router.get('/products', authenticate, async (req: AuthRequest, res, next) => {
   try {
     const products = await prisma.product.findMany({
       where: { userId: req.user!.userId, isDeleted: false },
-      include: { tags: { include: { tag: true } } },
       orderBy: { createdAt: 'desc' },
     })
 
     const csv = toCsv(
-      ['名稱', '品牌', '分類', '子分類', '規格', '條碼', '標籤', '建立日期'],
+      ['name', 'brand', 'category', 'subCategory', 'spec', 'barcode', 'notes'],
       products.map((p) => [
-        p.name, p.brand,
-        p.category === 'SKINCARE' ? '保養品' : '保健食品',
-        p.subCategory, p.spec, p.barcode,
-        p.tags.map((pt) => pt.tag.name).join('|'),
-        format(p.createdAt, 'yyyy-MM-dd'),
+        p.name,
+        p.brand,
+        p.category === 'SKINCARE' ? 'skincare' : 'supplement',
+        p.subCategory,
+        p.spec,
+        p.barcode,
+        p.notes,
       ]),
     )
 

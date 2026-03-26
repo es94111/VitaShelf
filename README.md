@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-2.2.1-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.2.2-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -201,6 +201,7 @@ VitaShelf/
 | —       | v2.1.2 | 新增有新版時的「立即更新」按鈕與前端快取更新流程 | ✅ |
 | —       | v2.2.0 | 新增購買紀錄 CSV 匯入功能 | ✅ |
 | —       | v2.2.1 | 設定頁新增管理員子選單並集中管理員功能入口 | ✅ |
+| —       | v2.2.2 | 匯出產品清單格式對齊下載產品範本 | ✅ |
 
 ## 文件
 
@@ -209,7 +210,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v2.2.1**
+目前版本：**v2.2.2**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 
