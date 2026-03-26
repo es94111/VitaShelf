@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-2.0.2-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -34,6 +34,7 @@
 - **登入紀錄管理** — 支援單筆刪除、批次勾選刪除、手動同步、分頁瀏覽
 - **Google SSO** — 一鍵 Google 帳號登入（設定 GOOGLE_CLIENT_ID 即啟用）
 - **資料庫加密** — ChaCha20-Poly1305 + PBKDF2-SHA256 應用層加密（設定 DB_ENCRYPTION_KEY 即啟用）
+- **版本更新檢查** — 設定頁自動檢查是否有新版本，並可手動立即檢查
 
 ## 技術棧
 
@@ -192,6 +193,7 @@ VitaShelf/
 | Phase 8 | v2.0.0 | 管理員模式、深色/淺色主題、Google SSO、登入稽核紀錄、資料庫加密 | ✅ |
 | —       | v2.0.1 | 公開註冊控制修正與註冊規則一致性調整 | ✅ |
 | —       | v2.0.2 | 設定頁版本資訊同步與管理員公開註冊開關可見性修正 | ✅ |
+| —       | v2.1.0 | 設定頁新增自動版本檢查與手動更新檢查 | ✅ |
 
 ## 文件
 
@@ -200,7 +202,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v2.0.2**
+目前版本：**v2.1.0**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 

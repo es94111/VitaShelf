@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.0.2",
+  "currentVersion": "2.1.0",
   "releases": [
+    {
+      "version": "2.1.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "新增網頁版本自動更新檢查",
+      "changes": [
+        {
+          "category": "added",
+          "description": "設定頁版本資訊可自動檢查最新版本，並顯示目前版本、最新版本與更新狀態"
+        },
+        {
+          "category": "added",
+          "description": "版本檢查來源改為專案 changelog 檔案，提供手動立即檢查按鈕"
+        }
+      ]
+    },
     {
       "version": "2.0.2",
       "date": "2026-03-26",

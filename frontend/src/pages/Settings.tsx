@@ -11,7 +11,8 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const APP_VERSION = '2.0.2'
+const APP_VERSION = '2.1.0'
+const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,26 @@ function downloadBlob(blob: Blob, filename: string) {
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10)
+}
+
+function toRawGitHubUrl(url: string): string {
+  const m = url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/)
+  if (!m) return url
+  const [, owner, repo, branch, filePath] = m
+  return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`
+}
+
+function compareSemver(a: string, b: string): number {
+  const av = a.split('.').map((x) => parseInt(x, 10) || 0)
+  const bv = b.split('.').map((x) => parseInt(x, 10) || 0)
+  const len = Math.max(av.length, bv.length)
+  for (let i = 0; i < len; i++) {
+    const ai = av[i] ?? 0
+    const bi = bv[i] ?? 0
+    if (ai > bi) return 1
+    if (ai < bi) return -1
+  }
+  return 0
 }
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
@@ -534,6 +555,39 @@ function ImportSection() {
 // ─── About section ────────────────────────────────────────────────────────────
 
 function AboutSection() {
+  const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
+
+  const remoteVersionQuery = useQuery({
+    queryKey: ['remote-version', REMOTE_CHANGELOG_BLOB_URL],
+    queryFn: async () => {
+      const rawUrl = toRawGitHubUrl(REMOTE_CHANGELOG_BLOB_URL)
+      const res = await fetch(rawUrl, { cache: 'no-store' })
+      if (!res.ok) throw new Error('無法取得遠端版本資訊')
+
+      const json = (await res.json()) as { currentVersion?: string }
+      if (!json.currentVersion) throw new Error('遠端版本資訊格式不正確')
+
+      return { version: json.currentVersion }
+    },
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  })
+
+  useEffect(() => {
+    if (remoteVersionQuery.data || remoteVersionQuery.error) {
+      setLastCheckedAt(new Date())
+    }
+  }, [remoteVersionQuery.data, remoteVersionQuery.error])
+
+  const latestVersion = remoteVersionQuery.data?.version ?? '-'
+  const versionCmp = latestVersion === '-' ? 0 : compareSemver(latestVersion, APP_VERSION)
+  const hasNewVersion = versionCmp > 0
+
+  async function checkNow() {
+    await remoteVersionQuery.refetch()
+    setLastCheckedAt(new Date())
+  }
+
   return (
     <Section icon={<Info size={16} aria-hidden="true" />} title="關於 VitaShelf">
       <dl className="space-y-2 text-sm">
@@ -542,10 +596,51 @@ function AboutSection() {
           <dd className="font-mono text-ink dark:text-gray-200 font-medium">v{APP_VERSION}</dd>
         </div>
         <div className="flex items-center justify-between">
+          <dt className="text-ink-muted dark:text-gray-400">最新版本</dt>
+          <dd className="font-mono text-ink dark:text-gray-200 font-medium">
+            {remoteVersionQuery.isLoading ? '檢查中...' : `v${latestVersion}`}
+          </dd>
+        </div>
+        <div className="flex items-center justify-between">
+          <dt className="text-ink-muted dark:text-gray-400">更新狀態</dt>
+          <dd className={`font-medium ${hasNewVersion ? 'text-status-warn' : 'text-status-ok'}`}>
+            {remoteVersionQuery.isError
+              ? '無法取得更新資訊'
+              : hasNewVersion
+                ? '有新版本可更新'
+                : '目前已是最新版本'}
+          </dd>
+        </div>
+        {lastCheckedAt && (
+          <div className="flex items-center justify-between">
+            <dt className="text-ink-muted dark:text-gray-400">上次檢查</dt>
+            <dd className="text-ink dark:text-gray-200">{format(lastCheckedAt, 'yyyy-MM-dd HH:mm:ss')}</dd>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">說明</dt>
           <dd className="text-ink dark:text-gray-200">保養品與保健食品庫存管理系統</dd>
         </div>
       </dl>
+
+      <div className="flex items-center gap-2 pt-2">
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => { void checkNow() }}
+          disabled={remoteVersionQuery.isFetching}
+        >
+          {remoteVersionQuery.isFetching ? <LoadingSpinner size="sm" /> : '立即檢查更新'}
+        </button>
+        <a
+          href={REMOTE_CHANGELOG_BLOB_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm text-primary hover:underline"
+        >
+          查看版本紀錄
+        </a>
+      </div>
     </Section>
   )
 }
