@@ -1,0 +1,42 @@
+{
+  "projectName": "VitaShelf",
+  "currentVersion": "0.1.0",
+  "releases": [
+    {
+      "version": "0.1.0",
+      "date": "2026-03-26",
+      "type": "initial",
+      "summary": "專案初始化與需求規劃",
+      "changes": [
+        {
+          "category": "added",
+          "description": "建立專案初始結構"
+        },
+        {
+          "category": "added",
+          "description": "撰寫軟體需求規格書 (SRS.md)，涵蓋產品管理、購買紀錄、有效期限管理、庫存管理、分類標籤、儀表板統計、使用者管理、資料匯出入等完整功能需求"
+        },
+        {
+          "category": "added",
+          "description": "定義 CI/CD 與 Docker 部署規格，包含 GitHub Actions 自動建置流程與 Docker Compose 架構"
+        },
+        {
+          "category": "added",
+          "description": "設計資料模型（Product、PurchaseRecord、StockLog、User、Tag）"
+        },
+        {
+          "category": "added",
+          "description": "規劃 RESTful API 端點設計"
+        },
+        {
+          "category": "added",
+          "description": "建立 README.md 專案說明文件"
+        },
+        {
+          "category": "added",
+          "description": "建立 changelog.json 變更紀錄"
+        }
+      ]
+    }
+  ]
+}
