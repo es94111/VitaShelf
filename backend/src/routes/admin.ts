@@ -8,11 +8,45 @@ const router = Router()
 // ─── Middleware: require ADMIN role ─────────────────────────────────────────
 
 function requireAdmin(req: AuthRequest, res: Response, next: NextFunction): void {
-  if (req.user?.role !== 'ADMIN') {
+  const run = async () => {
+    const userId = req.user?.userId
+    if (!userId) {
+      res.status(401).json({ message: '未授權，請先登入' })
+      return
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    })
+
+    if (!dbUser) {
+      res.status(401).json({ message: '使用者不存在，請重新登入' })
+      return
+    }
+
+    if (dbUser.role === 'ADMIN') {
+      req.user!.role = 'ADMIN'
+      next()
+      return
+    }
+
+    // Safety net: when there is only one user in the system, keep that user as ADMIN.
+    const totalUsers = await prisma.user.count()
+    if (totalUsers === 1) {
+      await prisma.user.update({
+        where: { id: dbUser.id },
+        data: { role: 'ADMIN' },
+      })
+      req.user!.role = 'ADMIN'
+      next()
+      return
+    }
+
     res.status(403).json({ message: '需要管理員權限' })
-    return
   }
-  next()
+
+  run().catch(next)
 }
 
 router.use(authenticate, requireAdmin)

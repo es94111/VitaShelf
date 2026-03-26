@@ -12,7 +12,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const APP_VERSION = '2.2.3'
+const APP_VERSION = '2.2.4'
 const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -349,6 +349,7 @@ function LoginLogsSection() {
 type AdminSubTab = 'registration' | 'users' | 'logs'
 
 function AdminSubmenuSection() {
+  const { isAdmin } = useAuth()
   const toast = useToast()
   const qc = useQueryClient()
   const [tab, setTab] = useState<AdminSubTab>('registration')
@@ -356,6 +357,7 @@ function AdminSubmenuSection() {
   const { data: settings, isLoading, isError, error } = useQuery({
     queryKey: ['admin-settings'],
     queryFn: () => adminApi.getSettings().then((r) => r.data),
+    enabled: isAdmin,
   })
 
   const [open, setOpen] = useState(true)
@@ -376,6 +378,8 @@ function AdminSubmenuSection() {
     },
     onError: (err: unknown) => toast.error(getApiErrorMessage(err, '更新失敗')),
   })
+
+  if (!isAdmin) return null
 
   if (isLoading) {
     return (
