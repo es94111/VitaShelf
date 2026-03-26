@@ -1,7 +1,27 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.2.5",
+  "currentVersion": "2.2.6",
   "releases": [
+    {
+      "version": "2.2.6",
+      "date": "2026-03-26",
+      "type": "added",
+      "summary": "支援跨帳戶購買紀錄匯入",
+      "changes": [
+        {
+          "category": "added",
+          "description": "匯出購買紀錄時新增產品名稱和品牌欄位"
+        },
+        {
+          "category": "improved",
+          "description": "匯入購買紀錄時支援產品名稱和品牌自動匹配（productId 可選），可跨帳戶匯入"
+        },
+        {
+          "category": "changed",
+          "description": "購買紀錄匯入範本欄位順序調整，新增 productName 和 productBrand"
+        }
+      ]
+    },
     {
       "version": "2.2.5",
       "date": "2026-03-26",

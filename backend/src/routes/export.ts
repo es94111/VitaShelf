@@ -45,13 +45,16 @@ router.get('/purchases', authenticate, async (req: AuthRequest, res, next) => {
   try {
     const purchases = await prisma.purchaseRecord.findMany({
       where: { product: { userId: req.user!.userId } },
+      include: { product: { select: { name: true, brand: true } } },
       orderBy: { purchaseDate: 'desc' },
     })
 
     const csv = toCsv(
-      ['productId', 'purchaseDate', 'quantity', 'expiryDate', 'unitPrice', 'totalPrice', 'channel', 'manufactureDate', 'openedDate', 'paoMonths', 'notes'],
+      ['productId', 'productName', 'productBrand', 'purchaseDate', 'quantity', 'expiryDate', 'unitPrice', 'totalPrice', 'channel', 'manufactureDate', 'openedDate', 'paoMonths', 'notes'],
       purchases.map((p) => [
         p.productId,
+        p.product.name,
+        p.product.brand,
         format(p.purchaseDate, 'yyyy-MM-dd'),
         p.quantity,
         format(p.expiryDate, 'yyyy-MM-dd'),

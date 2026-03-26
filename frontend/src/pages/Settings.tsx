@@ -557,10 +557,10 @@ const PRODUCT_CSV_TEMPLATE_EXAMPLE = [
   '維他命C,品牌B,supplement,維他命,60錠,4719854321,,',
 ].join('\n')
 
-const PURCHASE_CSV_TEMPLATE_HEADERS = 'productId,purchaseDate,quantity,expiryDate,unitPrice,totalPrice,channel,manufactureDate,openedDate,paoMonths,notes'
+const PURCHASE_CSV_TEMPLATE_HEADERS = 'productId,productName,productBrand,purchaseDate,quantity,expiryDate,unitPrice,totalPrice,channel,manufactureDate,openedDate,paoMonths,notes'
 const PURCHASE_CSV_TEMPLATE_EXAMPLE = [
   PURCHASE_CSV_TEMPLATE_HEADERS,
-  'cm1ab2cd30001xyz12345,2026-03-26,2,2027-03-26,650,1300,官網,2026-01-10,2026-03-27,12,批次匯入範例',
+  'cm1ab2cd30001xyz12345,玫瑰精華液,品牌A,2026-03-26,2,2027-03-26,650,1300,官網,2026-01-10,2026-03-27,12,批次匯入範例',
 ].join('\n')
 
 function downloadCSVTemplate(content: string, filename: string) {
@@ -653,7 +653,7 @@ function ImportSection() {
             {PURCHASE_CSV_TEMPLATE_HEADERS}
           </div>
           <p className="text-xs text-ink-muted dark:text-gray-500">
-            productId 可從產品詳情頁網址或管理資料中取得；日期建議使用 <span className="font-mono">YYYY-MM-DD</span>。
+            <strong>productId</strong> 可從產品詳情頁網址中取得，或留空由系統根據 <strong>productName</strong> 與 <strong>productBrand</strong> 自動匹配。日期建議使用 <span className="font-mono">YYYY-MM-DD</span> 格式；支援跨帳戶匯入。
           </p>
           <div className="flex flex-wrap gap-3">
             <button className="btn-secondary" onClick={() => downloadCSVTemplate(PURCHASE_CSV_TEMPLATE_EXAMPLE, 'vitashelf-purchases-import-template.csv')} type="button">

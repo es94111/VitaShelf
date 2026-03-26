@@ -143,9 +143,10 @@ router.post(
 )
 
 // ─── POST /api/import/purchases ──────────────────────────────────────────────
-// Expected CSV columns: productId, purchaseDate, quantity, expiryDate,
+// Expected CSV columns: productId, productName, productBrand, purchaseDate, quantity, expiryDate,
 //                       unitPrice, totalPrice, channel, manufactureDate,
 //                       openedDate, paoMonths, notes
+// productId is optional; if missing, matches by productName + productBrand instead
 
 router.post(
   '/purchases',
@@ -174,6 +175,8 @@ router.post(
         const lineNum = i + 2
 
         const productId = row['productid']?.trim()
+        const productName = row['productname']?.trim()
+        const productBrand = row['productbrand']?.trim()
         const purchaseDate = toDate(row['purchasedate'])
         const expiryDate = toDate(row['expirydate'])
         const quantity = toOptionalNumber(row['quantity'])
@@ -183,10 +186,6 @@ router.post(
         const manufactureDate = toDate(row['manufacturedate'])
         const openedDate = toDate(row['openeddate'])
 
-        if (!productId) {
-          errors.push(`第 ${lineNum} 行：缺少 productId`)
-          continue
-        }
         if (!purchaseDate) {
           errors.push(`第 ${lineNum} 行：purchaseDate 格式錯誤或缺少`)
           continue
@@ -215,20 +214,49 @@ router.post(
         const quantityInt = quantity as number
 
         try {
-          const product = await prisma.product.findFirst({
-            where: { id: productId, userId: req.user!.userId },
-            select: { id: true },
-          })
+          let targetProductId: string | undefined
 
-          if (!product) {
-            errors.push(`第 ${lineNum} 行：找不到 productId 或產品不屬於目前使用者`)
+          // Try to find product first by productId
+          if (productId) {
+            const product = await prisma.product.findFirst({
+              where: { id: productId, userId: req.user!.userId },
+              select: { id: true },
+            })
+            if (product) {
+              targetProductId = product.id
+            }
+          }
+
+          // If productId not found, try to match by productName + productBrand (cross-account support)
+          if (!targetProductId && productName && productBrand) {
+            const product = await prisma.product.findFirst({
+              where: {
+                name: productName,
+                brand: productBrand,
+                userId: req.user!.userId,
+              },
+              select: { id: true },
+            })
+            if (product) {
+              targetProductId = product.id
+            }
+          }
+
+          if (!targetProductId) {
+            if (productId) {
+              errors.push(`第 ${lineNum} 行：找不到 productId 或產品不屬於目前使用者`)
+            } else if (productName && productBrand) {
+              errors.push(`第 ${lineNum} 行：找不到匹配的產品（${productName} / ${productBrand}）`)
+            } else {
+              errors.push(`第 ${lineNum} 行：缺少 productId 或 productName / productBrand`)
+            }
             continue
           }
 
           await prisma.$transaction(async (tx) => {
             await tx.purchaseRecord.create({
               data: {
-                productId,
+                productId: targetProductId!,
                 purchaseDate,
                 quantity: quantityInt,
                 unitPrice,
@@ -244,7 +272,7 @@ router.post(
 
             await tx.stockLog.create({
               data: {
-                productId,
+                productId: targetProductId!,
                 type: 'IN',
                 quantity: quantityInt,
                 reason: `購買匯入 — ${row['channel']?.trim() || ''}`.trim(),
