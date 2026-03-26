@@ -2,7 +2,7 @@
 set -e
 
 echo "[VitaShelf] Running database migrations..."
-cd /app && npx prisma migrate deploy
+cd /app && ./node_modules/.bin/prisma migrate deploy
 
 echo "[VitaShelf] Starting API server (port 4001)..."
 node /app/dist/index.js &
