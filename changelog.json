@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.0.1",
+  "currentVersion": "2.0.2",
   "releases": [
+    {
+      "version": "2.0.2",
+      "date": "2026-03-26",
+      "type": "fixed",
+      "summary": "設定頁版本資訊與公開註冊設定可見性修正",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "前端設定頁版本資訊更新為 v2.0.2，修正網頁版本顯示未同步問題"
+        },
+        {
+          "category": "added",
+          "description": "設定頁新增管理員可見的公開註冊設定區塊，可直接查看與調整是否開放註冊及提示訊息"
+        }
+      ]
+    },
     {
       "version": "2.0.1",
       "date": "2026-03-26",

@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.0.2-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -191,6 +191,7 @@ VitaShelf/
 | —       | v1.2.0 | 新增註冊頁面、修復 Docker 部署問題（Nginx/Port/Prisma/環境變數） | ✅ |
 | Phase 8 | v2.0.0 | 管理員模式、深色/淺色主題、Google SSO、登入稽核紀錄、資料庫加密 | ✅ |
 | —       | v2.0.1 | 公開註冊控制修正與註冊規則一致性調整 | ✅ |
+| —       | v2.0.2 | 設定頁版本資訊同步與管理員公開註冊開關可見性修正 | ✅ |
 
 ## 文件
 
@@ -199,7 +200,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v2.0.1**
+目前版本：**v2.0.2**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 

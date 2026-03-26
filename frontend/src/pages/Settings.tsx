@@ -1,15 +1,17 @@
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   User, Lock, Download, Upload, Info,
-  Eye, EyeOff, CheckCircle, FileText, AlertCircle, Clock,
+  Eye, EyeOff, CheckCircle, FileText, AlertCircle, Clock, Shield,
 } from 'lucide-react'
-import { usersApi, exportApi, importApi } from '@/services/api'
+import { usersApi, exportApi, importApi, adminApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
+
+const APP_VERSION = '2.0.2'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -320,6 +322,90 @@ function LoginLogsSection() {
   )
 }
 
+// ─── Admin registration policy section ───────────────────────────────────────
+
+function AdminRegistrationSection() {
+  const toast = useToast()
+  const qc = useQueryClient()
+
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: () => adminApi.getSettings().then((r) => r.data),
+  })
+
+  const [open, setOpen] = useState(true)
+  const [notice, setNotice] = useState('')
+
+  // Keep local form state in sync with server values.
+  useEffect(() => {
+    if (!settings) return
+    setOpen(settings.registrationOpen)
+    setNotice(settings.registrationNotice ?? '')
+  }, [settings])
+
+  const mutation = useMutation({
+    mutationFn: () => adminApi.updateSettings({ registrationOpen: open, registrationNotice: notice }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-settings'] })
+      toast.success('註冊政策已更新')
+    },
+    onError: (err: unknown) => toast.error(getApiErrorMessage(err, '更新失敗')),
+  })
+
+  if (isLoading) {
+    return (
+      <Section icon={<Shield size={16} aria-hidden="true" />} title="公開註冊設定（管理員）">
+        <LoadingSpinner />
+      </Section>
+    )
+  }
+
+  return (
+    <Section icon={<Shield size={16} aria-hidden="true" />} title="公開註冊設定（管理員）">
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-ink dark:text-gray-200">開放公開註冊</label>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={open}
+            onClick={() => setOpen((v) => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+              open ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                open ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+          <span className="text-sm text-ink-muted dark:text-gray-400">
+            {open ? '允許新使用者註冊' : '已關閉註冊'}
+          </span>
+        </div>
+
+        <div>
+          <label htmlFor="admin-registration-notice" className="block text-sm font-medium text-ink dark:text-gray-200 mb-1">
+            關閉註冊提示訊息
+          </label>
+          <textarea
+            id="admin-registration-notice"
+            className="input dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 min-h-[80px]"
+            value={notice}
+            onChange={(e) => setNotice(e.target.value)}
+            placeholder="例如：系統維護中，暫停註冊"
+          />
+        </div>
+
+        <button className="btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+          {mutation.isPending ? <LoadingSpinner size="sm" /> : '儲存'}
+        </button>
+      </div>
+    </Section>
+  )
+}
+
 // ─── Export section ───────────────────────────────────────────────────────────
 
 function ExportSection() {
@@ -453,7 +539,7 @@ function AboutSection() {
       <dl className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">版本</dt>
-          <dd className="font-mono text-ink dark:text-gray-200 font-medium">v2.0.0</dd>
+          <dd className="font-mono text-ink dark:text-gray-200 font-medium">v{APP_VERSION}</dd>
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">說明</dt>
@@ -467,6 +553,8 @@ function AboutSection() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Settings() {
+  const { isAdmin } = useAuth()
+
   return (
     <div className="space-y-5 max-w-2xl">
       <div>
@@ -476,6 +564,7 @@ export default function Settings() {
 
       <ProfileSection />
       <PasswordSection />
+      {isAdmin && <AdminRegistrationSection />}
       <LoginLogsSection />
       <ExportSection />
       <ImportSection />
