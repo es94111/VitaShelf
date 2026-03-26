@@ -104,7 +104,7 @@ router.put(
       }
 
       const user = await prisma.user.update({
-        where: { id: req.params.id },
+        where: { id: req.params.id as string },
         data: { role: req.body.role },
         select: { id: true, email: true, displayName: true, role: true },
       })
@@ -123,7 +123,7 @@ router.delete('/users/:id', async (req: AuthRequest, res: Response, next: NextFu
       res.status(400).json({ message: '不能刪除自己的帳號' })
       return
     }
-    await prisma.user.delete({ where: { id: req.params.id } })
+    await prisma.user.delete({ where: { id: req.params.id as string } })
     res.json({ message: '使用者已刪除' })
   } catch (err) {
     next(err)
@@ -163,7 +163,7 @@ router.get('/login-logs', async (req: AuthRequest, res: Response, next: NextFunc
 
 router.delete('/login-logs/:id', async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    await prisma.loginLog.delete({ where: { id: req.params.id } })
+    await prisma.loginLog.delete({ where: { id: req.params.id as string } })
     res.json({ message: '紀錄已刪除' })
   } catch (err) {
     next(err)
