@@ -72,9 +72,11 @@ router.post('/', authenticate, async (req: AuthRequest, res, next) => {
 // PUT /api/purchases/:id
 router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
+    const purchaseId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
     const { purchaseDate, quantity, unitPrice, totalPrice, channel, expiryDate, notes } = req.body
     await prisma.purchaseRecord.update({
-      where: { id: req.params.id },
+      where: { id: purchaseId },
       data: {
         purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
         quantity: quantity ? Number(quantity) : undefined,
@@ -92,7 +94,8 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 // DELETE /api/purchases/:id
 router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
-    await prisma.purchaseRecord.delete({ where: { id: req.params.id } })
+    const purchaseId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+    await prisma.purchaseRecord.delete({ where: { id: purchaseId } })
     res.json({ message: '已刪除' })
   } catch (err) {
     next(err)

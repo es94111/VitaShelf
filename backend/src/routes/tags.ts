@@ -43,13 +43,15 @@ router.post('/', authenticate, async (req: AuthRequest, res, next) => {
 // PUT /api/tags/:id
 router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
+    const tagId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
     const { name, color } = req.body
     if (!name?.trim()) {
       res.status(400).json({ message: '標籤名稱不得為空' })
       return
     }
     const tag = await prisma.tag.updateMany({
-      where: { id: req.params.id, userId: req.user!.userId },
+      where: { id: tagId, userId: req.user!.userId },
       data:  { name: name.trim(), color },
     })
     if (tag.count === 0) {
@@ -57,7 +59,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
       return
     }
     const updated = await prisma.tag.findUnique({
-      where: { id: req.params.id },
+      where: { id: tagId },
       include: { _count: { select: { products: true } } },
     })
     res.json({ ...updated, productCount: updated!._count.products })
@@ -67,7 +69,8 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 // DELETE /api/tags/:id
 router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
-    await prisma.tag.deleteMany({ where: { id: req.params.id, userId: req.user!.userId } })
+    const tagId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+    await prisma.tag.deleteMany({ where: { id: tagId, userId: req.user!.userId } })
     res.json({ message: '已刪除' })
   } catch (err) { next(err) }
 })

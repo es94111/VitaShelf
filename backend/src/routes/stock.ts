@@ -22,9 +22,10 @@ async function computeStock(productId: string) {
 // GET /api/stock/:productId
 router.get('/:productId', authenticate, async (req: AuthRequest, res, next) => {
   try {
-    const product = await prisma.product.findFirst({ where: { id: req.params.productId, userId: req.user!.userId } })
+    const productId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId
+    const product = await prisma.product.findFirst({ where: { id: productId, userId: req.user!.userId } })
     if (!product) { res.status(404).json({ message: '找不到此產品' }); return }
-    res.json(await computeStock(req.params.productId))
+    res.json(await computeStock(productId))
   } catch (err) {
     next(err)
   }

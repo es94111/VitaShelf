@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, type Request, type Response, type NextFunction } from 'express'
 import { body, validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
@@ -16,7 +16,7 @@ router.post(
     body('password').isLength({ min: 8 }),
     body('displayName').trim().notEmpty(),
   ],
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
@@ -48,7 +48,7 @@ router.post(
 router.post(
   '/login',
   [body('email').isEmail(), body('password').notEmpty()],
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body
       const user = await prisma.user.findUnique({ where: { email } })
@@ -96,7 +96,7 @@ router.put(
   '/me',
   authenticate,
   [body('displayName').trim().notEmpty().withMessage('顯示名稱不得為空')],
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
@@ -123,7 +123,7 @@ router.post(
     body('currentPassword').notEmpty().withMessage('請輸入目前密碼'),
     body('newPassword').isLength({ min: 8 }).withMessage('新密碼至少 8 個字元'),
   ],
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req)
       if (!errors.isEmpty()) {

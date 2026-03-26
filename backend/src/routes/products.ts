@@ -87,8 +87,10 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
 // GET /api/products/:id
 router.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
+    const productId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
     const product = await prisma.product.findFirst({
-      where: { id: req.params.id, userId: req.user!.userId },
+      where: { id: productId, userId: req.user!.userId },
       include: {
         tags:      { include: { tag: true } },
         purchases: { orderBy: { purchaseDate: 'desc' } },
@@ -167,6 +169,8 @@ router.post('/', authenticate, async (req: AuthRequest, res, next) => {
 // PUT /api/products/:id
 router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
+    const productId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
     await handleUpload(req, res)
 
     const { name, brand, category, subCategory, spec, barcode, notes, tagIds } = req.body
@@ -174,7 +178,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 
     // Verify ownership
     const existing = await prisma.product.findFirst({
-      where: { id: req.params.id, userId: req.user!.userId },
+      where: { id: productId, userId: req.user!.userId },
     })
     if (!existing) {
       res.status(404).json({ message: '找不到此產品' })
@@ -186,10 +190,10 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
       ? Array.isArray(tagIds) ? tagIds : [tagIds]
       : []
 
-    await prisma.productTag.deleteMany({ where: { productId: req.params.id } })
+    await prisma.productTag.deleteMany({ where: { productId } })
 
     const product = await prisma.product.update({
-      where: { id: req.params.id },
+      where: { id: productId },
       data: {
         ...(name        ? { name }                                              : {}),
         ...(brand       ? { brand }                                             : {}),
@@ -206,7 +210,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
       include: { tags: { include: { tag: true } } },
     })
 
-    const nearestExpiry = await getNearestExpiry(req.params.id)
+    const nearestExpiry = await getNearestExpiry(productId)
 
     res.json({
       ...product,
@@ -223,8 +227,10 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 // DELETE /api/products/:id  (soft delete)
 router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
+    const productId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
     const result = await prisma.product.updateMany({
-      where: { id: req.params.id, userId: req.user!.userId },
+      where: { id: productId, userId: req.user!.userId },
       data:  { isDeleted: true },
     })
     if (!result.count) {
@@ -240,8 +246,10 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
 // POST /api/products/:id/restore
 router.post('/:id/restore', authenticate, async (req: AuthRequest, res, next) => {
   try {
+    const productId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
     const result = await prisma.product.updateMany({
-      where: { id: req.params.id, userId: req.user!.userId },
+      where: { id: productId, userId: req.user!.userId },
       data:  { isDeleted: false },
     })
     if (!result.count) {
