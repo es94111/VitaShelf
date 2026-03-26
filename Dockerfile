@@ -37,9 +37,10 @@ COPY backend/prisma                               ./prisma
 # ── Frontend static files ──
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 
-# ── Nginx config (proxy /api & /uploads to localhost:4000) ──
-COPY nginx.conf /etc/nginx/conf.d/app.conf
-RUN rm -f /etc/nginx/conf.d/default.conf
+# ── Nginx config (proxy /api & /uploads to localhost:4001) ──
+# node:20-alpine uses Alpine 3.20+ where nginx uses http.d/ instead of conf.d/
+COPY nginx.conf /etc/nginx/http.d/app.conf
+RUN rm -f /etc/nginx/http.d/default.conf
 
 # ── Uploads directory ──
 RUN mkdir -p /app/uploads
