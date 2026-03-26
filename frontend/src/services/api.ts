@@ -115,10 +115,25 @@ export const dashboardApi = {
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
 
+export interface TagWithCount extends Tag {
+  productCount: number
+}
+
 export const tagsApi = {
-  list: () => api.get<Tag[]>('/tags'),
-  create: (data: { name: string; color: string }) => api.post<Tag>('/tags', data),
+  list: () => api.get<TagWithCount[]>('/tags'),
+  create: (data: { name: string; color: string }) => api.post<TagWithCount>('/tags', data),
+  update: (id: string, data: { name: string; color: string }) =>
+    api.put<TagWithCount>(`/tags/${id}`, data),
   delete: (id: string) => api.delete(`/tags/${id}`),
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+export const usersApi = {
+  me: () => api.get('/users/me'),
+  updateMe: (data: { displayName: string }) => api.put('/users/me', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.post('/users/me/change-password', data),
 }
 
 // ─── Export ──────────────────────────────────────────────────────────────────

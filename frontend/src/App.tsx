@@ -8,6 +8,8 @@ import Products from '@/pages/Products'
 import ProductDetail from '@/pages/ProductDetail'
 import Alerts from '@/pages/Alerts'
 import Purchases from '@/pages/Purchases'
+import Categories from '@/pages/Categories'
+import Settings from '@/pages/Settings'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -33,24 +35,14 @@ export default function App() {
             <Route path="products"        element={<Products />} />
             <Route path="products/:id"    element={<ProductDetail />} />
             <Route path="alerts"          element={<Alerts />} />
-            <Route path="purchases"  element={<Purchases />} />
-            {/* Phase 4+ placeholder routes */}
-            <Route path="categories"      element={<PlaceholderPage title="分類標籤" phase="Phase 5" />} />
-            <Route path="settings"        element={<PlaceholderPage title="設定"     phase="Phase 7" />} />
+            <Route path="purchases"       element={<Purchases />} />
+            <Route path="categories"      element={<Categories />} />
+            <Route path="settings"        element={<Settings />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </ToastProvider>
-  )
-}
-
-function PlaceholderPage({ title, phase }: { title: string; phase: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <h1 className="text-2xl font-heading font-semibold text-ink">{title}</h1>
-      <p className="text-sm text-ink-muted mt-2">此頁面將在 {phase} 開發完成</p>
-    </div>
   )
 }

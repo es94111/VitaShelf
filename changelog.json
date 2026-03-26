@@ -1,7 +1,47 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "0.4.0",
+  "currentVersion": "0.5.0",
   "releases": [
+    {
+      "version": "0.5.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "Phase 4 — 分類標籤管理、設定頁、行動裝置響應式佈局",
+      "changes": [
+        {
+          "category": "added",
+          "description": "backend: routes/tags.ts — 新增 PUT /:id 編輯標籤（名稱/顏色）；GET / 回傳 productCount 欄位（_count.products）"
+        },
+        {
+          "category": "added",
+          "description": "backend: routes/auth.ts — 新增 PUT /users/me（更新顯示名稱）及 POST /users/me/change-password（修改密碼，含目前密碼驗證）"
+        },
+        {
+          "category": "added",
+          "description": "frontend: services/api.ts — 新增 TagWithCount 型別、tagsApi.update()、usersApi（me / updateMe / changePassword）"
+        },
+        {
+          "category": "added",
+          "description": "frontend: pages/Categories.tsx — 分類標籤管理頁：標籤卡片 Grid（顏色方塊 + 名稱 + 產品數）、新增/編輯 Modal（10 色預設 Swatches + 自訂 color picker + hex 輸入 + 即時預覽）、刪除確認 Modal（顯示受影響產品數警告）"
+        },
+        {
+          "category": "added",
+          "description": "frontend: pages/Settings.tsx — 設定頁四大區塊：個人資料（顯示名稱可編輯、Email 唯讀）、修改密碼（目前/新/確認密碼 + 顯示/隱藏切換）、資料匯出（產品/購買紀錄 CSV）、關於 VitaShelf（版本資訊）"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: components/layout/Sidebar.tsx — 重構為桌面版（lg:flex 永遠顯示）+ 行動版（fixed slide-in drawer，含 X 關閉按鈕；NavLink onClick 自動關閉 drawer）"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: components/layout/Layout.tsx — 加入行動版頂部 Header（漢堡按鈕 + VitaShelf 標題）、半透明黑色遮罩（點擊關閉 drawer）、mobileNavOpen state 管理"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: App.tsx — 移除 PlaceholderPage，正式掛載 /categories（Categories）及 /settings（Settings）路由"
+        }
+      ]
+    },
     {
       "version": "0.4.0",
       "date": "2026-03-26",

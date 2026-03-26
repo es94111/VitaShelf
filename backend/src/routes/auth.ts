@@ -91,4 +91,63 @@ router.get('/me', authenticate, async (req: AuthRequest, res, next) => {
   }
 })
 
+// PUT /api/users/me — update display name
+router.put(
+  '/me',
+  authenticate,
+  [body('displayName').trim().notEmpty().withMessage('顯示名稱不得為空')],
+  async (req: AuthRequest, res, next) => {
+    try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        res.status(400).json({ message: errors.array()[0].msg })
+        return
+      }
+      const user = await prisma.user.update({
+        where: { id: req.user!.userId },
+        data:  { displayName: req.body.displayName },
+        select: { id: true, email: true, displayName: true, role: true },
+      })
+      res.json(user)
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+// POST /api/users/me/change-password
+router.post(
+  '/me/change-password',
+  authenticate,
+  [
+    body('currentPassword').notEmpty().withMessage('請輸入目前密碼'),
+    body('newPassword').isLength({ min: 8 }).withMessage('新密碼至少 8 個字元'),
+  ],
+  async (req: AuthRequest, res, next) => {
+    try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        res.status(400).json({ message: errors.array()[0].msg })
+        return
+      }
+
+      const { currentPassword, newPassword } = req.body
+      const user = await prisma.user.findUnique({ where: { id: req.user!.userId } })
+      if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+        res.status(400).json({ message: '目前密碼不正確' })
+        return
+      }
+
+      const hashed = await bcrypt.hash(newPassword, 12)
+      await prisma.user.update({
+        where: { id: req.user!.userId },
+        data:  { password: hashed },
+      })
+      res.json({ message: '密碼已更新' })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
 export default router
