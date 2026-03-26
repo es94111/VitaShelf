@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   User, Lock, Download, Upload, Info,
@@ -11,7 +12,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const APP_VERSION = '2.2.0'
+const APP_VERSION = '2.2.1'
 const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -343,11 +344,14 @@ function LoginLogsSection() {
   )
 }
 
-// ─── Admin registration policy section ───────────────────────────────────────
+// ─── Admin submenu section ───────────────────────────────────────────────────
 
-function AdminRegistrationSection() {
+type AdminSubTab = 'registration' | 'users' | 'logs'
+
+function AdminSubmenuSection() {
   const toast = useToast()
   const qc = useQueryClient()
+  const [tab, setTab] = useState<AdminSubTab>('registration')
 
   const { data: settings, isLoading, isError, error } = useQuery({
     queryKey: ['admin-settings'],
@@ -393,47 +397,99 @@ function AdminRegistrationSection() {
   }
 
   return (
-    <Section icon={<Shield size={16} aria-hidden="true" />} title="公開註冊設定（管理員）">
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-ink dark:text-gray-200">開放公開註冊</label>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={open}
-            onClick={() => setOpen((v) => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-              open ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                open ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
-          <span className="text-sm text-ink-muted dark:text-gray-400">
-            {open ? '允許新使用者註冊' : '已關閉註冊'}
-          </span>
-        </div>
-
-        <div>
-          <label htmlFor="admin-registration-notice" className="block text-sm font-medium text-ink dark:text-gray-200 mb-1">
-            關閉註冊提示訊息
-          </label>
-          <textarea
-            id="admin-registration-notice"
-            className="input dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 min-h-[80px]"
-            value={notice}
-            onChange={(e) => setNotice(e.target.value)}
-            placeholder="例如：系統維護中，暫停註冊"
-          />
-        </div>
-
-        <button className="btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-          {mutation.isPending ? <LoadingSpinner size="sm" /> : '儲存'}
+    <Section icon={<Shield size={16} aria-hidden="true" />} title="管理員子選單">
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setTab('registration')}
+          className={`px-3 py-1.5 rounded-md text-sm cursor-pointer transition-colors ${
+            tab === 'registration'
+              ? 'bg-primary/10 text-primary dark:bg-primary/20'
+              : 'bg-surface text-ink-muted dark:bg-gray-800 dark:text-gray-400'
+          }`}
+        >
+          註冊政策
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('users')}
+          className={`px-3 py-1.5 rounded-md text-sm cursor-pointer transition-colors ${
+            tab === 'users'
+              ? 'bg-primary/10 text-primary dark:bg-primary/20'
+              : 'bg-surface text-ink-muted dark:bg-gray-800 dark:text-gray-400'
+          }`}
+        >
+          使用者管理
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('logs')}
+          className={`px-3 py-1.5 rounded-md text-sm cursor-pointer transition-colors ${
+            tab === 'logs'
+              ? 'bg-primary/10 text-primary dark:bg-primary/20'
+              : 'bg-surface text-ink-muted dark:bg-gray-800 dark:text-gray-400'
+          }`}
+        >
+          登入紀錄
         </button>
       </div>
+
+      {tab === 'registration' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-ink dark:text-gray-200">開放公開註冊</label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={open}
+              onClick={() => setOpen((v) => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                open ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  open ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-sm text-ink-muted dark:text-gray-400">
+              {open ? '允許新使用者註冊' : '已關閉註冊'}
+            </span>
+          </div>
+
+          <div>
+            <label htmlFor="admin-registration-notice" className="block text-sm font-medium text-ink dark:text-gray-200 mb-1">
+              關閉註冊提示訊息
+            </label>
+            <textarea
+              id="admin-registration-notice"
+              className="input dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 min-h-[80px]"
+              value={notice}
+              onChange={(e) => setNotice(e.target.value)}
+              placeholder="例如：系統維護中，暫停註冊"
+            />
+          </div>
+
+          <button className="btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            {mutation.isPending ? <LoadingSpinner size="sm" /> : '儲存'}
+          </button>
+        </div>
+      )}
+
+      {tab === 'users' && (
+        <div className="space-y-3">
+          <p className="text-sm text-ink-muted dark:text-gray-400">管理使用者角色與帳號狀態。</p>
+          <Link to="/admin?tab=users" className="btn-primary inline-flex">前往使用者管理</Link>
+        </div>
+      )}
+
+      {tab === 'logs' && (
+        <div className="space-y-3">
+          <p className="text-sm text-ink-muted dark:text-gray-400">查看與管理全站登入紀錄。</p>
+          <Link to="/admin?tab=logs" className="btn-primary inline-flex">前往登入紀錄</Link>
+        </div>
+      )}
     </Section>
   )
 }
@@ -757,7 +813,7 @@ export default function Settings() {
 
       <ProfileSection />
       <PasswordSection />
-      <AdminRegistrationSection />
+      <AdminSubmenuSection />
       <LoginLogsSection />
       <ExportSection />
       <ImportSection />

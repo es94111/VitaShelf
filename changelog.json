@@ -1,7 +1,27 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.2.0",
+  "currentVersion": "2.2.1",
   "releases": [
+    {
+      "version": "2.2.1",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "設定頁新增管理員子選單",
+      "changes": [
+        {
+          "category": "added",
+          "description": "設定頁新增管理員子選單，集中管理註冊政策、使用者管理與登入紀錄入口"
+        },
+        {
+          "category": "changed",
+          "description": "管理頁支援透過 URL 參數直接開啟指定分頁"
+        },
+        {
+          "category": "changed",
+          "description": "網頁版本資訊更新為 v2.2.1"
+        }
+      ]
+    },
     {
       "version": "2.2.0",
       "date": "2026-03-26",

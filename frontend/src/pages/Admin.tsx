@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Shield, Users, ClipboardList, Settings, RefreshCw,
@@ -17,6 +18,12 @@ function errMsg(err: unknown, fb: string) { return (err as ApiErr).response?.dat
 // ─── Tab system ──────────────────────────────────────────────────────────────
 
 type Tab = 'settings' | 'users' | 'logs'
+
+function parseTab(tab: string | null): Tab {
+  if (tab === 'users') return 'users'
+  if (tab === 'logs') return 'logs'
+  return 'settings'
+}
 
 const TABS: { key: Tab; label: string; icon: typeof Settings }[] = [
   { key: 'settings', label: '註冊政策', icon: Settings },
@@ -349,7 +356,12 @@ function LoginLogs() {
 // ─── Admin Page ──────────────────────────────────────────────────────────────
 
 export default function Admin() {
-  const [tab, setTab] = useState<Tab>('settings')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [tab, setTab] = useState<Tab>(() => parseTab(searchParams.get('tab')))
+
+  useEffect(() => {
+    setTab(parseTab(searchParams.get('tab')))
+  }, [searchParams])
 
   return (
     <div className="space-y-5">
@@ -365,7 +377,10 @@ export default function Admin() {
         {TABS.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
-            onClick={() => setTab(key)}
+            onClick={() => {
+              setTab(key)
+              setSearchParams(key === 'settings' ? {} : { tab: key })
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
               tab === key
                 ? 'bg-white dark:bg-gray-700 text-ink dark:text-gray-100 shadow-sm'
