@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Shield, Users, ClipboardList, Settings, RefreshCw,
@@ -37,6 +37,12 @@ function RegistrationSettings() {
 
   const [open, setOpen] = useState(settings?.registrationOpen ?? true)
   const [notice, setNotice] = useState(settings?.registrationNotice ?? '')
+
+  useEffect(() => {
+    if (!settings) return
+    setOpen(settings.registrationOpen)
+    setNotice(settings.registrationNotice ?? '')
+  }, [settings])
 
   const mutation = useMutation({
     mutationFn: () => adminApi.updateSettings({ registrationOpen: open, registrationNotice: notice }),

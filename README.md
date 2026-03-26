@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -189,6 +189,8 @@ VitaShelf/
 | Phase 7 | v1.0.0 | Error Boundary、PWA 支援（manifest + meta）、正式發佈 | ✅ |
 | —       | v1.1.0 | 全面升級套件（React 19、Router 7、Tailwind 4、Express 5、Recharts 3） | ✅ |
 | —       | v1.2.0 | 新增註冊頁面、修復 Docker 部署問題（Nginx/Port/Prisma/環境變數） | ✅ |
+| Phase 8 | v2.0.0 | 管理員模式、深色/淺色主題、Google SSO、登入稽核紀錄、資料庫加密 | ✅ |
+| —       | v2.0.1 | 公開註冊控制修正與註冊規則一致性調整 | ✅ |
 
 ## 文件
 
@@ -197,7 +199,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v2.0.0**
+目前版本：**v2.0.1**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 

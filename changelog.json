@@ -1,7 +1,27 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.0.0",
+  "currentVersion": "2.0.1",
   "releases": [
+    {
+      "version": "2.0.1",
+      "date": "2026-03-26",
+      "type": "fixed",
+      "summary": "公開註冊控制與註冊流程一致性修正",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "管理頁註冊開關設定修正：載入後會正確同步目前設定值，避免開關顯示與實際狀態不一致"
+        },
+        {
+          "category": "changed",
+          "description": "註冊密碼長度規則統一為至少 8 碼，避免前後端檢核不一致造成註冊失敗"
+        },
+        {
+          "category": "changed",
+          "description": "公開註冊流程確認：第一位註冊使用者為管理員，後續註冊依管理員設定決定是否開放"
+        }
+      ]
+    },
     {
       "version": "2.0.0",
       "date": "2026-03-26",

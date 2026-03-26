@@ -32,7 +32,7 @@ export default function Register() {
 
     if (!displayName.trim()) { setError('請輸入顯示名稱。'); return }
     if (!email.trim()) { setError('請輸入電子郵件。'); return }
-    if (password.length < 6) { setError('密碼長度至少需要 6 個字元。'); return }
+    if (password.length < 8) { setError('密碼長度至少需要 8 個字元。'); return }
     if (password !== confirmPassword) { setError('兩次輸入的密碼不一致。'); return }
 
     setLoading(true)
@@ -108,7 +108,7 @@ export default function Register() {
                   <input
                     id="password" type={showPw ? 'text' : 'password'}
                     className="input pr-16 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                    placeholder="至少 6 個字元" autoComplete="new-password" required
+                    placeholder="至少 8 個字元" autoComplete="new-password" required
                     value={password} onChange={(e) => setPassword(e.target.value)}
                   />
                   <button
