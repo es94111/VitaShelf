@@ -7,7 +7,7 @@ export default function Layout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-surface">
+    <div className="flex min-h-screen bg-surface dark:bg-gray-950">
       <Sidebar mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       {/* Mobile overlay */}
@@ -22,17 +22,18 @@ export default function Layout() {
       <div className="flex flex-col flex-1 min-w-0">
         {/* Mobile top bar */}
         <header className="lg:hidden sticky top-0 z-20 flex items-center gap-3 px-4 py-3
-                           bg-white border-b border-surface-border">
+                           bg-white dark:bg-gray-900 border-b border-surface-border dark:border-gray-700">
           <button
             onClick={() => setMobileNavOpen(true)}
             className="p-2 rounded-md text-ink-muted hover:bg-surface hover:text-ink
+                       dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200
                        transition-colors cursor-pointer"
             aria-label="開啟選單"
             aria-expanded={mobileNavOpen}
           >
             <Menu size={20} aria-hidden="true" />
           </button>
-          <span className="font-heading font-semibold text-base text-ink tracking-tight">
+          <span className="font-heading font-semibold text-base text-ink dark:text-gray-100 tracking-tight">
             VitaShelf
           </span>
         </header>

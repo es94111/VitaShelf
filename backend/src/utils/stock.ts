@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from './prisma'
 import { addDays, differenceInDays, isPast } from 'date-fns'
 
-const prisma = new PrismaClient()
 
 export type AlertLevel = 'ok' | 'warn' | 'danger' | 'expired'
 

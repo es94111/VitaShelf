@@ -1,10 +1,9 @@
 import { Router } from 'express'
 import multer from 'multer'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 // Memory storage — we only need the buffer, not a file on disk
 const upload = multer({

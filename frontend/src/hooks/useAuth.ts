@@ -5,6 +5,8 @@ interface AuthUser {
   id: string
   email: string
   displayName: string
+  role: string
+  theme?: string
 }
 
 export function useAuth() {
@@ -20,15 +22,34 @@ export function useAuth() {
     setUser(data.user)
   }, [])
 
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    const { data } = await authApi.googleLogin(idToken)
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    setUser(data.user)
+  }, [])
+
   const logout = useCallback(async () => {
     await authApi.logout().catch(() => {})
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem('theme')
     setUser(null)
     window.location.href = '/login'
   }, [])
 
-  const isAuthenticated = !!user
+  /** Update local user state (e.g. after editing displayName) without re-fetching */
+  const updateUser = useCallback((updates: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (!prev) return prev
+      const updated = { ...prev, ...updates }
+      localStorage.setItem('user', JSON.stringify(updated))
+      return updated
+    })
+  }, [])
 
-  return { user, login, logout, isAuthenticated }
+  const isAuthenticated = !!user
+  const isAdmin = user?.role === 'ADMIN'
+
+  return { user, login, loginWithGoogle, logout, updateUser, isAuthenticated, isAdmin }
 }

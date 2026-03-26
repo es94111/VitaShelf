@@ -1,10 +1,9 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 import { startOfMonth, endOfMonth, subMonths, format, isPast, addDays } from 'date-fns'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 // GET /api/dashboard/stats
 router.get('/stats', authenticate, async (req: AuthRequest, res, next) => {

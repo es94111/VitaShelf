@@ -1,6 +1,6 @@
 # VitaShelf — 軟體需求規格書 (SRS)
 
-> **版本：** 1.2.1
+> **版本：** 2.0.0
 > **最後更新：** 2026-03-26
 > **專案名稱：** VitaShelf — 保養品與保健食品庫存管理系統
 
@@ -507,6 +507,7 @@ jobs:
 | Phase 6 | v0.7.0 | CSV 批次匯入產品（後端 parser + 設定頁 UI） | ✅ 完成 |
 | Phase 7 | v1.0.0 | Error Boundary、PWA 支援（manifest + meta）、正式發佈 | ✅ 完成 |
 | —       | v1.1.0 | 全面升級套件至最新版本（React 19、Router 7、Tailwind 4、Express 5） | ✅ 完成 |
+| Phase 8 | v2.0.0 | 管理員模式、深色/淺色主題切換、Google SSO、登入稽核紀錄、資料庫加密 | ✅ 完成 |
 | —       | v1.2.1 | 修復 Docker 部署後資料庫表格不存在 — 補建 Prisma 初始 migration | ✅ 完成 |
 | —       | v1.2.0 | 新增註冊頁面、修復 Docker 部署問題（Nginx/Port/Prisma/環境變數） | ✅ 完成 |
 

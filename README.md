@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -28,6 +28,12 @@
 - **錯誤邊界** — React Error Boundary 攔截渲染錯誤，顯示友善錯誤畫面
 - **自動部署** — 推播至 GitHub 時透過 GitHub Actions 自動建置 Docker 映像並部署
 - **JWT Secret 自動產生** — 開發時自動產生亂數 Secret；生產環境未設定則強制拒絕啟動
+- **深色/淺色主題切換** — 本機先行生效，後端同步異常時不影響當下使用
+- **管理員模式** — 第一位使用者自動成為管理員，可控管註冊政策與使用者帳號
+- **登入稽核紀錄** — 記錄登入時間、IP、IP 國家（ipinfo.io）、登入方式，管理員可查看全站紀錄
+- **登入紀錄管理** — 支援單筆刪除、批次勾選刪除、手動同步、分頁瀏覽
+- **Google SSO** — 一鍵 Google 帳號登入（設定 GOOGLE_CLIENT_ID 即啟用）
+- **資料庫加密** — ChaCha20-Poly1305 + PBKDF2-SHA256 應用層加密（設定 DB_ENCRYPTION_KEY 即啟用）
 
 ## 技術棧
 

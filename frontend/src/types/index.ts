@@ -65,7 +65,21 @@ export interface User {
   id: string
   email: string
   displayName: string
-  role: 'admin' | 'user' | 'viewer'
+  role: 'ADMIN' | 'USER' | 'VIEWER'
+  theme?: string
+  authProvider?: string
+  createdAt: string
+}
+
+export interface LoginLog {
+  id: string
+  userId?: string
+  email: string
+  ip: string
+  country: string
+  method: string
+  success: boolean
+  reason?: string
   createdAt: string
 }
 

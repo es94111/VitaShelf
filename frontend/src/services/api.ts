@@ -7,6 +7,7 @@ import type {
   ExpiringProduct,
   PaginatedResponse,
   Tag,
+  LoginLog,
 } from '@/types'
 
 const api = axios.create({
@@ -37,14 +38,23 @@ api.interceptors.response.use(
 
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post<{ token: string; user: { id: string; email: string; displayName: string } }>(
-      '/auth/login',
-      { email, password },
-    ),
+    api.post<{
+      token: string
+      user: { id: string; email: string; displayName: string; role: string; theme: string }
+    }>('/auth/login', { email, password }),
   register: (email: string, password: string, displayName: string) =>
     api.post('/auth/register', { email, password, displayName }),
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/users/me'),
+  registrationStatus: () =>
+    api.get<{ open: boolean; notice: string; hasUsers: boolean }>('/auth/registration-status'),
+  googleLogin: (idToken: string) =>
+    api.post<{
+      token: string
+      user: { id: string; email: string; displayName: string; role: string; theme: string }
+    }>('/auth/google', { idToken }),
+  googleEnabled: () =>
+    api.get<{ enabled: boolean; clientId: string | null }>('/auth/google/enabled'),
 }
 
 // ─── Products ────────────────────────────────────────────────────────────────
@@ -158,6 +168,35 @@ export const usersApi = {
   updateMe: (data: { displayName: string }) => api.put('/users/me', data),
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.post('/users/me/change-password', data),
+  updateTheme: (theme: string) => api.put('/users/me/theme', { theme }),
+  myLoginLogs: (params?: { page?: number; pageSize?: number }) =>
+    api.get<PaginatedResponse<LoginLog>>('/users/me/login-logs', { params }),
+}
+
+// ─── Admin ───────────────────────────────────────────────────────────────────
+
+export const adminApi = {
+  getSettings: () =>
+    api.get<{ id: string; registrationOpen: boolean; registrationNotice: string }>('/admin/settings'),
+  updateSettings: (data: { registrationOpen: boolean; registrationNotice?: string }) =>
+    api.put('/admin/settings', data),
+  listUsers: () =>
+    api.get<Array<{
+      id: string; email: string; displayName: string; role: string;
+      authProvider: string; createdAt: string; updatedAt: string
+    }>>('/admin/users'),
+  updateUserRole: (id: string, role: string) =>
+    api.put(`/admin/users/${id}/role`, { role }),
+  deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
+  loginLogs: (params?: { page?: number; pageSize?: number; userId?: string; success?: string }) =>
+    api.get<PaginatedResponse<LoginLog & { user?: { displayName: string; email: string } }>>(
+      '/admin/login-logs', { params },
+    ),
+  deleteLoginLog: (id: string) => api.delete(`/admin/login-logs/${id}`),
+  batchDeleteLoginLogs: (ids: string[]) =>
+    api.post<{ deleted: number; failed?: number; errors?: string[]; message: string }>(
+      '/admin/login-logs/batch-delete', { ids },
+    ),
 }
 
 // ─── Export ──────────────────────────────────────────────────────────────────

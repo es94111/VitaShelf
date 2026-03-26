@@ -1,9 +1,8 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 async function computeStock(productId: string) {
   const logs = await prisma.stockLog.findMany({ where: { productId } })

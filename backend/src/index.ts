@@ -8,6 +8,8 @@ import express from 'express'
 import cors from 'cors'
 import { errorHandler } from './middleware/errorHandler'
 import authRoutes     from './routes/auth'
+import googleAuthRoutes from './routes/googleAuth'
+import adminRoutes    from './routes/admin'
 import productRoutes  from './routes/products'
 import purchaseRoutes from './routes/purchases'
 import stockRoutes    from './routes/stock'
@@ -35,7 +37,9 @@ app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? './uploads'))
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth',      authRoutes)
+app.use('/api/auth',      googleAuthRoutes)
 app.use('/api/users',     authRoutes)
+app.use('/api/admin',     adminRoutes)
 app.use('/api/products',  productRoutes)
 app.use('/api/purchases', purchaseRoutes)
 app.use('/api/stock',     stockRoutes)
@@ -47,7 +51,7 @@ app.use('/api/import',    importRoutes)
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', version: '1.2.0', timestamp: new Date().toISOString() })
+  res.json({ status: 'ok', version: '2.0.0', timestamp: new Date().toISOString() })
 })
 
 // ─── Error Handler ────────────────────────────────────────────────────────────

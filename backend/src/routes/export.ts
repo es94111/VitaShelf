@@ -1,10 +1,9 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 import { format } from 'date-fns'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 function toCsv(headers: string[], rows: (string | number | null | undefined)[][]): string {
   const escape = (v: string | number | null | undefined) => {

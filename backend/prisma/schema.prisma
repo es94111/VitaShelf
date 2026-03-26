@@ -10,22 +10,54 @@ datasource db {
 // ─── User ──────────────────────────────────────────────────────────────────────
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  password    String
-  displayName String
-  role        Role     @default(USER)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String       @id @default(cuid())
+  email        String       @unique
+  password     String
+  displayName  String
+  role         Role         @default(USER)
+  theme        String       @default("light")
+  authProvider AuthProvider @default(LOCAL)
+  googleId     String?      @unique
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   products  Product[]
   tags      Tag[]
+  loginLogs LoginLog[]
 }
 
 enum Role {
   ADMIN
   USER
   VIEWER
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+// ─── AdminSettings ──────────────────────────────────────────────────────────────
+
+model AdminSettings {
+  id                 String  @id @default("singleton")
+  registrationOpen   Boolean @default(true)
+  registrationNotice String  @default("")
+}
+
+// ─── LoginLog ───────────────────────────────────────────────────────────────────
+
+model LoginLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String
+  ip        String
+  country   String   @default("")
+  method    String   @default("local")
+  success   Boolean
+  reason    String?
+  createdAt DateTime @default(now())
 }
 
 // ─── Tag ───────────────────────────────────────────────────────────────────────

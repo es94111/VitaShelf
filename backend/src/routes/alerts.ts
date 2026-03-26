@@ -1,10 +1,9 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 import { addDays, differenceInDays, isPast } from 'date-fns'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 function alertLevel(expiryDate: Date) {
   if (isPast(expiryDate)) return 'expired'
