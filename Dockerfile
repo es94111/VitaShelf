@@ -49,12 +49,12 @@ COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
 ENV NODE_ENV=production
-ENV PORT=4000
+ENV PORT=4001
 ENV CORS_ORIGIN=http://localhost
 
-EXPOSE 80
+EXPOSE 4000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget -qO- http://localhost/health || exit 1
+  CMD wget -qO- http://localhost:4000/health || exit 1
 
 CMD ["/app/docker-entrypoint.sh"]
