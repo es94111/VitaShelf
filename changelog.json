@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "1.2.0",
+  "currentVersion": "1.2.1",
   "releases": [
+    {
+      "version": "1.2.1",
+      "date": "2026-03-26",
+      "type": "fixed",
+      "summary": "修復 Docker 部署後資料庫表格不存在的問題 — 補建 Prisma 初始 migration",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "backend: 新增 prisma/migrations/20260326000000_init/migration.sql — 初始 migration（建立 User、Tag、ProductTag、Product、PurchaseRecord、StockLog 表格及所有 enum、索引、外鍵），修復 prisma migrate deploy 因缺少 migration 檔案而無法建立資料表的問題"
+        },
+        {
+          "category": "fixed",
+          "description": "backend: 新增 prisma/migrations/migration_lock.toml — Prisma migration 鎖定檔（provider = postgresql），確保 migrate deploy 正確辨識資料庫類型"
+        }
+      ]
+    },
     {
       "version": "1.2.0",
       "date": "2026-03-26",
