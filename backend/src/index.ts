@@ -19,7 +19,7 @@ import importRoutes   from './routes/import'
 import logger         from './middleware/logger'
 
 const app = express()
-const PORT = process.env.PORT ?? 4000
+const PORT = process.env.API_PORT ?? process.env.PORT ?? 4000
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors({
@@ -47,7 +47,7 @@ app.use('/api/import',    importRoutes)
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', version: '1.1.0', timestamp: new Date().toISOString() })
+  res.json({ status: 'ok', version: '1.2.0', timestamp: new Date().toISOString() })
 })
 
 // ─── Error Handler ────────────────────────────────────────────────────────────

@@ -50,7 +50,7 @@ COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
 ENV NODE_ENV=production
-ENV PORT=4001
+ENV API_PORT=4001
 ENV CORS_ORIGIN=http://localhost
 
 EXPOSE 4000

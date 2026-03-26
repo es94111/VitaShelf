@@ -1,7 +1,47 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "1.1.0",
+  "currentVersion": "1.2.0",
   "releases": [
+    {
+      "version": "1.2.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "新增註冊頁面、修復 Docker 部署問題（Nginx 設定目錄、Port 衝突、Prisma CLI、環境變數驗證）",
+      "changes": [
+        {
+          "category": "added",
+          "description": "frontend: pages/Register.tsx — 完整註冊頁面（顯示名稱 + Email + 密碼 + 確認密碼），風格與 Login 一致，前端表單驗證（密碼長度、密碼一致性），註冊成功後導回登入頁並顯示綠色提示"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: App.tsx — 新增 /register 路由"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: pages/Login.tsx — 「立即註冊」從 <a href> 改為 React Router <Link>（避免整頁重載），新增註冊成功返回時的綠色提示訊息"
+        },
+        {
+          "category": "fixed",
+          "description": "Docker: Nginx 設定目錄從 conf.d 改為 http.d（node:20-alpine 使用 Alpine 3.20+，nginx 設定目錄已變更），修復 'server directive is not allowed here' 錯誤"
+        },
+        {
+          "category": "fixed",
+          "description": "Docker: Express 內部 port 環境變數從 PORT 改為 API_PORT（避免 Zeabur/Heroku/Railway 等 PaaS 平台自動注入 PORT 導致與 Nginx 搶佔 port 4000 衝突）"
+        },
+        {
+          "category": "fixed",
+          "description": "Docker: prisma CLI 從 devDependencies 移至 dependencies，確保生產環境 npm ci --omit=dev 後仍可執行 prisma migrate deploy"
+        },
+        {
+          "category": "added",
+          "description": "Docker: docker-entrypoint.sh 新增 DATABASE_URL 環境變數前置檢查，未設定時輸出清楚錯誤訊息並立即退出"
+        },
+        {
+          "category": "added",
+          "description": "Docker: docker-entrypoint.sh 新增 JWT_SECRET 自動亂數生成（128 characters / 512 bits），未設定時自動以 4 組 UUID 拼接產生，並輸出警告提示容器重啟後 Token 將失效"
+        }
+      ]
+    },
     {
       "version": "1.1.0",
       "date": "2026-03-26",

@@ -1,16 +1,15 @@
 import { useState } from 'react'
-import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Leaf } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import { authApi } from '@/services/api'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
-export default function Login() {
-  const { login } = useAuth()
+export default function Register() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const justRegistered = (location.state as { registered?: boolean })?.registered
+  const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -18,12 +17,40 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!displayName.trim()) {
+      setError('請輸入顯示名稱。')
+      return
+    }
+    if (!email.trim()) {
+      setError('請輸入電子郵件。')
+      return
+    }
+    if (password.length < 6) {
+      setError('密碼長度至少需要 6 個字元。')
+      return
+    }
+    if (password !== confirmPassword) {
+      setError('兩次輸入的密碼不一致。')
+      return
+    }
+
     setLoading(true)
     try {
-      await login(email, password)
-      navigate('/', { replace: true })
-    } catch {
-      setError('電子郵件或密碼不正確，請重試。')
+      await authApi.register(email, password, displayName)
+      navigate('/login', { replace: true, state: { registered: true } })
+    } catch (err: unknown) {
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        typeof (err as Record<string, unknown>).response === 'object'
+      ) {
+        const response = (err as { response: { data?: { message?: string } } }).response
+        setError(response.data?.message ?? '註冊失敗，請稍後再試。')
+      } else {
+        setError('註冊失敗，請稍後再試。')
+      }
     } finally {
       setLoading(false)
     }
@@ -38,17 +65,27 @@ export default function Login() {
             <Leaf size={24} className="text-white" />
           </div>
           <h1 className="font-heading font-semibold text-xl text-ink">VitaShelf</h1>
-          <p className="text-sm text-ink-muted">保養品與保健食品庫存管理</p>
+          <p className="text-sm text-ink-muted">建立新帳號</p>
         </div>
-
-        {justRegistered && (
-          <p className="text-sm text-status-success bg-status-success/10 rounded-lg px-3 py-2 text-center">
-            註冊成功！請使用新帳號登入。
-          </p>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div>
+            <label htmlFor="displayName" className="block text-sm font-medium text-ink mb-1">
+              顯示名稱 <span className="text-status-danger" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="displayName"
+              type="text"
+              className="input"
+              placeholder="你的名稱"
+              autoComplete="name"
+              required
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
+          </div>
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-ink mb-1">
               電子郵件 <span className="text-status-danger" aria-hidden="true">*</span>
@@ -74,8 +111,8 @@ export default function Login() {
                 id="password"
                 type={showPw ? 'text' : 'password'}
                 className="input pr-16"
-                placeholder="••••••••"
-                autoComplete="current-password"
+                placeholder="至少 6 個字元"
+                autoComplete="new-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -91,6 +128,22 @@ export default function Login() {
             </div>
           </div>
 
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-ink mb-1">
+              確認密碼 <span className="text-status-danger" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="confirmPassword"
+              type={showPw ? 'text' : 'password'}
+              className="input"
+              placeholder="再次輸入密碼"
+              autoComplete="new-password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+
           {error && (
             <p role="alert" className="text-sm text-status-danger">
               {error}
@@ -103,14 +156,14 @@ export default function Login() {
             disabled={loading}
             aria-busy={loading}
           >
-            {loading ? <LoadingSpinner size="sm" /> : '登入'}
+            {loading ? <LoadingSpinner size="sm" /> : '註冊'}
           </button>
         </form>
 
         <p className="text-center text-sm text-ink-muted">
-          還沒有帳號？{' '}
-          <Link to="/register" className="text-primary hover:underline">
-            立即註冊
+          已經有帳號？{' '}
+          <Link to="/login" className="text-primary hover:underline">
+            返回登入
           </Link>
         </p>
       </div>

@@ -11,7 +11,7 @@ services:
       DATABASE_URL:  ${DATABASE_URL}
       JWT_SECRET:    ${JWT_SECRET}
       NODE_ENV:      production
-      PORT:          "4001"
+      API_PORT:      "4001"
       CORS_ORIGIN:   ${CORS_ORIGIN:-http://localhost}
       UPLOAD_DIR:    /app/uploads
     volumes:

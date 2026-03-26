@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -90,6 +90,7 @@ docker compose -f docker-compose.local-images.yml up -d
 | `/categories` | 分類標籤管理（色彩標籤 CRUD） | ✅ |
 | `/settings` | 設定（個人資料/密碼/匯出） | ✅ |
 | `/login` | 登入 | ✅ |
+| `/register` | 註冊 | ✅ |
 
 ## 專案結構
 
@@ -110,8 +111,11 @@ VitaShelf/
 │   ├── prisma/
 │   │   ├── schema.prisma
 │   │   └── seed.ts
-│   └── Dockerfile
+│   └── package.json
 ├── scripts/           # 工具腳本
+├── Dockerfile         # 單一 Docker Image（Nginx + Node.js）
+├── nginx.conf         # Nginx 反向代理設定
+├── docker-entrypoint.sh # 容器啟動腳本（migration + API + Nginx）
 ├── docker-compose.yml # Docker 開發環境
 ├── docker-compose.prod.yml
 ├── .github/
@@ -134,6 +138,7 @@ VitaShelf/
 | Phase 6 | v0.7.0 | CSV 批次匯入產品（後端 parser + 設定頁 UI） | ✅ |
 | Phase 7 | v1.0.0 | Error Boundary、PWA 支援（manifest + meta）、正式發佈 | ✅ |
 | —       | v1.1.0 | 全面升級套件（React 19、Router 7、Tailwind 4、Express 5、Recharts 3） | ✅ |
+| —       | v1.2.0 | 新增註冊頁面、修復 Docker 部署問題（Nginx/Port/Prisma/環境變數） | ✅ |
 
 ## 文件
 
@@ -142,7 +147,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v1.1.0**
+目前版本：**v1.2.0**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 

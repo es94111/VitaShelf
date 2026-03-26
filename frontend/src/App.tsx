@@ -4,6 +4,7 @@ import { ToastProvider } from '@/components/ui/Toast'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import Layout from '@/components/layout/Layout'
 import Login from '@/pages/Login'
+import Register from '@/pages/Register'
 import Dashboard from '@/pages/Dashboard'
 import Products from '@/pages/Products'
 import ProductDetail from '@/pages/ProductDetail'
@@ -24,6 +25,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
             <Route
               path="/"

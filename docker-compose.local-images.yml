@@ -12,7 +12,7 @@ services:
       DATABASE_URL:  ${DATABASE_URL:-postgresql://vitashelf:vitashelf@db:5432/vitashelf}
       JWT_SECRET:    ${JWT_SECRET:-change-me-to-a-very-long-random-secret-32-plus}
       NODE_ENV:      production
-      PORT:          "4001"
+      API_PORT:      "4001"
       CORS_ORIGIN:   ${CORS_ORIGIN:-http://localhost}
       UPLOAD_DIR:    /app/uploads
     volumes:

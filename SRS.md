@@ -1,6 +1,6 @@
 # VitaShelf — 軟體需求規格書 (SRS)
 
-> **版本：** 1.1.0
+> **版本：** 1.2.0
 > **最後更新：** 2026-03-26
 > **專案名稱：** VitaShelf — 保養品與保健食品庫存管理系統
 
@@ -275,18 +275,20 @@ git push → GitHub Actions trigger
 
 ### 5.1 Docker 架構
 
-```yaml
-# docker-compose.yml（概要）
-services:
-  frontend:
-    build: ./frontend
-    ports: ["3000:80"]
+單一 Docker Image，內含 Nginx（靜態檔案 + 反向代理）與 Node.js Express（API）：
 
-  backend:
-    build: ./backend
-    ports: ["4000:4000"]
+```yaml
+# docker-compose.prod.yml（概要）
+services:
+  vitashelf:
+    image: es94111/vitashelf:latest
+    ports: ["4000:4000"]        # Nginx 對外 port
     environment:
-      - DATABASE_URL=postgresql://...
+      DATABASE_URL: postgresql://...
+      JWT_SECRET: ...           # 未設定時容器自動產生 128-char 隨機值
+      API_PORT: "4001"          # Express 內部 port（避免與 Nginx 衝突）
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       - db
 
@@ -294,20 +296,15 @@ services:
     image: postgres:16-alpine
     volumes:
       - pgdata:/var/lib/postgresql/data
-
-  nginx:
-    image: nginx:alpine
-    ports: ["80:80", "443:443"]
-    depends_on:
-      - frontend
-      - backend
 ```
+
+容器啟動流程：`prisma migrate deploy` → `node dist/index.js`（port 4001）→ `nginx`（port 4000）
 
 ### 5.2 GitHub Actions 工作流程
 
 ```yaml
-# .github/workflows/deploy.yml（概要）
-name: Build & Deploy
+# .github/workflows/docker-publish.yml（概要）
+name: Build & Push Docker Image
 
 on:
   push:
@@ -318,38 +315,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Login to GHCR
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
-      - name: Build & Push Frontend
+      - name: Build & Push (Single Image)
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend
+          context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:latest
-      - name: Build & Push Backend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          tags: ghcr.io/${{ github.repository }}/backend:latest
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH Deploy
-        # SSH 至目標主機執行 docker compose pull && docker compose up -d
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vitashelf:latest
 ```
 
 ### 5.3 環境變數
 
-| 變數 | 說明 | 範例 |
-|------|------|------|
-| `DATABASE_URL` | 資料庫連線字串 | `postgresql://user:pass@db:5432/vitashelf` |
-| `JWT_SECRET` | JWT 簽署密鑰 | `your-secret-key` |
-| `NODE_ENV` | 執行環境 | `production` |
-| `PORT` | 後端服務埠 | `4000` |
-| `UPLOAD_DIR` | 檔案上傳目錄 | `/app/uploads` |
+| 變數 | 說明 | 必填 | 範例 |
+|------|------|------|------|
+| `DATABASE_URL` | 資料庫連線字串 | ✅ | `postgresql://user:pass@db:5432/vitashelf` |
+| `JWT_SECRET` | JWT 簽署密鑰（128+ 字元建議），未設定時自動產生隨機值 | 建議 | `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
+| `NODE_ENV` | 執行環境 | ❌ | `production` |
+| `API_PORT` | Express 內部服務埠（Docker 內部使用，避免與 Nginx 衝突） | ❌ | `4001`（預設） |
+| `CORS_ORIGIN` | 允許的 CORS 來源 | ❌ | `http://localhost` |
+| `UPLOAD_DIR` | 檔案上傳目錄 | ❌ | `/app/uploads` |
 
 ---
 
@@ -491,6 +476,7 @@ jobs:
 | 頁面 | 路徑 | 說明 | 狀態 |
 |------|------|------|------|
 | 登入 | `/login` | 使用者登入頁面 | ✅ |
+| 註冊 | `/register` | 使用者註冊頁面 | ✅ |
 | 儀表板 | `/` | 總覽儀表板（統計卡片 + Recharts 圖表） | ✅ |
 | 產品列表 | `/products` | 產品搜尋 / 篩選 / 分頁 / CRUD Modal | ✅ |
 | 產品詳情 | `/products/:id` | 庫存面板 / 購買紀錄表 / 編輯 / 刪除 | ✅ |
@@ -521,6 +507,7 @@ jobs:
 | Phase 6 | v0.7.0 | CSV 批次匯入產品（後端 parser + 設定頁 UI） | ✅ 完成 |
 | Phase 7 | v1.0.0 | Error Boundary、PWA 支援（manifest + meta）、正式發佈 | ✅ 完成 |
 | —       | v1.1.0 | 全面升級套件至最新版本（React 19、Router 7、Tailwind 4、Express 5） | ✅ 完成 |
+| —       | v1.2.0 | 新增註冊頁面、修復 Docker 部署問題（Nginx/Port/Prisma/環境變數） | ✅ 完成 |
 
 ---
 
