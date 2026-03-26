@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.1.0",
+  "currentVersion": "2.1.1",
   "releases": [
+    {
+      "version": "2.1.1",
+      "date": "2026-03-26",
+      "type": "fixed",
+      "summary": "修正管理員公開註冊選項可見性",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "設定頁公開註冊設定改為依後端權限回應判斷，不再依賴本機角色快取，修正管理員看不到開關的問題"
+        },
+        {
+          "category": "changed",
+          "description": "網頁版本資訊更新為 v2.1.1"
+        }
+      ]
+    },
     {
       "version": "2.1.0",
       "date": "2026-03-26",

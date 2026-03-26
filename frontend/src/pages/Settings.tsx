@@ -11,12 +11,12 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const APP_VERSION = '2.1.0'
+const APP_VERSION = '2.1.1'
 const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-type ApiLikeError = { response?: { data?: { message?: string } } }
+type ApiLikeError = { response?: { status?: number; data?: { message?: string } } }
 
 function getApiErrorMessage(err: unknown, fallback: string): string {
   return (err as ApiLikeError).response?.data?.message ?? fallback
@@ -349,7 +349,7 @@ function AdminRegistrationSection() {
   const toast = useToast()
   const qc = useQueryClient()
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, isError, error } = useQuery({
     queryKey: ['admin-settings'],
     queryFn: () => adminApi.getSettings().then((r) => r.data),
   })
@@ -377,6 +377,17 @@ function AdminRegistrationSection() {
     return (
       <Section icon={<Shield size={16} aria-hidden="true" />} title="公開註冊設定（管理員）">
         <LoadingSpinner />
+      </Section>
+    )
+  }
+
+  if (isError) {
+    const status = (error as ApiLikeError).response?.status
+    if (status === 403) return null
+
+    return (
+      <Section icon={<Shield size={16} aria-hidden="true" />} title="公開註冊設定（管理員）">
+        <p className="text-sm text-status-danger">目前無法載入公開註冊設定，請稍後再試。</p>
       </Section>
     )
   }
@@ -648,8 +659,6 @@ function AboutSection() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Settings() {
-  const { isAdmin } = useAuth()
-
   return (
     <div className="space-y-5 max-w-2xl">
       <div>
@@ -659,7 +668,7 @@ export default function Settings() {
 
       <ProfileSection />
       <PasswordSection />
-      {isAdmin && <AdminRegistrationSection />}
+      <AdminRegistrationSection />
       <LoginLogsSection />
       <ExportSection />
       <ImportSection />

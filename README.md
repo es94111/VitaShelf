@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.1.1-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -194,6 +194,7 @@ VitaShelf/
 | —       | v2.0.1 | 公開註冊控制修正與註冊規則一致性調整 | ✅ |
 | —       | v2.0.2 | 設定頁版本資訊同步與管理員公開註冊開關可見性修正 | ✅ |
 | —       | v2.1.0 | 設定頁新增自動版本檢查與手動更新檢查 | ✅ |
+| —       | v2.1.1 | 修正管理員在設定頁看不到公開註冊選項 | ✅ |
 
 ## 文件
 
@@ -202,7 +203,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v2.1.0**
+目前版本：**v2.1.1**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 
