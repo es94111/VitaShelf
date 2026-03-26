@@ -38,3 +38,4 @@ coverage/
 
 # TypeScript incremental
 *.tsbuildinfo
+docker-images/vitashelf-frontend-local.tar
