@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #2563eb;
+    --color-accent:  #f97316;
+    --color-bg:      #f8fafc;
+    --color-text:    #1e293b;
+  }
+
+  html {
+    font-family: 'Fira Sans', sans-serif;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* Focus ring — visible for keyboard nav */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+}
+
+@layer components {
+  /* Card */
+  .card {
+    @apply bg-white rounded-lg border border-surface-border shadow-card p-4;
+  }
+
+  /* Btn base */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md
+           font-body font-medium text-sm cursor-pointer
+           transition-all duration-150 focus-visible:outline
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-700 active:bg-primary-900;
+  }
+
+  .btn-secondary {
+    @apply btn bg-surface text-ink border border-surface-border
+           hover:bg-surface-border active:bg-surface-border;
+  }
+
+  .btn-accent {
+    @apply btn bg-accent text-white hover:bg-accent-600;
+  }
+
+  .btn-danger {
+    @apply btn bg-status-danger text-white hover:opacity-90;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  }
+  .badge-ok      { @apply badge bg-green-100  text-green-700; }
+  .badge-warn    { @apply badge bg-yellow-100 text-yellow-700; }
+  .badge-danger  { @apply badge bg-red-100    text-red-700; }
+  .badge-info    { @apply badge bg-blue-100   text-blue-700; }
+
+  /* Input */
+  .input {
+    @apply w-full rounded-md border border-surface-border bg-white px-3 py-2
+           text-sm text-ink placeholder:text-ink-faint
+           focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary
+           transition-colors duration-150;
+  }
+
+  /* Table */
+  .table-base {
+    @apply w-full text-sm text-left border-collapse;
+  }
+  .table-base thead tr {
+    @apply bg-surface border-b border-surface-border;
+  }
+  .table-base th {
+    @apply px-4 py-3 font-semibold text-ink-muted uppercase tracking-wide text-xs;
+  }
+  .table-base td {
+    @apply px-4 py-3 border-b border-surface-border;
+  }
+  .table-base tbody tr {
+    @apply hover:bg-surface transition-colors duration-100;
+  }
+}
+
+@layer utilities {
+  /* Respect reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

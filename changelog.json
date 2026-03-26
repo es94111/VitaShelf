@@ -6,35 +6,71 @@
       "version": "0.1.0",
       "date": "2026-03-26",
       "type": "initial",
-      "summary": "專案初始化與需求規劃",
+      "summary": "專案初始化、需求規劃與完整程式碼骨架",
       "changes": [
         {
           "category": "added",
-          "description": "建立專案初始結構"
+          "description": "建立專案初始結構與英文名稱 VitaShelf"
         },
         {
           "category": "added",
-          "description": "撰寫軟體需求規格書 (SRS.md)，涵蓋產品管理、購買紀錄、有效期限管理、庫存管理、分類標籤、儀表板統計、使用者管理、資料匯出入等完整功能需求"
+          "description": "撰寫完整軟體需求規格書 (SRS.md)：產品管理、購買紀錄、有效期限管理、庫存管理、分類標籤、儀表板統計、使用者管理、資料匯出入"
         },
         {
           "category": "added",
-          "description": "定義 CI/CD 與 Docker 部署規格，包含 GitHub Actions 自動建置流程與 Docker Compose 架構"
+          "description": "前端骨架：React 18 + TypeScript + Vite + Tailwind CSS（Flat Design 設計系統：Primary #2563EB、Fira Code/Fira Sans 字體）"
         },
         {
           "category": "added",
-          "description": "設計資料模型（Product、PurchaseRecord、StockLog、User、Tag）"
+          "description": "前端頁面：Dashboard（統計卡片 + Recharts 圖表 + 到期提醒表格）、Products（搜尋/篩選/分頁列表）、Alerts（到期/低庫存提醒）、Login（表單驗證 + JWT）"
         },
         {
           "category": "added",
-          "description": "規劃 RESTful API 端點設計"
+          "description": "前端共用元件：Sidebar 導覽列、StatCard、AlertBadge、LoadingSpinner、EmptyState"
         },
         {
           "category": "added",
-          "description": "建立 README.md 專案說明文件"
+          "description": "前端服務層：axios API client（自動附加 JWT + 401 redirect）涵蓋所有 API 端點"
         },
         {
           "category": "added",
-          "description": "建立 changelog.json 變更紀錄"
+          "description": "後端骨架：Node.js + Express + TypeScript，含 JWT 認證 middleware、統一錯誤處理"
+        },
+        {
+          "category": "added",
+          "description": "後端 API 路由：auth、products、purchases、stock、alerts、dashboard、tags、export（CSV）"
+        },
+        {
+          "category": "added",
+          "description": "Prisma Schema：User、Product、PurchaseRecord、StockLog、Tag、ProductTag 完整資料模型"
+        },
+        {
+          "category": "added",
+          "description": "前端 Dockerfile（多階段建置：Node builder + Nginx production）"
+        },
+        {
+          "category": "added",
+          "description": "後端 Dockerfile（多階段建置：builder + production，含 non-root user 安全設定）"
+        },
+        {
+          "category": "added",
+          "description": "docker-compose.yml（開發環境：前端 HMR + 後端 hot reload + PostgreSQL + healthcheck）"
+        },
+        {
+          "category": "added",
+          "description": "docker-compose.prod.yml（生產環境：從 GHCR 拉取映像 + 環境變數注入）"
+        },
+        {
+          "category": "added",
+          "description": "GitHub Actions workflow（3 Jobs：Lint → Build & Push GHCR → SSH Deploy，含 layer cache 加速）"
+        },
+        {
+          "category": "added",
+          "description": "Nginx 反向代理設定：SPA fallback、API proxy、靜態資源快取、Gzip 壓縮、安全 headers"
+        },
+        {
+          "category": "added",
+          "description": ".env.example 與 .gitignore"
         }
       ]
     }

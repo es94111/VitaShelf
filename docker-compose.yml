@@ -1,0 +1,61 @@
+name: vitashelf
+
+services:
+  # ── Frontend (dev: Vite HMR) ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      target: builder          # Use build stage for dev (Vite dev server)
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost:4000
+    depends_on:
+      - backend
+
+  # ── Backend ───────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      target: builder
+    command: npm run dev
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - uploads_data:/app/uploads
+    environment:
+      DATABASE_URL: postgresql://vitashelf:vitashelf@db:5432/vitashelf
+      JWT_SECRET: dev-secret-change-in-production
+      NODE_ENV: development
+      PORT: "4000"
+      CORS_ORIGIN: http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vitashelf
+      POSTGRES_PASSWORD: vitashelf
+      POSTGRES_DB: vitashelf
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vitashelf"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  uploads_data:

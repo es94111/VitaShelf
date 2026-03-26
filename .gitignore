@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Prisma generated
+frontend/src/generated/
+backend/src/generated/
+
+# Uploads (user data)
+uploads/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# TypeScript incremental
+*.tsbuildinfo

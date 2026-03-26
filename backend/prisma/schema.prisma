@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User ──────────────────────────────────────────────────────────────────────
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  displayName String
+  role        Role     @default(USER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products  Product[]
+  tags      Tag[]
+}
+
+enum Role {
+  ADMIN
+  USER
+  VIEWER
+}
+
+// ─── Tag ───────────────────────────────────────────────────────────────────────
+
+model Tag {
+  id     String @id @default(cuid())
+  name   String
+  color  String @default("#64748B")
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  products ProductTag[]
+
+  @@unique([name, userId])
+}
+
+model ProductTag {
+  productId String
+  tagId     String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([productId, tagId])
+}
+
+// ─── Product ───────────────────────────────────────────────────────────────────
+
+model Product {
+  id          String          @id @default(cuid())
+  name        String
+  brand       String
+  category    ProductCategory
+  subCategory String?
+  spec        String?
+  barcode     String?
+  imageUrl    String?
+  notes       String?
+  isDeleted   Boolean         @default(false)
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tags      ProductTag[]
+  purchases PurchaseRecord[]
+  stockLogs StockLog[]
+}
+
+enum ProductCategory {
+  SKINCARE
+  SUPPLEMENT
+}
+
+// ─── PurchaseRecord ────────────────────────────────────────────────────────────
+
+model PurchaseRecord {
+  id              String    @id @default(cuid())
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  purchaseDate    DateTime
+  quantity        Int
+  unitPrice       Decimal?  @db.Decimal(10, 2)
+  totalPrice      Decimal?  @db.Decimal(10, 2)
+  channel         String?
+  receiptUrl      String?
+  manufactureDate DateTime?
+  expiryDate      DateTime
+  openedDate      DateTime?
+  paoMonths       Int?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// ─── StockLog ──────────────────────────────────────────────────────────────────
+
+model StockLog {
+  id        String       @id @default(cuid())
+  productId String
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      StockLogType
+  quantity  Int
+  reason    String?
+  createdAt DateTime     @default(now())
+}
+
+enum StockLogType {
+  IN
+  OUT_USE
+  OUT_DISCARD
+  ADJUST
+}
