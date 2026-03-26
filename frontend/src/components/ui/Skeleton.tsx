@@ -1,12 +1,14 @@
 import { clsx } from 'clsx'
+import type { CSSProperties } from 'react'
 
 interface SkeletonProps {
   className?: string
   rounded?: boolean
+  style?: CSSProperties
 }
 
 /** Single skeleton block — shimmer effect */
-export function Skeleton({ className, rounded }: SkeletonProps) {
+export function Skeleton({ className, rounded, style }: SkeletonProps) {
   return (
     <div
       className={clsx(
@@ -14,6 +16,7 @@ export function Skeleton({ className, rounded }: SkeletonProps) {
         rounded ? 'rounded-full' : 'rounded',
         className,
       )}
+      style={style}
       aria-hidden="true"
     />
   )
@@ -38,7 +41,7 @@ export function TableRowSkeleton({ cols = 5 }: { cols?: number }) {
     <tr aria-hidden="true">
       {Array.from({ length: cols }).map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <Skeleton className="h-4" style={{ width: `${60 + (i * 17) % 40}%` } as React.CSSProperties} />
+          <Skeleton className="h-4" style={{ width: `${60 + (i * 17) % 40}%` }} />
         </td>
       ))}
     </tr>

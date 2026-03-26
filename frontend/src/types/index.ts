@@ -25,6 +25,7 @@ export interface Product {
   imageUrl?: string
   notes?: string
   tags: Tag[]
+  purchases?: PurchaseRecord[]
   currentStock: number
   alertLevel: AlertLevel
   isDeleted: boolean

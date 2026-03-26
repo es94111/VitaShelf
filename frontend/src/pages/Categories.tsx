@@ -227,7 +227,7 @@ export default function Categories() {
         </div>
       ) : tags.length === 0 ? (
         <EmptyState
-          icon={<Tag size={40} strokeWidth={1.5} />}
+          icon={Tag}
           title="尚無標籤"
           description="建立第一個標籤，開始為產品分類吧"
           action={

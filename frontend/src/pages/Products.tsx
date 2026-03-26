@@ -52,7 +52,7 @@ export default function Products() {
 
   const restoreMutation = useMutation({
     mutationFn: (id: string) => productsApi.restore(id),
-    onSuccess: (_r, id) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
       queryClient.invalidateQueries({ queryKey: ['products-deleted'] })
       toast.success('產品已還原')
@@ -158,7 +158,7 @@ export default function Products() {
           ) : !data?.data.length ? (
             <div className="card">
               <EmptyState
-                icon={<Package size={40} strokeWidth={1.5} />}
+                icon={Package}
                 title="尚無產品"
                 description="點擊「新增產品」來新增第一個產品"
                 action={
@@ -283,7 +283,7 @@ export default function Products() {
           ) : !deletedData?.data.length ? (
             <div className="card">
               <EmptyState
-                icon={<Trash2 size={40} strokeWidth={1.5} />}
+                icon={Trash2}
                 title="沒有已刪除的產品"
                 description="已刪除的產品會顯示在這裡，可點擊「還原」恢復"
               />

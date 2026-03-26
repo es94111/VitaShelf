@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  ArrowLeft, Package, Edit2, Trash2, RotateCcw,
+  ArrowLeft, Package, Edit2, Trash2,
   ShoppingCart, Activity, Plus,
 } from 'lucide-react'
 import { format, parseISO, differenceInDays } from 'date-fns'
-import { productsApi, purchasesApi, stockApi } from '@/services/api'
+import { productsApi, stockApi } from '@/services/api'
 import { useToast } from '@/components/ui/Toast'
 import AlertBadge from '@/components/ui/AlertBadge'
 import Modal from '@/components/ui/Modal'
@@ -14,6 +14,7 @@ import ProductForm from '@/components/features/ProductForm'
 import PurchaseForm from '@/components/features/PurchaseForm'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { clsx } from 'clsx'
+import type { PurchaseRecord } from '@/types'
 
 export default function ProductDetail() {
   const { id }       = useParams<{ id: string }>()
@@ -191,7 +192,7 @@ export default function ProductDetail() {
                   </tr>
                 </thead>
                 <tbody>
-                  {product.purchases.map((p: any) => {
+                  {product.purchases.map((p: PurchaseRecord) => {
                     const days = differenceInDays(new Date(p.expiryDate), new Date())
                     return (
                       <tr key={p.id}>
