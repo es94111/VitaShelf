@@ -11,7 +11,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const APP_VERSION = '2.1.2'
+const APP_VERSION = '2.2.0'
 const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -482,19 +482,25 @@ function ExportSection() {
 
 // ─── Import section ───────────────────────────────────────────────────────────
 
-const CSV_TEMPLATE_HEADERS = 'name,brand,category,subCategory,spec,barcode,notes'
-const CSV_TEMPLATE_EXAMPLE = [
-  CSV_TEMPLATE_HEADERS,
+const PRODUCT_CSV_TEMPLATE_HEADERS = 'name,brand,category,subCategory,spec,barcode,notes'
+const PRODUCT_CSV_TEMPLATE_EXAMPLE = [
+  PRODUCT_CSV_TEMPLATE_HEADERS,
   '玫瑰精華液,品牌A,skincare,精華液,30ml,,補水保濕',
   '維他命C,品牌B,supplement,維他命,60錠,4719854321,,',
 ].join('\n')
 
-function downloadCSVTemplate() {
-  const blob = new Blob(['\uFEFF' + CSV_TEMPLATE_EXAMPLE], { type: 'text/csv;charset=utf-8' })
+const PURCHASE_CSV_TEMPLATE_HEADERS = 'productId,purchaseDate,quantity,expiryDate,unitPrice,totalPrice,channel,manufactureDate,openedDate,paoMonths,notes'
+const PURCHASE_CSV_TEMPLATE_EXAMPLE = [
+  PURCHASE_CSV_TEMPLATE_HEADERS,
+  'cm1ab2cd30001xyz12345,2026-03-26,2,2027-03-26,650,1300,官網,2026-01-10,2026-03-27,12,批次匯入範例',
+].join('\n')
+
+function downloadCSVTemplate(content: string, filename: string) {
+  const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' })
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
   a.href     = url
-  a.download = 'vitashelf-import-template.csv'
+  a.download = filename
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -502,55 +508,110 @@ function downloadCSVTemplate() {
 function ImportSection() {
   const toast       = useToast()
   const queryClient = useQueryClient()
-  const fileRef     = useRef<HTMLInputElement>(null)
-  const [result, setResult] = useState<{ imported: number; errors: string[] } | null>(null)
+  const productFileRef  = useRef<HTMLInputElement>(null)
+  const purchaseFileRef = useRef<HTMLInputElement>(null)
+  const [result, setResult] = useState<{ type: 'products' | 'purchases'; imported: number; errors: string[] } | null>(null)
 
-  const mutation = useMutation({
+  const productMutation = useMutation({
     mutationFn: (file: File) => importApi.products(file).then((r) => r.data),
     onSuccess: (data) => {
-      setResult(data)
+      setResult({ type: 'products', ...data })
       if (data.imported > 0) {
         queryClient.invalidateQueries({ queryKey: ['products'] })
         toast.success(`成功匯入 ${data.imported} 個產品`)
       } else { toast.error('未匯入任何產品，請檢查格式') }
-      if (fileRef.current) fileRef.current.value = ''
+      if (productFileRef.current) productFileRef.current.value = ''
     },
     onError: (err: unknown) => toast.error(getApiErrorMessage(err, '匯入失敗')),
   })
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const purchaseMutation = useMutation({
+    mutationFn: (file: File) => importApi.purchases(file).then((r) => r.data),
+    onSuccess: (data) => {
+      setResult({ type: 'purchases', ...data })
+      if (data.imported > 0) {
+        queryClient.invalidateQueries({ queryKey: ['purchases'] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        toast.success(`成功匯入 ${data.imported} 筆購買紀錄`)
+      } else { toast.error('未匯入任何購買紀錄，請檢查格式') }
+      if (purchaseFileRef.current) purchaseFileRef.current.value = ''
+    },
+    onError: (err: unknown) => toast.error(getApiErrorMessage(err, '匯入失敗')),
+  })
+
+  function handleProductsFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setResult(null)
-    mutation.mutate(file)
+    productMutation.mutate(file)
+  }
+
+  function handlePurchasesFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setResult(null)
+    purchaseMutation.mutate(file)
   }
 
   return (
     <Section icon={<Upload size={16} aria-hidden="true" />} title="資料匯入">
-      <p className="text-sm text-ink-muted dark:text-gray-400">透過 CSV 批次匯入產品資料。請先下載範本，依格式填寫後上傳。</p>
-      <div className="bg-surface dark:bg-gray-800 rounded-md p-3 text-xs font-mono text-ink-muted dark:text-gray-400 overflow-x-auto">
-        {CSV_TEMPLATE_HEADERS}
+      <p className="text-sm text-ink-muted dark:text-gray-400">透過 CSV 批次匯入產品或購買紀錄。請先下載對應範本，依格式填寫後上傳。</p>
+
+      <div className="space-y-4">
+        <div className="rounded-md border border-border dark:border-gray-700 p-3 space-y-2">
+          <h3 className="text-sm font-medium text-ink dark:text-gray-200">產品匯入</h3>
+          <div className="bg-surface dark:bg-gray-800 rounded-md p-3 text-xs font-mono text-ink-muted dark:text-gray-400 overflow-x-auto">
+            {PRODUCT_CSV_TEMPLATE_HEADERS}
+          </div>
+          <p className="text-xs text-ink-muted dark:text-gray-500">
+            category 欄位只接受 <code className="font-mono bg-surface dark:bg-gray-800 px-1 rounded">skincare</code> 或{' '}
+            <code className="font-mono bg-surface dark:bg-gray-800 px-1 rounded">supplement</code>
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button className="btn-secondary" onClick={() => downloadCSVTemplate(PRODUCT_CSV_TEMPLATE_EXAMPLE, 'vitashelf-products-import-template.csv')} type="button">
+              <FileText size={15} /> 下載產品範本
+            </button>
+            <label className="btn btn-primary cursor-pointer">
+              {productMutation.isPending ? <LoadingSpinner size="sm" /> : <Upload size={15} />}
+              {productMutation.isPending ? '匯入中…' : '上傳產品 CSV'}
+              <input ref={productFileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={handleProductsFileChange} disabled={productMutation.isPending} />
+            </label>
+          </div>
+        </div>
+
+        <div className="rounded-md border border-border dark:border-gray-700 p-3 space-y-2">
+          <h3 className="text-sm font-medium text-ink dark:text-gray-200">購買紀錄匯入</h3>
+          <div className="bg-surface dark:bg-gray-800 rounded-md p-3 text-xs font-mono text-ink-muted dark:text-gray-400 overflow-x-auto">
+            {PURCHASE_CSV_TEMPLATE_HEADERS}
+          </div>
+          <p className="text-xs text-ink-muted dark:text-gray-500">
+            productId 可從產品詳情頁網址或管理資料中取得；日期建議使用 <span className="font-mono">YYYY-MM-DD</span>。
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button className="btn-secondary" onClick={() => downloadCSVTemplate(PURCHASE_CSV_TEMPLATE_EXAMPLE, 'vitashelf-purchases-import-template.csv')} type="button">
+              <FileText size={15} /> 下載購買紀錄範本
+            </button>
+            <label className="btn btn-primary cursor-pointer">
+              {purchaseMutation.isPending ? <LoadingSpinner size="sm" /> : <Upload size={15} />}
+              {purchaseMutation.isPending ? '匯入中…' : '上傳購買紀錄 CSV'}
+              <input ref={purchaseFileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={handlePurchasesFileChange} disabled={purchaseMutation.isPending} />
+            </label>
+          </div>
+        </div>
       </div>
-      <p className="text-xs text-ink-muted dark:text-gray-500 -mt-2">
-        category 欄位只接受 <code className="font-mono bg-surface dark:bg-gray-800 px-1 rounded">skincare</code> 或{' '}
-        <code className="font-mono bg-surface dark:bg-gray-800 px-1 rounded">supplement</code>
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <button className="btn-secondary" onClick={downloadCSVTemplate} type="button">
-          <FileText size={15} /> 下載 CSV 範本
-        </button>
-        <label className="btn btn-primary cursor-pointer">
-          {mutation.isPending ? <LoadingSpinner size="sm" /> : <Upload size={15} />}
-          {mutation.isPending ? '匯入中…' : '上傳 CSV 匯入'}
-          <input ref={fileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={handleFileChange} disabled={mutation.isPending} />
-        </label>
-      </div>
+
       {result && (
         <div className="space-y-2">
           <p className={`text-sm flex items-center gap-1.5 ${result.imported > 0 ? 'text-status-ok' : 'text-status-danger'}`}>
             {result.imported > 0
-              ? <><CheckCircle size={14} /> 成功匯入 {result.imported} 個產品</>
-              : <><AlertCircle size={14} /> 未能匯入任何產品</>}
+              ? <>
+                <CheckCircle size={14} />
+                成功匯入 {result.imported} {result.type === 'products' ? '個產品' : '筆購買紀錄'}
+              </>
+              : <>
+                <AlertCircle size={14} />
+                未能匯入任何{result.type === 'products' ? '產品' : '購買紀錄'}
+              </>}
           </p>
           {result.errors.length > 0 && (
             <ul className="text-xs text-status-danger space-y-0.5 max-h-32 overflow-y-auto bg-red-50 dark:bg-red-900/20 rounded p-2">

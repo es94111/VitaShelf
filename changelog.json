@@ -1,7 +1,27 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.1.2",
+  "currentVersion": "2.2.0",
   "releases": [
+    {
+      "version": "2.2.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "新增購買紀錄匯入功能",
+      "changes": [
+        {
+          "category": "added",
+          "description": "資料匯入新增購買紀錄 CSV 匯入，支援批次建立購買紀錄"
+        },
+        {
+          "category": "added",
+          "description": "設定頁匯入區塊新增產品與購買紀錄雙範本與雙上傳入口"
+        },
+        {
+          "category": "changed",
+          "description": "網頁版本資訊更新為 v2.2.0"
+        }
+      ]
+    },
     {
       "version": "2.1.2",
       "date": "2026-03-26",

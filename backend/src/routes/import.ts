@@ -49,11 +49,30 @@ function parseCSV(text: string): Array<Record<string, string>> {
     .filter(Boolean)
 
   if (lines.length < 2) return []
-  const headers = parseCSVLine(lines[0]).map((h) => h.toLowerCase())
+  const headers = parseCSVLine(lines[0]).map((h, idx) => {
+    const key = h.toLowerCase()
+    return idx === 0 ? key.replace(/^\ufeff/, '') : key
+  })
   return lines.slice(1).map((line) => {
     const values = parseCSVLine(line)
     return Object.fromEntries(headers.map((h, i) => [h, values[i] ?? '']))
   })
+}
+
+function toOptionalNumber(value: string | undefined): number | undefined {
+  if (!value) return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  const n = Number(trimmed)
+  return Number.isFinite(n) ? n : NaN
+}
+
+function toDate(value: string | undefined): Date | undefined {
+  if (!value) return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  const d = new Date(trimmed)
+  return Number.isNaN(d.getTime()) ? undefined : d
 }
 
 // ─── POST /api/import/products ────────────────────────────────────────────────
@@ -110,6 +129,129 @@ router.post(
               userId:      req.user!.userId,
             },
           })
+          imported++
+        } catch (e) {
+          errors.push(`第 ${lineNum} 行：建立失敗（${(e as Error).message}）`)
+        }
+      }
+
+      res.status(imported > 0 ? 201 : 400).json({ imported, errors })
+    } catch (err) {
+      next(err)
+    }
+  },
+)
+
+// ─── POST /api/import/purchases ──────────────────────────────────────────────
+// Expected CSV columns: productId, purchaseDate, quantity, expiryDate,
+//                       unitPrice, totalPrice, channel, manufactureDate,
+//                       openedDate, paoMonths, notes
+
+router.post(
+  '/purchases',
+  authenticate,
+  upload.single('file'),
+  async (req: AuthRequest, res, next) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ message: '請上傳 CSV 檔案' })
+        return
+      }
+
+      const text = req.file.buffer.toString('utf-8')
+      const rows = parseCSV(text)
+
+      if (rows.length === 0) {
+        res.status(400).json({ message: 'CSV 檔案無有效資料列' })
+        return
+      }
+
+      let imported = 0
+      const errors: string[] = []
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
+        const lineNum = i + 2
+
+        const productId = row['productid']?.trim()
+        const purchaseDate = toDate(row['purchasedate'])
+        const expiryDate = toDate(row['expirydate'])
+        const quantity = toOptionalNumber(row['quantity'])
+        const unitPrice = toOptionalNumber(row['unitprice'])
+        const totalPrice = toOptionalNumber(row['totalprice'])
+        const paoMonths = toOptionalNumber(row['paomonths'])
+        const manufactureDate = toDate(row['manufacturedate'])
+        const openedDate = toDate(row['openeddate'])
+
+        if (!productId) {
+          errors.push(`第 ${lineNum} 行：缺少 productId`)
+          continue
+        }
+        if (!purchaseDate) {
+          errors.push(`第 ${lineNum} 行：purchaseDate 格式錯誤或缺少`)
+          continue
+        }
+        if (!expiryDate) {
+          errors.push(`第 ${lineNum} 行：expiryDate 格式錯誤或缺少`)
+          continue
+        }
+        if (!Number.isInteger(quantity) || (quantity ?? 0) <= 0) {
+          errors.push(`第 ${lineNum} 行：quantity 必須是大於 0 的整數`)
+          continue
+        }
+        if (unitPrice !== undefined && Number.isNaN(unitPrice)) {
+          errors.push(`第 ${lineNum} 行：unitPrice 格式錯誤`)
+          continue
+        }
+        if (totalPrice !== undefined && Number.isNaN(totalPrice)) {
+          errors.push(`第 ${lineNum} 行：totalPrice 格式錯誤`)
+          continue
+        }
+        if (paoMonths !== undefined && (!Number.isInteger(paoMonths) || paoMonths <= 0)) {
+          errors.push(`第 ${lineNum} 行：paoMonths 必須是大於 0 的整數`)
+          continue
+        }
+
+        const quantityInt = quantity as number
+
+        try {
+          const product = await prisma.product.findFirst({
+            where: { id: productId, userId: req.user!.userId },
+            select: { id: true },
+          })
+
+          if (!product) {
+            errors.push(`第 ${lineNum} 行：找不到 productId 或產品不屬於目前使用者`)
+            continue
+          }
+
+          await prisma.$transaction(async (tx) => {
+            await tx.purchaseRecord.create({
+              data: {
+                productId,
+                purchaseDate,
+                quantity: quantityInt,
+                unitPrice,
+                totalPrice,
+                channel: row['channel']?.trim() || undefined,
+                expiryDate,
+                manufactureDate,
+                openedDate,
+                paoMonths,
+                notes: row['notes']?.trim() || undefined,
+              },
+            })
+
+            await tx.stockLog.create({
+              data: {
+                productId,
+                type: 'IN',
+                quantity: quantityInt,
+                reason: `購買匯入 — ${row['channel']?.trim() || ''}`.trim(),
+              },
+            })
+          })
+
           imported++
         } catch (e) {
           errors.push(`第 ${lineNum} 行：建立失敗（${(e as Error).message}）`)

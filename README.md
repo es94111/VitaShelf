@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-2.1.2-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -36,6 +36,7 @@
 - **資料庫加密** — ChaCha20-Poly1305 + PBKDF2-SHA256 應用層加密（設定 DB_ENCRYPTION_KEY 即啟用）
 - **版本更新檢查** — 設定頁自動檢查是否有新版本，並可手動立即檢查
 - **網頁內更新按鈕** — 發現新版本時可直接在設定頁按「立即更新」套用最新版本
+- **購買紀錄匯入** — 設定頁支援 CSV 批次匯入購買紀錄
 
 ## 技術棧
 
@@ -197,6 +198,7 @@ VitaShelf/
 | —       | v2.1.0 | 設定頁新增自動版本檢查與手動更新檢查 | ✅ |
 | —       | v2.1.1 | 修正管理員在設定頁看不到公開註冊選項 | ✅ |
 | —       | v2.1.2 | 新增有新版時的「立即更新」按鈕與前端快取更新流程 | ✅ |
+| —       | v2.2.0 | 新增購買紀錄 CSV 匯入功能 | ✅ |
 
 ## 文件
 
@@ -205,7 +207,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v2.1.2**
+目前版本：**v2.2.0**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 

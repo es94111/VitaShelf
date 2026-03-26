@@ -145,6 +145,13 @@ export const importApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
+  purchases: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post<{ imported: number; errors: string[] }>('/import/purchases', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
