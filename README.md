@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -33,8 +33,8 @@
 
 | 層級 | 技術 |
 |------|------|
-| 前端 | React 18 + TypeScript + Vite + Tailwind CSS |
-| 後端 | Node.js + Express + TypeScript |
+| 前端 | React 19 + TypeScript + Vite 6 + Tailwind CSS 4 |
+| 後端 | Node.js + Express 5 + TypeScript |
 | 資料庫 | PostgreSQL + Prisma ORM |
 | 容器化 | Docker + Docker Compose |
 | CI/CD | GitHub Actions → GHCR |
@@ -128,6 +128,7 @@ VitaShelf/
 | Phase 5 | v0.6.0 | 儀表板強化（品牌圖表 + 最近異動）、已刪除產品管理 | ✅ |
 | Phase 6 | v0.7.0 | CSV 批次匯入產品（後端 parser + 設定頁 UI） | ✅ |
 | Phase 7 | v1.0.0 | Error Boundary、PWA 支援（manifest + meta）、正式發佈 | ✅ |
+| —       | v1.1.0 | 全面升級套件（React 19、Router 7、Tailwind 4、Express 5、Recharts 3） | ✅ |
 
 ## 文件
 
@@ -136,7 +137,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v1.0.0**
+目前版本：**v1.1.0**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 

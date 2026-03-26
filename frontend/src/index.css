@@ -1,13 +1,74 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* ─── Dark-mode variant: class-based ─────────────────────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── VitaShelf Design System — Flat Design ──────────────────────────────────── */
+
+@theme {
+  /* ── Colors ── */
+  --color-primary:     #2563EB;
+  --color-primary-50:  #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-200: #BFDBFE;
+  --color-primary-500: #3B82F6;
+  --color-primary-600: #2563EB;
+  --color-primary-700: #1D4ED8;
+  --color-primary-900: #1E3A8A;
+
+  --color-accent:      #F97316;
+  --color-accent-50:   #FFF7ED;
+  --color-accent-100:  #FFEDD5;
+  --color-accent-500:  #F97316;
+  --color-accent-600:  #EA580C;
+
+  --color-surface:        #F8FAFC;
+  --color-surface-card:   #FFFFFF;
+  --color-surface-border: #E2E8F0;
+
+  --color-ink:       #1E293B;
+  --color-ink-muted: #64748B;
+  --color-ink-faint: #94A3B8;
+
+  --color-status-ok:      #22C55E;
+  --color-status-warn:    #F59E0B;
+  --color-status-danger:  #EF4444;
+  --color-status-expired: #DC2626;
+
+  /* ── Typography ── */
+  --font-heading: "Fira Code", monospace;
+  --font-body:    "Fira Sans", sans-serif;
+  --font-sans:    "Fira Sans", sans-serif;
+  --font-mono:    "Fira Code", monospace;
+
+  /* ── Shadows ── */
+  --shadow-card:       0 1px 3px 0 rgb(0 0 0 / 0.08);
+  --shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.08);
+  --shadow-modal:      0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+  /* ── Animations ── */
+  --animate-scale-in:       scaleIn 150ms ease-out;
+  --animate-slide-in-right: slideInRight 150ms ease-out;
+}
+
+@keyframes scaleIn {
+  0%   { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  0%   { opacity: 0; transform: translateX(1rem); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── Base layer ─────────────────────────────────────────────────────────────── */
 
 @layer base {
   :root {
-    --color-primary: #2563eb;
-    --color-accent:  #f97316;
-    --color-bg:      #f8fafc;
-    --color-text:    #1e293b;
+    --color-primary-css: #2563eb;
+    --color-accent-css:  #f97316;
+    --color-bg:          #f8fafc;
+    --color-text:        #1e293b;
   }
 
   html {
@@ -26,7 +87,7 @@
 
   /* Focus ring — visible for keyboard nav */
   :focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-primary-css);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -38,14 +99,20 @@
   ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 }
 
+/* ─── Component layer ────────────────────────────────────────────────────────── */
+
 @layer components {
   /* Card */
   .card {
     @apply bg-white rounded-lg border border-surface-border shadow-card p-4;
   }
 
-  /* Btn base */
-  .btn {
+  /* Btn — shared base via plain CSS, variants via @apply for Tailwind utilities */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-accent,
+  .btn-danger {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md
            font-body font-medium text-sm cursor-pointer
            transition-all duration-150 focus-visible:outline
@@ -53,30 +120,34 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary text-white hover:bg-primary-700 active:bg-primary-900;
+    @apply bg-primary text-white hover:bg-primary-700 active:bg-primary-900;
   }
 
   .btn-secondary {
-    @apply btn bg-surface text-ink border border-surface-border
+    @apply bg-surface text-ink border border-surface-border
            hover:bg-surface-border active:bg-surface-border;
   }
 
   .btn-accent {
-    @apply btn bg-accent text-white hover:bg-accent-600;
+    @apply bg-accent text-white hover:bg-accent-600;
   }
 
   .btn-danger {
-    @apply btn bg-status-danger text-white hover:opacity-90;
+    @apply bg-status-danger text-white hover:opacity-90;
   }
 
   /* Badge */
-  .badge {
+  .badge,
+  .badge-ok,
+  .badge-warn,
+  .badge-danger,
+  .badge-info {
     @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
   }
-  .badge-ok      { @apply badge bg-green-100  text-green-700; }
-  .badge-warn    { @apply badge bg-yellow-100 text-yellow-700; }
-  .badge-danger  { @apply badge bg-red-100    text-red-700; }
-  .badge-info    { @apply badge bg-blue-100   text-blue-700; }
+  .badge-ok      { @apply bg-green-100  text-green-700; }
+  .badge-warn    { @apply bg-yellow-100 text-yellow-700; }
+  .badge-danger  { @apply bg-red-100    text-red-700; }
+  .badge-info    { @apply bg-blue-100   text-blue-700; }
 
   /* Input */
   .input {
@@ -103,6 +174,8 @@
     @apply hover:bg-surface transition-colors duration-100;
   }
 }
+
+/* ─── Utility layer ──────────────────────────────────────────────────────────── */
 
 @layer utilities {
   /* Respect reduced-motion */

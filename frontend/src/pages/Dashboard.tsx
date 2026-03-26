@@ -111,7 +111,7 @@ export default function Dashboard() {
                 tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
               />
               <Tooltip
-                formatter={(v: number) => [`NT$ ${v.toLocaleString()}`, '消費']}
+                formatter={(v) => [`NT$ ${Number(v).toLocaleString()}`, '消費']}
                 contentStyle={{ borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 12 }}
               />
               <Bar dataKey="amount" fill="#2563EB" radius={[4, 4, 0, 0]} />
@@ -179,7 +179,7 @@ export default function Dashboard() {
                   width={80}
                 />
                 <Tooltip
-                  formatter={(v: number) => [v, '產品數']}
+                  formatter={(v) => [Number(v), '產品數']}
                   contentStyle={{ borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 12 }}
                 />
                 <Bar dataKey="count" fill="#7C3AED" radius={[0, 4, 4, 0]} />

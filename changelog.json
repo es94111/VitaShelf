@@ -1,7 +1,43 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "1.0.0",
+  "currentVersion": "1.1.0",
   "releases": [
+    {
+      "version": "1.1.0",
+      "date": "2026-03-26",
+      "type": "maintenance",
+      "summary": "全面升級套件至最新版本 — React 19、React Router 7、Tailwind CSS 4、Express 5、Recharts 3",
+      "changes": [
+        {
+          "category": "changed",
+          "description": "frontend: React 18.3 → 19.2、React Router DOM 6 → 7（library mode 向後相容）、Recharts 2 → 3（Tooltip formatter 型別修正）、Lucide React 0.x → 1.x、Tailwind Merge 2 → 3、TanStack React Query 5.62 → 5.95"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: Tailwind CSS 3 → 4 全面遷移 — 移除 tailwind.config.js 與 postcss.config.js，改用 @tailwindcss/vite 插件 + CSS @theme 區塊定義設計系統（顏色、字體、陰影、動畫），@layer components 中的 @apply 改為 CSS 分組選擇器避免自引用"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: Vite 維持 6.4（Vite 8/Rolldown 在 Windows 有相容性問題），@vitejs/plugin-react 4.7，TypeScript 5.9、ESLint 9.39"
+        },
+        {
+          "category": "changed",
+          "description": "backend: Express 4 → 5（path-to-regexp v8、async error handling）、bcryptjs 2 → 3、Multer 1 → 2（Web Streams API）、node-cron 3 → 4、Winston 3.17 → 3.19、jsonwebtoken 9.0.2 → 9.0.3"
+        },
+        {
+          "category": "changed",
+          "description": "backend: Prisma 維持 6.19（避免 v7 schema 破壞性變更）、TypeScript 5.9、dotenv 16.6"
+        },
+        {
+          "category": "added",
+          "description": "frontend: 新增 react-is 依賴（Recharts 3 在 React 19 環境下需要獨立安裝）"
+        },
+        {
+          "category": "added",
+          "description": ".github/workflows/deploy.yml — 新增 Lint + SSH Deploy 工作流程（修復原本 npm cache 路徑不存在導致 CI 失敗的問題）"
+        }
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-03-26",

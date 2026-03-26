@@ -1,6 +1,6 @@
 # VitaShelf — 軟體需求規格書 (SRS)
 
-> **版本：** 1.0.0
+> **版本：** 1.1.0
 > **最後更新：** 2026-03-26
 > **專案名稱：** VitaShelf — 保養品與保健食品庫存管理系統
 
@@ -36,8 +36,8 @@ VitaShelf 提供以下核心能力：
 
 | 層級 | 技術 |
 |------|------|
-| 前端 | React 18 + TypeScript + Tailwind CSS |
-| 後端 | Node.js + Express (或 Fastify) |
+| 前端 | React 19 + TypeScript + Vite 6 + Tailwind CSS 4 |
+| 後端 | Node.js + Express 5 + TypeScript |
 | 資料庫 | SQLite（開發）/ PostgreSQL（生產） |
 | ORM | Prisma |
 | 容器化 | Docker + Docker Compose |
@@ -520,6 +520,7 @@ jobs:
 | Phase 5 | v0.6.0 | 儀表板強化（品牌圖表 + 最近異動）、已刪除產品管理（Tab + 還原） | ✅ 完成 |
 | Phase 6 | v0.7.0 | CSV 批次匯入產品（後端 parser + 設定頁 UI） | ✅ 完成 |
 | Phase 7 | v1.0.0 | Error Boundary、PWA 支援（manifest + meta）、正式發佈 | ✅ 完成 |
+| —       | v1.1.0 | 全面升級套件至最新版本（React 19、Router 7、Tailwind 4、Express 5） | ✅ 完成 |
 
 ---
 
