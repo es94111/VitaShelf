@@ -36,8 +36,8 @@
 | 前端 | React 19 + TypeScript + Vite 6 + Tailwind CSS 4 |
 | 後端 | Node.js + Express 5 + TypeScript |
 | 資料庫 | PostgreSQL + Prisma ORM |
-| 容器化 | Docker + Docker Compose |
-| CI/CD | GitHub Actions → GHCR |
+| 容器化 | Docker（單一 Image：Nginx + Node.js） + Docker Compose |
+| CI/CD | GitHub Actions → Docker Hub / GHCR |
 
 ## 快速開始
 
@@ -70,7 +70,12 @@ cd frontend && npm install && npm run dev
 ### Docker 部署
 
 ```bash
+# 從 Docker Hub 拉取並啟動（需設定 .env）
 docker compose -f docker-compose.prod.yml up -d
+
+# 或本機建置後啟動
+docker build -t vitashelf:local .
+docker compose -f docker-compose.local-images.yml up -d
 ```
 
 ## 已實作頁面
