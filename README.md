@@ -23,6 +23,7 @@
 - **儀表板** — 庫存總覽、消費統計、品牌分佈等圖表
 - **資料匯出入** — 支援 CSV / Excel 匯出入
 - **自動部署** — 推播至 GitHub 時透過 GitHub Actions 自動建置 Docker 映像並部署
+- **JWT Secret 自動產生** — 開發時自動產生亂數 Secret；生產環境未設定則強制拒絕啟動
 
 ## 技術棧
 
@@ -48,6 +49,9 @@
 # 複製專案
 git clone https://github.com/<your-username>/VitaShelf.git
 cd VitaShelf
+
+# 產生 .env 並自動填入隨機 JWT_SECRET（首次必做）
+npm run setup:env
 
 # 啟動開發環境
 docker compose up -d

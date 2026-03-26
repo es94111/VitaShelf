@@ -76,6 +76,20 @@ export default {
         fast: '150ms',
         normal: '200ms',
       },
+      keyframes: {
+        scaleIn: {
+          '0%':   { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        slideInRight: {
+          '0%':   { opacity: '0', transform: 'translateX(1rem)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+      },
+      animation: {
+        'scaleIn':      'scaleIn 150ms ease-out',
+        'slideInRight': 'slideInRight 150ms ease-out',
+      },
     },
   },
   plugins: [],

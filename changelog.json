@@ -1,7 +1,95 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "0.1.0",
+  "currentVersion": "0.3.0",
   "releases": [
+    {
+      "version": "0.3.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "Phase 2 — 後端 API 完善 + 前端產品 CRUD 完整 UI",
+      "changes": [
+        {
+          "category": "added",
+          "description": "backend: src/utils/stock.ts — 共用庫存計算工具（computeStock、computeStockFromLogs、getAlertLevel、getNearestExpiry），供多個 route 共用，消除重複邏輯"
+        },
+        {
+          "category": "added",
+          "description": "backend: src/utils/upload.ts — Multer 圖片上傳設定（JPEG/PNG/WebP/AVIF、5MB 上限、隨機 hex 檔名），含 Promise 封裝的 handleUpload()"
+        },
+        {
+          "category": "added",
+          "description": "backend: prisma/seed.ts — 開發用種子資料（1 個 Demo 帳號、6 個標籤、6 個保養品、5 個保健食品，含多種到期狀態供 UI 展示）"
+        },
+        {
+          "category": "changed",
+          "description": "backend: routes/products.ts — 重構為使用 stock.ts 工具，新增圖片上傳支援（multipart/form-data），修正標籤更新邏輯（先刪後建），補完欄位篩選（tag）"
+        },
+        {
+          "category": "changed",
+          "description": "backend: package.json — 補上 date-fns 依賴（原本 routes 已 import 但缺少宣告）"
+        },
+        {
+          "category": "added",
+          "description": "frontend: components/ui/Toast.tsx — Toast 通知系統（ToastProvider + useToast hook），4 種類型（success/error/warning/info），4 秒自動消失，aria-live polite，slideInRight 動畫"
+        },
+        {
+          "category": "added",
+          "description": "frontend: components/ui/Modal.tsx — 通用 Modal 元件，4 種尺寸，Escape 關閉、焦點捕捉（focus trap）、scaleIn 動畫、50% 黑色遮罩"
+        },
+        {
+          "category": "added",
+          "description": "frontend: components/ui/Skeleton.tsx — Skeleton 載入元件（Skeleton、StatCardSkeleton、TableRowSkeleton、ProductListSkeleton）"
+        },
+        {
+          "category": "added",
+          "description": "frontend: components/features/ProductForm.tsx — 完整產品表單（新增/編輯），含圖片上傳預覽、子分類動態選項、標籤多選、blur 時驗證、LoadingSpinner 送出回饋"
+        },
+        {
+          "category": "added",
+          "description": "frontend: pages/ProductDetail.tsx — 產品詳情頁，含編輯/刪除/庫存異動（Modal 確認），購買紀錄表格，庫存狀況面板"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: pages/Products.tsx — 整合 ProductListSkeleton、ProductForm Modal、點擊列導覽至詳情頁，placeholder opacity 過渡效果"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: App.tsx — 加入 ToastProvider 包覆、新增 /products/:id 路由"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: tailwind.config.js — 新增 scaleIn / slideInRight keyframe 動畫"
+        }
+      ]
+    },
+    {
+      "version": "0.2.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "JWT Secret 自動亂數產生機制",
+      "changes": [
+        {
+          "category": "added",
+          "description": "新增 backend/src/utils/jwtSecret.ts：啟動時驗證 JWT_SECRET，開發環境自動以 crypto.randomBytes(48) 產生 96-char hex secret 並寫入 .env；生產環境未設定或長度不足 32 字元則 process.exit(1)"
+        },
+        {
+          "category": "added",
+          "description": "新增 scripts/setup-env.mjs：一鍵腳本，複製 .env.example → .env 並自動填入 128-char hex JWT_SECRET，支援 --force 覆寫旗標"
+        },
+        {
+          "category": "added",
+          "description": "新增根目錄 package.json，加入 npm run setup:env 與 setup:env:force 指令"
+        },
+        {
+          "category": "changed",
+          "description": "backend/src/index.ts 啟動序列最前端呼叫 resolveJwtSecret()，確保所有路由載入前 secret 已驗證完畢"
+        },
+        {
+          "category": "changed",
+          "description": "README.md 快速開始新增 npm run setup:env 為首次必做步驟"
+        }
+      ]
+    },
     {
       "version": "0.1.0",
       "date": "2026-03-26",

@@ -1,0 +1,11 @@
+{
+  "name": "vitashelf",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "setup:env":  "node scripts/setup-env.mjs",
+    "setup:env:force": "node scripts/setup-env.mjs --force",
+    "dev":        "docker compose up -d",
+    "dev:down":   "docker compose down"
+  }
+}

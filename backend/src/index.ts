@@ -1,4 +1,9 @@
 import 'dotenv/config'
+import { resolveJwtSecret } from './utils/jwtSecret'
+
+// Validate / auto-generate JWT_SECRET before anything else loads
+resolveJwtSecret()
+
 import express from 'express'
 import cors from 'cors'
 import { errorHandler } from './middleware/errorHandler'

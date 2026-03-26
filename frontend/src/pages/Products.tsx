@@ -1,19 +1,28 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, Package } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { productsApi } from '@/services/api'
 import AlertBadge from '@/components/ui/AlertBadge'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { ProductListSkeleton } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import Modal from '@/components/ui/Modal'
+import ProductForm from '@/components/features/ProductForm'
 
 export default function Products() {
-  const [search, setSearch] = useState('')
+  const navigate      = useNavigate()
+  const queryClient   = useQueryClient()
+  const [search,   setSearch]   = useState('')
   const [category, setCategory] = useState('')
-  const [page, setPage] = useState(1)
+  const [page,     setPage]     = useState(1)
+  const [addOpen,  setAddOpen]  = useState(false)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isPlaceholderData } = useQuery({
     queryKey: ['products', { search, category, page }],
-    queryFn: () => productsApi.list({ search, category: category || undefined, page, pageSize: 20 }).then((r) => r.data),
+    queryFn:  () =>
+      productsApi
+        .list({ search, category: category || undefined, page, pageSize: 20 })
+        .then((r) => r.data),
     placeholderData: (prev) => prev,
   })
 
@@ -25,7 +34,7 @@ export default function Products() {
           <h1 className="text-2xl font-heading font-semibold text-ink">產品管理</h1>
           <p className="text-sm text-ink-muted mt-0.5">共 {data?.total ?? 0} 項產品</p>
         </div>
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={() => setAddOpen(true)}>
           <Plus size={16} aria-hidden="true" />
           新增產品
         </button>
@@ -34,7 +43,11 @@ export default function Products() {
       {/* Filters */}
       <div className="card flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" aria-hidden="true" />
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint"
+            aria-hidden="true"
+          />
           <input
             type="search"
             className="input pl-9"
@@ -57,24 +70,24 @@ export default function Products() {
       </div>
 
       {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        {isLoading ? (
-          <div className="flex justify-center py-16">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : !data?.data.length ? (
+      {isLoading ? (
+        <ProductListSkeleton rows={8} />
+      ) : !data?.data.length ? (
+        <div className="card">
           <EmptyState
             icon={Package}
             title="尚無產品"
             description="點擊「新增產品」來新增第一個產品"
             action={
-              <button className="btn-primary">
+              <button className="btn-primary" onClick={() => setAddOpen(true)}>
                 <Plus size={16} aria-hidden="true" />
                 新增產品
               </button>
             }
           />
-        ) : (
+        </div>
+      ) : (
+        <div className={`card p-0 overflow-hidden transition-opacity duration-150 ${isPlaceholderData ? 'opacity-60' : ''}`}>
           <table className="table-base" aria-label="產品列表">
             <thead>
               <tr>
@@ -88,7 +101,11 @@ export default function Products() {
             </thead>
             <tbody>
               {data.data.map((product) => (
-                <tr key={product.id}>
+                <tr
+                  key={product.id}
+                  className="cursor-pointer"
+                  onClick={() => navigate(`/products/${product.id}`)}
+                >
                   <td>
                     <div className="flex items-center gap-3">
                       {product.imageUrl ? (
@@ -101,13 +118,16 @@ export default function Products() {
                           height={36}
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded-md bg-surface border border-surface-border flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-md bg-surface border border-surface-border
+                                        flex items-center justify-center shrink-0">
                           <Package size={16} className="text-ink-faint" aria-hidden="true" />
                         </div>
                       )}
                       <div>
                         <p className="font-medium text-ink">{product.name}</p>
-                        {product.spec && <p className="text-xs text-ink-muted">{product.spec}</p>}
+                        {product.spec && (
+                          <p className="text-xs text-ink-muted">{product.spec}</p>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -122,21 +142,20 @@ export default function Products() {
                     <AlertBadge level={product.alertLevel} />
                   </td>
                   <td>
-                    <div className="flex gap-2 justify-end">
-                      <button className="btn-secondary text-xs px-2.5 py-1.5" aria-label={`檢視 ${product.name}`}>
-                        檢視
-                      </button>
-                      <button className="btn-secondary text-xs px-2.5 py-1.5" aria-label={`編輯 ${product.name}`}>
-                        編輯
-                      </button>
-                    </div>
+                    <button
+                      className="btn-secondary text-xs px-2.5 py-1.5"
+                      aria-label={`檢視 ${product.name}`}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/products/${product.id}`) }}
+                    >
+                      檢視
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
@@ -160,6 +179,17 @@ export default function Products() {
           </div>
         </div>
       )}
+
+      {/* Add product modal */}
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="新增產品" size="lg">
+        <ProductForm
+          onSuccess={() => {
+            setAddOpen(false)
+            queryClient.invalidateQueries({ queryKey: ['products'] })
+          }}
+          onCancel={() => setAddOpen(false)}
+        />
+      </Modal>
     </div>
   )
 }
