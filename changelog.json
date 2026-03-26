@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.2.2",
+  "currentVersion": "2.2.3",
   "releases": [
+    {
+      "version": "2.2.3",
+      "date": "2026-03-26",
+      "type": "fixed",
+      "summary": "修正管理員公開註冊設定區塊自動消失",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "設定頁管理員子選單在權限驗證失敗時改為顯示提示訊息，不再直接消失"
+        },
+        {
+          "category": "changed",
+          "description": "網頁版本資訊更新為 v2.2.3"
+        }
+      ]
+    },
     {
       "version": "2.2.2",
       "date": "2026-03-26",

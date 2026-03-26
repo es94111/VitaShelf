@@ -12,7 +12,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const APP_VERSION = '2.2.2'
+const APP_VERSION = '2.2.3'
 const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -387,7 +387,15 @@ function AdminSubmenuSection() {
 
   if (isError) {
     const status = (error as ApiLikeError).response?.status
-    if (status === 403) return null
+    if (status === 403) {
+      return (
+        <Section icon={<Shield size={16} aria-hidden="true" />} title="管理員子選單">
+          <p className="text-sm text-ink-muted dark:text-gray-400">
+            目前帳號尚未通過管理員權限驗證，請重新登入後再試。
+          </p>
+        </Section>
+      )
+    }
 
     return (
       <Section icon={<Shield size={16} aria-hidden="true" />} title="公開註冊設定（管理員）">
