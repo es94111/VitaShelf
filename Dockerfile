@@ -30,7 +30,6 @@ USER vitashelf
 ENV NODE_ENV=production
 ENV PORT=4000
 ENV CORS_ORIGIN=http://localhost:3000
-ENV JWT_SECRET=change-me-to-a-very-long-random-secret-32-plus
 
 EXPOSE 4000
 

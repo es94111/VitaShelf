@@ -70,7 +70,11 @@ function TagForm({ initial, onSuccess, onCancel }: TagFormProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
-    initial ? updateMutation.mutate() : createMutation.mutate()
+    if (initial) {
+      updateMutation.mutate()
+      return
+    }
+    createMutation.mutate()
   }
 
   return (

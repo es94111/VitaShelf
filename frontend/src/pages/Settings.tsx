@@ -11,6 +11,19 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+type ApiLikeError = {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
+
+function getApiErrorMessage(err: unknown, fallback: string): string {
+  const candidate = err as ApiLikeError
+  return candidate.response?.data?.message ?? fallback
+}
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a   = document.createElement('a')
@@ -68,8 +81,8 @@ function ProfileSection() {
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     },
-    onError: (err: any) =>
-      toast.error(err?.response?.data?.message ?? '更新失敗'),
+    onError: (err: unknown) =>
+      toast.error(getApiErrorMessage(err, '更新失敗')),
   })
 
   function validate() {
@@ -167,8 +180,8 @@ function PasswordSection() {
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     },
-    onError: (err: any) =>
-      toast.error(err?.response?.data?.message ?? '密碼更新失敗'),
+    onError: (err: unknown) =>
+      toast.error(getApiErrorMessage(err, '密碼更新失敗')),
   })
 
   function validate() {
@@ -395,7 +408,7 @@ function ImportSection() {
       }
       if (fileRef.current) fileRef.current.value = ''
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message ?? '匯入失敗'),
+    onError: (err: unknown) => toast.error(getApiErrorMessage(err, '匯入失敗')),
   })
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
