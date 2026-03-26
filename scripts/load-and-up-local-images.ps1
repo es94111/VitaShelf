@@ -19,6 +19,11 @@ if (-not (Test-Path $composeFile)) {
   throw "Missing compose file: $composeFile"
 }
 
+if (-not $env:JWT_SECRET -or $env:JWT_SECRET.Length -lt 32) {
+  $env:JWT_SECRET = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 48 | ForEach-Object { [char]$_ })
+  Write-Host 'JWT_SECRET was missing/too short; generated a temporary 48-char secret for this run.'
+}
+
 Write-Host 'Loading frontend image tar...'
 docker load -i $frontendTar | Out-Host
 
