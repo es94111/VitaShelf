@@ -1,7 +1,27 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.2.6",
+  "currentVersion": "2.2.7",
   "releases": [
+    {
+      "version": "2.2.7",
+      "date": "2026-03-26",
+      "type": "added",
+      "summary": "新增網站 ICON",
+      "changes": [
+        {
+          "category": "added",
+          "description": "新增 favicon.svg 上传到 public 文件夾"
+        },
+        {
+          "category": "improved",
+          "description": "manifest.json 中添加了 192x192 和 512x512 等項量icon 配置"
+        },
+        {
+          "category": "changed",
+          "description": "更新版本是 v2.2.7"
+        }
+      ]
+    },
     {
       "version": "2.2.6",
       "date": "2026-03-26",

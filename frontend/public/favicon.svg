@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- Background -->
+  <rect width="192" height="192" fill="#F8FAFC" rx="45" ry="45"/>
+  
+  <!-- Main icon: Bottle with checkmark (health/wellness theme) -->
+  <g transform="translate(96, 96)">
+    <!-- Bottle body -->
+    <path d="M -20 -15 Q -25 -10 -25 5 L -25 40 Q -25 50 -15 50 L 15 50 Q 25 50 25 40 L 25 5 Q 25 -10 20 -15 Z" 
+          fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Bottle cap -->
+    <rect x="-18" y="-25" width="36" height="12" rx="2" fill="#2563EB"/>
+    
+    <!-- Checkmark inside -->
+    <g transform="translate(0, 8)">
+      <path d="M -8 -2 L -2 4 L 8 -6" 
+            stroke="#2563EB" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    
+    <!-- Shine effect -->
+    <circle cx="-8" cy="-5" r="2" fill="#60A5FA" opacity="0.6"/>
+  </g>
+</svg>
