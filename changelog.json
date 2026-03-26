@@ -1,7 +1,40 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "0.3.0",
+  "currentVersion": "0.4.0",
   "releases": [
+    {
+      "version": "0.4.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "Phase 3 — 購買紀錄 CRUD 完整前端 UI",
+      "changes": [
+        {
+          "category": "added",
+          "description": "frontend: hooks/useDebounce.ts — 通用 debounce hook（預設 350ms），防止搜尋框每次 keystroke 都觸發請求"
+        },
+        {
+          "category": "added",
+          "description": "frontend: components/features/PurchaseForm.tsx — 購買紀錄表單（新增/編輯）：產品下拉、日期、數量、單價 × 數量自動計算總價、通路選單、Progressive Disclosure（製造日期/開封日/PAO 預設收起）、blur 驗證、到期日不可早於購買日驗證、aria-live 錯誤提示"
+        },
+        {
+          "category": "added",
+          "description": "frontend: pages/Purchases.tsx — 購買紀錄列表頁：搜尋（client-side debounce）、產品篩選、新增/編輯/刪除 Modal、ExpiryCell 到期色彩標示、分頁、overflow-x-auto 行動裝置相容"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: Sidebar.tsx — 「到期提醒」導覽項目加入即時 alert count 紅色數字徽章（expiring + expired 合計），超過 99 顯示 99+，aria-label 無障礙說明"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: ProductDetail.tsx — 庫存面板新增「新增購買紀錄」主要按鈕（Pre-selected product，省去重新選擇步驟）"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: App.tsx — 正式掛載 Purchases 路由（/purchases）"
+        }
+      ]
+    },
+    {
     {
       "version": "0.3.0",
       "date": "2026-03-26",

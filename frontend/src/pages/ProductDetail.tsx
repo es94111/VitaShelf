@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/Toast'
 import AlertBadge from '@/components/ui/AlertBadge'
 import Modal from '@/components/ui/Modal'
 import ProductForm from '@/components/features/ProductForm'
+import PurchaseForm from '@/components/features/PurchaseForm'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { clsx } from 'clsx'
 
@@ -23,6 +24,7 @@ export default function ProductDetail() {
   const [editOpen,       setEditOpen]       = useState(false)
   const [deleteOpen,     setDeleteOpen]     = useState(false)
   const [stockOpen,      setStockOpen]      = useState(false)
+  const [purchaseOpen,   setPurchaseOpen]   = useState(false)
   const [stockType,      setStockType]      = useState<'OUT_USE' | 'OUT_DISCARD' | 'ADJUST'>('OUT_USE')
   const [stockQty,       setStockQty]       = useState('1')
   const [stockReason,    setStockReason]    = useState('')
@@ -235,15 +237,30 @@ export default function ProductDetail() {
               <StockRow label="已使用"   value={stockInfo?.openedCount ?? 0} />
               <StockRow label="已報廢"   value={stockInfo?.discardedCount ?? 0} />
             </div>
-            <button
-              className="btn-accent w-full mt-4"
-              onClick={() => setStockOpen(true)}
-            >
-              <Plus size={16} aria-hidden="true" /> 庫存異動
-            </button>
+            <div className="flex flex-col gap-2 mt-4">
+              <button className="btn-primary w-full" onClick={() => setPurchaseOpen(true)}>
+                <ShoppingCart size={16} aria-hidden="true" /> 新增購買紀錄
+              </button>
+              <button className="btn-accent w-full" onClick={() => setStockOpen(true)}>
+                <Plus size={16} aria-hidden="true" /> 庫存異動
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* ── Add purchase modal ── */}
+      <Modal open={purchaseOpen} onClose={() => setPurchaseOpen(false)} title="新增購買紀錄" size="lg">
+        <PurchaseForm
+          preselectedProductId={id}
+          onSuccess={() => {
+            setPurchaseOpen(false)
+            queryClient.invalidateQueries({ queryKey: ['product', id] })
+            queryClient.invalidateQueries({ queryKey: ['stock', id] })
+          }}
+          onCancel={() => setPurchaseOpen(false)}
+        />
+      </Modal>
 
       {/* ── Edit modal ── */}
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="編輯產品" size="lg">

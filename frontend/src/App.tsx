@@ -7,6 +7,7 @@ import Dashboard from '@/pages/Dashboard'
 import Products from '@/pages/Products'
 import ProductDetail from '@/pages/ProductDetail'
 import Alerts from '@/pages/Alerts'
+import Purchases from '@/pages/Purchases'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -32,8 +33,8 @@ export default function App() {
             <Route path="products"        element={<Products />} />
             <Route path="products/:id"    element={<ProductDetail />} />
             <Route path="alerts"          element={<Alerts />} />
-            {/* Phase 3+ placeholder routes */}
-            <Route path="purchases"       element={<PlaceholderPage title="購買紀錄" phase="Phase 4" />} />
+            <Route path="purchases"  element={<Purchases />} />
+            {/* Phase 4+ placeholder routes */}
             <Route path="categories"      element={<PlaceholderPage title="分類標籤" phase="Phase 5" />} />
             <Route path="settings"        element={<PlaceholderPage title="設定"     phase="Phase 7" />} />
           </Route>
