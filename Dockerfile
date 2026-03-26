@@ -25,14 +25,16 @@ RUN apk add --no-cache nginx
 
 WORKDIR /app
 
+# ── Prisma schema (needed by @prisma/client post-install) ──
+COPY backend/prisma                               ./prisma
+
 # ── Backend production deps ──
 COPY backend/package*.json ./
 RUN npm ci --omit=dev --prefer-offline && npm cache clean --force
 
-# ── Backend compiled output ──
+# ── Backend compiled output + Prisma engine from builder ──
 COPY --from=backend-builder /app/dist             ./dist
 COPY --from=backend-builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY backend/prisma                               ./prisma
 
 # ── Frontend static files ──
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html

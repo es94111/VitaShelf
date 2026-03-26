@@ -84,6 +84,50 @@ docker build -t vitashelf:local .
 docker compose -f docker-compose.local-images.yml up -d
 ```
 
+## 環境變數說明
+
+複製 `.env.example` 為 `.env` 並依需求填入：
+
+```bash
+cp .env.example .env
+```
+
+### 必填
+
+| 變數 | 說明 | 範例 |
+|------|------|------|
+| `DATABASE_URL` | PostgreSQL 連線字串 | `postgresql://user:pass@db:5432/vitashelf` |
+| `JWT_SECRET` | JWT 簽章金鑰（建議 64 字元以上亂數）| `openssl rand -hex 32` |
+| `POSTGRES_USER` | PostgreSQL 使用者名稱 | `vitashelf` |
+| `POSTGRES_PASSWORD` | PostgreSQL 密碼 | `your_password` |
+| `POSTGRES_DB` | PostgreSQL 資料庫名稱 | `vitashelf` |
+
+> **注意**：生產環境未設定 `JWT_SECRET` 時，容器將拒絕啟動。
+
+### 選填
+
+| 變數 | 說明 | 預設值 |
+|------|------|--------|
+| `NODE_ENV` | 執行環境 | `production` |
+| `PORT` | API 監聽埠 | `4000` |
+| `CORS_ORIGIN` | 允許跨域來源 | `http://localhost` |
+| `UPLOAD_DIR` | 圖片上傳目錄 | `/app/uploads` |
+| `GOOGLE_CLIENT_ID` | Google OAuth 2.0 Client ID，設定後啟用 Google SSO | 停用 |
+| `DB_ENCRYPTION_KEY` | 資料庫加密金鑰（ChaCha20-Poly1305 + PBKDF2-SHA256），設定後啟用應用層加密 | 停用 |
+| `GITHUB_REPOSITORY` | Docker 映像來源（Docker Compose prod 使用）| — |
+| `IMAGE_TAG` | Docker 映像標籤 | `latest` |
+
+### Google SSO 設定步驟
+
+1. 前往 [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
+2. 建立 **OAuth 2.0 用戶端 ID**，類型選「網頁應用程式」
+3. 在授權的 JavaScript 來源填入你的網域（如 `https://your-domain.com`）
+4. 將產生的 Client ID 填入 `GOOGLE_CLIENT_ID`
+
+### 資料庫加密說明
+
+設定 `DB_ENCRYPTION_KEY` 後，系統會自動以 ChaCha20-Poly1305 加密敏感欄位。**金鑰一旦設定不可更改**，否則現有加密資料將無法解密。建議使用 `openssl rand -hex 32` 產生。
+
 ## 已實作頁面
 
 | 路徑 | 頁面 | 狀態 |
@@ -153,7 +197,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v1.2.0**
+目前版本：**v2.0.0**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 
