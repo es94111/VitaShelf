@@ -1,6 +1,6 @@
 # VitaShelf — 軟體需求規格書 (SRS)
 
-> **版本：** 0.5.0
+> **版本：** 1.0.0
 > **最後更新：** 2026-03-26
 > **專案名稱：** VitaShelf — 保養品與保健食品庫存管理系統
 
@@ -467,13 +467,20 @@ jobs:
 | `PUT` | `/api/users/me` | 更新顯示名稱 |
 | `POST` | `/api/users/me/change-password` | 修改密碼 |
 
-### 7.7 匯出入
+### 7.7 儀表板（擴充）
 
 | 方法 | 路徑 | 說明 |
 |------|------|------|
-| `GET` | `/api/export/products` | 匯出產品清單 |
-| `GET` | `/api/export/purchases` | 匯出購買紀錄 |
-| `POST` | `/api/import/products` | 匯入產品資料 |
+| `GET` | `/api/dashboard/brand-breakdown` | 品牌分佈 Top 10（依產品數排序） |
+| `GET` | `/api/dashboard/recent-activity` | 最近 8 筆庫存異動紀錄（含 product.name） |
+
+### 7.8 匯出入
+
+| 方法 | 路徑 | 說明 |
+|------|------|------|
+| `GET` | `/api/export/products` | 匯出產品清單（CSV，BOM） |
+| `GET` | `/api/export/purchases` | 匯出購買紀錄（CSV，BOM） |
+| `POST` | `/api/import/products` | 批次匯入產品（CSV multipart，回傳 imported / errors） |
 
 ---
 
@@ -510,9 +517,9 @@ jobs:
 | Phase 2 | v0.3.0 | 後端 API 完善 + 前端產品 CRUD 完整 UI | ✅ 完成 |
 | Phase 3 | v0.4.0 | 購買紀錄 CRUD 完整前端 UI + Sidebar 到期徽章 | ✅ 完成 |
 | Phase 4 | v0.5.0 | 分類標籤管理頁、設定頁（個人資料/密碼/匯出）、行動裝置響應式佈局 | ✅ 完成 |
-| Phase 5 | v0.6.0 | 儀表板強化 + 使用者管理 | 🔲 待開發 |
-| Phase 6 | v0.7.0 | 資料匯入 + 測試覆蓋 | 🔲 待開發 |
-| Phase 7 | v1.0.0 | Docker 部署優化 + 正式發佈 | 🔲 待開發 |
+| Phase 5 | v0.6.0 | 儀表板強化（品牌圖表 + 最近異動）、已刪除產品管理（Tab + 還原） | ✅ 完成 |
+| Phase 6 | v0.7.0 | CSV 批次匯入產品（後端 parser + 設定頁 UI） | ✅ 完成 |
+| Phase 7 | v1.0.0 | Error Boundary、PWA 支援（manifest + meta）、正式發佈 | ✅ 完成 |
 
 ---
 

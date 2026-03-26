@@ -1,7 +1,83 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "0.5.0",
+  "currentVersion": "1.0.0",
   "releases": [
+    {
+      "version": "1.0.0",
+      "date": "2026-03-26",
+      "type": "major",
+      "summary": "Phase 7 — Error Boundary、PWA 支援、正式發佈 v1.0.0",
+      "changes": [
+        {
+          "category": "added",
+          "description": "frontend: components/ui/ErrorBoundary.tsx — React class-based Error Boundary，捕捉渲染錯誤並顯示友善的錯誤頁面（含重試按鈕 + 回首頁），console.error 記錄 componentStack"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: App.tsx — 最外層以 ErrorBoundary 包覆，確保任何頁面崩潰都能被攔截"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: index.html — 新增 PWA meta（theme-color / apple-mobile-web-app / manifest link）、Open Graph tags、apple-touch-icon，正式支援 Add to Home Screen"
+        },
+        {
+          "category": "added",
+          "description": "frontend: public/manifest.json — PWA Web App Manifest（name / short_name / display: standalone / theme_color / icons）"
+        }
+      ]
+    },
+    {
+      "version": "0.7.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "Phase 6 — CSV 批次匯入產品",
+      "changes": [
+        {
+          "category": "added",
+          "description": "backend: routes/import.ts — POST /api/import/products：multer memoryStorage 接收 CSV 檔案（2MB 上限），內建 CSV parser 支援引號欄位，逐列驗證 name/brand/category 必填欄位，回傳 { imported, errors } 結果"
+        },
+        {
+          "category": "changed",
+          "description": "backend: index.ts — 掛載 /api/import 路由"
+        },
+        {
+          "category": "added",
+          "description": "frontend: services/api.ts — 新增 importApi.products()（multipart/form-data 上傳）"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: pages/Settings.tsx — 新增「資料匯入」區塊：下載 CSV 範本按鈕（含範例資料）、檔案上傳觸發匯入、顯示成功數量及逐列錯誤訊息、自動 invalidate products cache"
+        }
+      ]
+    },
+    {
+      "version": "0.6.0",
+      "date": "2026-03-26",
+      "type": "feature",
+      "summary": "Phase 5 — 儀表板強化 + 已刪除產品管理",
+      "changes": [
+        {
+          "category": "added",
+          "description": "backend: routes/dashboard.ts — 新增 GET /brand-breakdown（依品牌分組計數，回傳 Top 10）與 GET /recent-activity（最近 8 筆 StockLog，含 product.name）"
+        },
+        {
+          "category": "changed",
+          "description": "backend: routes/products.ts — GET / 支援 deleted=true query param，切換 isDeleted 篩選條件"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: services/api.ts — ProductsQuery 新增 deleted 欄位；dashboardApi 新增 brandBreakdown() 與 recentActivity()"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: pages/Dashboard.tsx — 新增品牌分佈橫向 BarChart（Recharts layout=vertical）、最近庫存異動 Feed（相對時間 + 產品連結 + 類型圖示）；StatCard 使用 StatCardSkeleton；即將到期表格加上「查看全部」連結"
+        },
+        {
+          "category": "changed",
+          "description": "frontend: pages/Products.tsx — 新增「一般產品 / 已刪除」分頁 Tab；已刪除 Tab 顯示軟刪除產品並提供「還原」按鈕（useMutation + toast）"
+        }
+      ]
+    },
     {
       "version": "0.5.0",
       "date": "2026-03-26",

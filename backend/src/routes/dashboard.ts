@@ -97,4 +97,41 @@ router.get('/category-breakdown', authenticate, async (req: AuthRequest, res, ne
   } catch (err) { next(err) }
 })
 
+// GET /api/dashboard/brand-breakdown — top 10 brands by product count
+router.get('/brand-breakdown', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const userId = req.user!.userId
+    const products = await prisma.product.findMany({
+      where: { userId, isDeleted: false },
+      select: { brand: true },
+    })
+
+    const brandMap = new Map<string, number>()
+    for (const p of products) {
+      brandMap.set(p.brand, (brandMap.get(p.brand) ?? 0) + 1)
+    }
+
+    const result = Array.from(brandMap.entries())
+      .map(([brand, count]) => ({ brand, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+
+    res.json(result)
+  } catch (err) { next(err) }
+})
+
+// GET /api/dashboard/recent-activity — last 8 stock logs across all products
+router.get('/recent-activity', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const userId = req.user!.userId
+    const logs = await prisma.stockLog.findMany({
+      where:   { product: { userId } },
+      include: { product: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take:    8,
+    })
+    res.json(logs)
+  } catch (err) { next(err) }
+})
+
 export default router

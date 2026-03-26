@@ -18,13 +18,15 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
       pageSize  = '20',
       sortBy    = 'createdAt',
       sortDir   = 'desc',
+      deleted   = 'false',
     } = req.query as Record<string, string>
 
     const skip = (Number(page) - 1) * Number(pageSize)
+    const showDeleted = deleted === 'true'
 
     const where = {
       userId:    req.user!.userId,
-      isDeleted: false,
+      isDeleted: showDeleted,
       ...(search
         ? {
             OR: [

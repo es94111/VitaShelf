@@ -3,7 +3,7 @@
 > 保養品與保健食品庫存管理系統
 > Skincare & Health Supplement Inventory Management System
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)]()
 
@@ -22,8 +22,10 @@
 - **庫存管理** — 入庫 / 出庫 / 報廢 / 盤點，即時掌握庫存狀態
 - **分類標籤** — 自訂彩色標籤管理，支援新增、編輯、刪除
 - **儀表板** — 庫存總覽、消費統計、品牌分佈等圖表
-- **設定頁** — 個人資料編輯、密碼修改、CSV 資料匯出
+- **設定頁** — 個人資料編輯、密碼修改、CSV 資料匯出 / 批次匯入
 - **行動裝置支援** — 響應式佈局，Hamburger 側邊欄，支援手機與平板操作
+- **PWA 支援** — 可加入主畫面（Add to Home Screen），支援 standalone 模式
+- **錯誤邊界** — React Error Boundary 攔截渲染錯誤，顯示友善錯誤畫面
 - **自動部署** — 推播至 GitHub 時透過 GitHub Actions 自動建置 Docker 映像並部署
 - **JWT Secret 自動產生** — 開發時自動產生亂數 Secret；生產環境未設定則強制拒絕啟動
 
@@ -123,9 +125,9 @@ VitaShelf/
 | Phase 2 | v0.3.0 | 後端 API 完善 + 前端產品 CRUD 完整 UI | ✅ |
 | Phase 3 | v0.4.0 | 購買紀錄 CRUD 完整前端 UI | ✅ |
 | Phase 4 | v0.5.0 | 分類標籤管理、設定頁、行動裝置響應式佈局 | ✅ |
-| Phase 5 | v0.6.0 | 儀表板強化 + 使用者管理 | 🔲 |
-| Phase 6 | v0.7.0 | 資料匯入 + 測試 | 🔲 |
-| Phase 7 | v1.0.0 | 正式發佈 | 🔲 |
+| Phase 5 | v0.6.0 | 儀表板強化（品牌圖表 + 最近異動）、已刪除產品管理 | ✅ |
+| Phase 6 | v0.7.0 | CSV 批次匯入產品（後端 parser + 設定頁 UI） | ✅ |
+| Phase 7 | v1.0.0 | Error Boundary、PWA 支援（manifest + meta）、正式發佈 | ✅ |
 
 ## 文件
 
@@ -134,7 +136,7 @@ VitaShelf/
 
 ## 版本資訊
 
-目前版本：**v0.5.0**
+目前版本：**v1.0.0**
 
 詳見 [changelog.json](./changelog.json) 了解完整變更歷史。
 

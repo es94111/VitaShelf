@@ -15,6 +15,7 @@ import alertRoutes    from './routes/alerts'
 import dashboardRoutes from './routes/dashboard'
 import tagRoutes      from './routes/tags'
 import exportRoutes   from './routes/export'
+import importRoutes   from './routes/import'
 import logger         from './middleware/logger'
 
 const app = express()
@@ -42,10 +43,11 @@ app.use('/api/alerts',    alertRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/tags',      tagRoutes)
 app.use('/api/export',    exportRoutes)
+app.use('/api/import',    importRoutes)
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', version: '0.5.0', timestamp: new Date().toISOString() })
+  res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() })
 })
 
 // ─── Error Handler ────────────────────────────────────────────────────────────

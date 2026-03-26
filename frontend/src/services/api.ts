@@ -57,6 +57,7 @@ export interface ProductsQuery {
   tag?: string
   sortBy?: 'name' | 'expiryDate' | 'createdAt' | 'currentStock'
   sortDir?: 'asc' | 'desc'
+  deleted?: 'true' | 'false'
 }
 
 export const productsApi = {
@@ -111,6 +112,29 @@ export const dashboardApi = {
     api.get<Array<{ month: string; amount: number }>>('/dashboard/monthly-spend'),
   categoryBreakdown: () =>
     api.get<Array<{ category: string; count: number }>>('/dashboard/category-breakdown'),
+  brandBreakdown: () =>
+    api.get<Array<{ brand: string; count: number }>>('/dashboard/brand-breakdown'),
+  recentActivity: () =>
+    api.get<Array<{
+      id: string
+      type: string
+      quantity: number
+      reason?: string
+      createdAt: string
+      product: { id: string; name: string }
+    }>>('/dashboard/recent-activity'),
+}
+
+// ─── Import ───────────────────────────────────────────────────────────────────
+
+export const importApi = {
+  products: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post<{ imported: number; errors: string[] }>('/import/products', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }
 
 // ─── Tags ────────────────────────────────────────────────────────────────────

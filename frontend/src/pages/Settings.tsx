@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useState, useRef } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  User, Lock, Download, Info,
-  Eye, EyeOff, CheckCircle,
+  User, Lock, Download, Upload, Info,
+  Eye, EyeOff, CheckCircle, FileText, AlertCircle,
 } from 'lucide-react'
-import { usersApi, exportApi } from '@/services/api'
+import { usersApi, exportApi, importApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -358,6 +358,106 @@ function ExportSection() {
   )
 }
 
+// ─── Import section ───────────────────────────────────────────────────────────
+
+const CSV_TEMPLATE_HEADERS = 'name,brand,category,subCategory,spec,barcode,notes'
+const CSV_TEMPLATE_EXAMPLE = [
+  CSV_TEMPLATE_HEADERS,
+  '玫瑰精華液,品牌A,skincare,精華液,30ml,,補水保濕',
+  '維他命C,品牌B,supplement,維他命,60錠,4719854321,,',
+].join('\n')
+
+function downloadCSVTemplate() {
+  const blob = new Blob(['\uFEFF' + CSV_TEMPLATE_EXAMPLE], { type: 'text/csv;charset=utf-8' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = 'vitashelf-import-template.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function ImportSection() {
+  const toast        = useToast()
+  const queryClient  = useQueryClient()
+  const fileRef      = useRef<HTMLInputElement>(null)
+  const [result, setResult] = useState<{ imported: number; errors: string[] } | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: (file: File) => importApi.products(file).then((r) => r.data),
+    onSuccess: (data) => {
+      setResult(data)
+      if (data.imported > 0) {
+        queryClient.invalidateQueries({ queryKey: ['products'] })
+        toast.success(`成功匯入 ${data.imported} 個產品`)
+      } else {
+        toast.error('未匯入任何產品，請檢查格式')
+      }
+      if (fileRef.current) fileRef.current.value = ''
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message ?? '匯入失敗'),
+  })
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setResult(null)
+    mutation.mutate(file)
+  }
+
+  return (
+    <Section icon={<Upload size={16} aria-hidden="true" />} title="資料匯入">
+      <p className="text-sm text-ink-muted">
+        透過 CSV 批次匯入產品資料。請先下載範本，依格式填寫後上傳。
+      </p>
+
+      {/* CSV Columns reference */}
+      <div className="bg-surface rounded-md p-3 text-xs font-mono text-ink-muted overflow-x-auto">
+        {CSV_TEMPLATE_HEADERS}
+      </div>
+      <p className="text-xs text-ink-muted -mt-2">
+        category 欄位只接受 <code className="font-mono bg-surface px-1 rounded">skincare</code> 或{' '}
+        <code className="font-mono bg-surface px-1 rounded">supplement</code>
+      </p>
+
+      <div className="flex flex-wrap gap-3">
+        <button className="btn-secondary" onClick={downloadCSVTemplate} type="button">
+          <FileText size={15} aria-hidden="true" /> 下載 CSV 範本
+        </button>
+        <label className="btn btn-primary cursor-pointer">
+          {mutation.isPending ? <LoadingSpinner size="sm" /> : <Upload size={15} aria-hidden="true" />}
+          {mutation.isPending ? '匯入中…' : '上傳 CSV 匯入'}
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="sr-only"
+            onChange={handleFileChange}
+            disabled={mutation.isPending}
+          />
+        </label>
+      </div>
+
+      {/* Result summary */}
+      {result && (
+        <div className="space-y-2">
+          <p className={`text-sm flex items-center gap-1.5 ${result.imported > 0 ? 'text-status-ok' : 'text-status-danger'}`}>
+            {result.imported > 0
+              ? <><CheckCircle size={14} aria-hidden="true" /> 成功匯入 {result.imported} 個產品</>
+              : <><AlertCircle size={14} aria-hidden="true" /> 未能匯入任何產品</>
+            }
+          </p>
+          {result.errors.length > 0 && (
+            <ul className="text-xs text-status-danger space-y-0.5 max-h-32 overflow-y-auto bg-red-50 rounded p-2">
+              {result.errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
+    </Section>
+  )
+}
+
 // ─── About section ────────────────────────────────────────────────────────────
 
 function AboutSection() {
@@ -366,7 +466,7 @@ function AboutSection() {
       <dl className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted">版本</dt>
-          <dd className="font-mono text-ink font-medium">v0.5.0</dd>
+          <dd className="font-mono text-ink font-medium">v1.0.0</dd>
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted">說明</dt>
@@ -390,6 +490,7 @@ export default function Settings() {
       <ProfileSection />
       <PasswordSection />
       <ExportSection />
+      <ImportSection />
       <AboutSection />
     </div>
   )
