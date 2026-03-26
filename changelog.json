@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.2.4",
+  "currentVersion": "2.2.5",
   "releases": [
+    {
+      "version": "2.2.5",
+      "date": "2026-03-26",
+      "type": "improved",
+      "summary": "確認匯出格式與範本對齊，更新文檔",
+      "changes": [
+        {
+          "category": "improved",
+          "description": "確認匯出產品清單與購買紀錄格式完全對齊匯入範本"
+        },
+        {
+          "category": "changed",
+          "description": "更新 SRS.md 與 README.md 文檔版本"
+        }
+      ]
+    },
     {
       "version": "2.2.4",
       "date": "2026-03-26",
