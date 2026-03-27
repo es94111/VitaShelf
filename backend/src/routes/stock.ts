@@ -67,4 +67,54 @@ router.get('/logs', authenticate, async (req: AuthRequest, res, next) => {
   }
 })
 
+// PUT /api/stock/:id — Edit stock log
+router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const logId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+    const { type, quantity, reason } = req.body
+
+    // Verify log ownership
+    const log = await prisma.stockLog.findFirst({
+      where: { id: logId, product: { userId: req.user!.userId } },
+    })
+    if (!log) {
+      res.status(404).json({ message: '找不到此庫存異動記錄' })
+      return
+    }
+
+    const updated = await prisma.stockLog.update({
+      where: { id: logId },
+      data: {
+        type: type || undefined,
+        quantity: quantity ? Number(quantity) : undefined,
+        reason: reason ?? undefined,
+      },
+    })
+    res.json(updated)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// DELETE /api/stock/:id — Delete stock log
+router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const logId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
+
+    // Verify log ownership
+    const log = await prisma.stockLog.findFirst({
+      where: { id: logId, product: { userId: req.user!.userId } },
+    })
+    if (!log) {
+      res.status(404).json({ message: '找不到此庫存異動記錄' })
+      return
+    }
+
+    await prisma.stockLog.delete({ where: { id: logId } })
+    res.json({ message: '已刪除' })
+  } catch (err) {
+    next(err)
+  }
+})
+
 export default router

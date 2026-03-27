@@ -14,7 +14,7 @@ import ProductForm from '@/components/features/ProductForm'
 import PurchaseForm from '@/components/features/PurchaseForm'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { clsx } from 'clsx'
-import type { PurchaseRecord } from '@/types'
+import type { PurchaseRecord, StockLog } from '@/types'
 
 export default function ProductDetail() {
   const { id }       = useParams<{ id: string }>()
@@ -26,6 +26,8 @@ export default function ProductDetail() {
   const [deleteOpen,     setDeleteOpen]     = useState(false)
   const [stockOpen,      setStockOpen]      = useState(false)
   const [purchaseOpen,   setPurchaseOpen]   = useState(false)
+  const [stockEditOpen,  setStockEditOpen]  = useState(false)
+  const [editingLog,     setEditingLog]     = useState<StockLog | null>(null)
   const [stockType,      setStockType]      = useState<'OUT_USE' | 'OUT_DISCARD' | 'ADJUST'>('OUT_USE')
   const [stockQty,       setStockQty]       = useState('1')
   const [stockReason,    setStockReason]    = useState('')
@@ -39,6 +41,12 @@ export default function ProductDetail() {
   const { data: stockInfo } = useQuery({
     queryKey: ['stock', id],
     queryFn:  () => stockApi.getByProduct(id!).then((r) => r.data),
+    enabled:  !!id,
+  })
+
+  const { data: stockLogs } = useQuery({
+    queryKey: ['stockLogs', id],
+    queryFn:  () => stockApi.logs(id!).then((r) => r.data),
     enabled:  !!id,
   })
 
@@ -58,6 +66,7 @@ export default function ProductDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stock', id] })
       queryClient.invalidateQueries({ queryKey: ['product', id] })
+      queryClient.invalidateQueries({ queryKey: ['stockLogs', id] })
       toast.success('庫存已更新')
       setStockOpen(false)
       setStockQty('1')
@@ -65,6 +74,50 @@ export default function ProductDetail() {
     },
     onError: () => toast.error('庫存更新失敗'),
   })
+
+  const stockUpdateMutation = useMutation({
+    mutationFn: (data: { logId: string; type: StockLog['type']; quantity: number; reason?: string }) =>
+      stockApi.update(data.logId, { type: data.type, quantity: data.quantity, reason: data.reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stockLogs', id] })
+      queryClient.invalidateQueries({ queryKey: ['stock', id] })
+      toast.success('庫存異動已更新')
+      setStockEditOpen(false)
+      setEditingLog(null)
+    },
+    onError: () => toast.error('更新失敗'),
+  })
+
+  const stockDeleteMutation = useMutation({
+    mutationFn: (logId: string) => stockApi.delete(logId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stockLogs', id] })
+      queryClient.invalidateQueries({ queryKey: ['stock', id] })
+      toast.success('庫存異動已刪除')
+    },
+    onError: () => toast.error('刪除失敗'),
+  })
+
+  const openEditLog = (log: StockLog) => {
+    setEditingLog(log)
+    setStockType(log.type as 'OUT_USE' | 'OUT_DISCARD' | 'ADJUST')
+    setStockQty(log.quantity.toString())
+    setStockReason(log.reason || '')
+    setStockEditOpen(true)
+  }
+
+  const handleUpdateLog = () => {
+    if (editingLog && !stockQty || Number(stockQty) <= 0) {
+      toast.error('請輸入有效的數量')
+      return
+    }
+    stockUpdateMutation.mutate({
+      logId: editingLog!.id,
+      type: stockType,
+      quantity: Number(stockQty),
+      reason: stockReason || undefined,
+    })
+  }
 
   if (isLoading) {
     return (
@@ -225,6 +278,71 @@ export default function ProductDetail() {
               <p className="text-sm text-ink-muted text-center py-8">尚無購買紀錄</p>
             )}
           </div>
+
+          {/* Stock logs history */}
+          <div className="card p-0 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border">
+              <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
+                <Activity size={16} aria-hidden="true" /> 庫存異動紀錄
+              </h2>
+            </div>
+            {stockLogs?.data?.length ? (
+              <table className="table-base text-sm" aria-label="庫存異動紀錄">
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>類型</th>
+                    <th>數量</th>
+                    <th>原因</th>
+                    <th className="text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stockLogs.data.map((log: StockLog) => (
+                    <tr key={log.id}>
+                      <td className="text-ink-muted">
+                        {format(parseISO(log.createdAt), 'yyyy/MM/dd HH:mm')}
+                      </td>
+                      <td>
+                        <span className={clsx('text-xs font-medium px-2 py-1 rounded', {
+                          'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300': log.type === 'IN',
+                          'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300': log.type === 'OUT_USE',
+                          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300': log.type === 'OUT_DISCARD',
+                          'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300': log.type === 'ADJUST',
+                        })}>
+                          {log.type === 'IN' ? '入庫' : log.type === 'OUT_USE' ? '出庫(使用)' : log.type === 'OUT_DISCARD' ? '報廢' : '盤點'}
+                        </span>
+                      </td>
+                      <td className="tabular-nums font-medium">{log.quantity}</td>
+                      <td className="text-ink-muted">{log.reason || '—'}</td>
+                      <td className="text-right">
+                        <button
+                          className="text-primary hover:underline text-xs mr-2"
+                          onClick={() => openEditLog(log)}
+                          title="編輯"
+                        >
+                          編輯
+                        </button>
+                        <button
+                          className="text-status-danger hover:underline text-xs"
+                          onClick={() => {
+                            if (confirm('確定要刪除此異動記錄嗎？')) {
+                              stockDeleteMutation.mutate(log.id)
+                            }
+                          }}
+                          title="刪除"
+                        >
+                          刪除
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-sm text-ink-muted text-center py-8">尚無庫存異動</p>
+            )}
+          </div>
         </div>
 
         {/* ── Right: Stock panel ── */}
@@ -355,6 +473,80 @@ export default function ProductDetail() {
             />
           </div>
         </div>
+      </Modal>
+
+      {/* ── Stock edit modal ── */}
+      <Modal
+        open={stockEditOpen}
+        onClose={() => {
+          setStockEditOpen(false)
+          setEditingLog(null)
+        }}
+        title="編輯庫存異動"
+        size="sm"
+        footer={
+          <>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setStockEditOpen(false)
+                setEditingLog(null)
+              }}
+            >
+              取消
+            </button>
+            <button
+              className="btn-primary"
+              onClick={handleUpdateLog}
+              disabled={stockUpdateMutation.isPending || !stockQty || Number(stockQty) <= 0}
+            >
+              {stockUpdateMutation.isPending ? <LoadingSpinner size="sm" /> : '保存'}
+            </button>
+          </>
+        }
+      >
+        {editingLog && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-ink mb-1">異動類型</label>
+              <select
+                className="input"
+                value={stockType}
+                onChange={(e) => setStockType(e.target.value as typeof stockType)}
+              >
+                <option value="OUT_USE">出庫（使用）</option>
+                <option value="OUT_DISCARD">出庫（報廢）</option>
+                <option value="ADJUST">盤點（設定絕對值）</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="editStockQty" className="block text-sm font-medium text-ink mb-1">
+                數量 <span className="text-status-danger" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="editStockQty"
+                type="number"
+                min="1"
+                className="input"
+                value={stockQty}
+                onChange={(e) => setStockQty(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="editStockReason" className="block text-sm font-medium text-ink mb-1">原因（選填）</label>
+              <input
+                id="editStockReason"
+                className="input"
+                placeholder="例：已開封使用"
+                value={stockReason}
+                onChange={(e) => setStockReason(e.target.value)}
+              />
+            </div>
+            <div className="text-xs text-ink-muted pt-2 border-t border-surface-border">
+              建立時間：{format(parseISO(editingLog.createdAt), 'yyyy/MM/dd HH:mm:ss')}
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   )
