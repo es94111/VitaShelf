@@ -1,7 +1,19 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.3.4",
+  "currentVersion": "2.3.5",
   "releases": [
+    {
+      "version": "2.3.5",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正版本紀錄視窗中 v2.3.3、v2.3.4 顯示空白的問題",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "修正 changelog.json 中 v2.3.3、v2.3.4 的 changes 欄位使用了錯誤的 tag/text 格式，統一改回正確的 category/description 格式"
+        }
+      ]
+    },
     {
       "version": "2.3.4",
       "date": "2026-04-06",
