@@ -9,12 +9,12 @@
       "summary": "修正「立即更新」按鈕點擊後網站未更新的問題",
       "changes": [
         {
-          "tag": "fixed",
-          "text": "「立即更新」改為兩步驟說明視窗：引導使用者先在伺服器執行 docker compose pull && docker compose up -d，再清除瀏覽器快取"
+          "category": "fixed",
+          "description": "「立即更新」改為兩步驟說明視窗：引導使用者先在伺服器執行 docker compose pull && docker compose up -d，再清除瀏覽器快取"
         },
         {
-          "tag": "improved",
-          "text": "nginx.conf 的 SPA fallback 加入 Cache-Control: no-store，確保瀏覽器每次都取得最新的 index.html"
+          "category": "improved",
+          "description": "nginx.conf 的 SPA fallback 加入 Cache-Control: no-store，確保瀏覽器每次都取得最新的 index.html"
         }
       ]
     },
@@ -25,12 +25,12 @@
       "summary": "新增網站 ICON（favicon）",
       "changes": [
         {
-          "tag": "new",
-          "text": "新增 SVG 格式 favicon，採用藍色圓角方形底搭配白色葉片圖示，與側邊欄品牌一致"
+          "category": "added",
+          "description": "新增 SVG 格式 favicon，採用藍色圓角方形底搭配白色葉片圖示，與側邊欄品牌一致"
         },
         {
-          "tag": "improved",
-          "text": "更新 PWA apple-touch-icon 指向 favicon.svg，改善安裝至主畫面時的圖示顯示"
+          "category": "improved",
+          "description": "更新 PWA apple-touch-icon 指向 favicon.svg，改善安裝至主畫面時的圖示顯示"
         }
       ]
     },
