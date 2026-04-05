@@ -5,7 +5,7 @@ import {
   User, Lock, Download, Upload, Info,
   Eye, EyeOff, CheckCircle, FileText, AlertCircle, Clock, Shield, History,
 } from 'lucide-react'
-import { usersApi, exportApi, importApi, adminApi, changelogApi } from '@/services/api'
+import { usersApi, exportApi, importApi, adminApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -13,7 +13,8 @@ import Modal from '@/components/ui/Modal'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
+const LOCAL_CHANGELOG_URL  = '/changelog.json'
+const REMOTE_CHANGELOG_URL = 'https://raw.githubusercontent.com/es94111/VitaShelf/refs/heads/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -36,12 +37,6 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10)
 }
 
-function toRawGitHubUrl(url: string): string {
-  const m = url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/)
-  if (!m) return url
-  const [, owner, repo, branch, filePath] = m
-  return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`
-}
 
 function compareSemver(a: string, b: string): number {
   const av = a.split('.').map((x) => parseInt(x, 10) || 0)
@@ -694,6 +689,14 @@ function ImportSection() {
 
 // ─── About section ────────────────────────────────────────────────────────────
 
+interface ChangelogRelease {
+  version: string
+  date: string
+  type: string
+  summary: string
+  changes: { category: string; description: string }[]
+}
+
 const CATEGORY_LABEL: Record<string, string> = {
   added:    '新增',
   changed:  '調整',
@@ -715,20 +718,23 @@ function AboutSection() {
   const [updating, setUpdating] = useState(false)
   const [changelogOpen, setChangelogOpen] = useState(false)
 
-  // Local changelog — always available via backend
+  // Local changelog — served as static file, always available
   const localQuery = useQuery({
     queryKey: ['changelog-local'],
-    queryFn:  () => changelogApi.get().then((r) => r.data),
+    queryFn: async () => {
+      const res = await fetch(LOCAL_CHANGELOG_URL, { cache: 'no-store' })
+      if (!res.ok) throw new Error('無法讀取版本資訊')
+      return res.json() as Promise<{ currentVersion: string; releases: ChangelogRelease[] }>
+    },
     staleTime: Infinity,
   })
-  const currentVersion = localQuery.data?.currentVersion ?? '…'
+  const currentVersion = localQuery.data?.currentVersion ?? ''
 
   // Remote GitHub check — optional, may fail on air-gapped or private networks
   const remoteVersionQuery = useQuery({
-    queryKey: ['remote-version', REMOTE_CHANGELOG_BLOB_URL],
+    queryKey: ['remote-version'],
     queryFn: async () => {
-      const rawUrl = toRawGitHubUrl(REMOTE_CHANGELOG_BLOB_URL)
-      const res = await fetch(rawUrl, { cache: 'no-store' })
+      const res = await fetch(REMOTE_CHANGELOG_URL, { cache: 'no-store' })
       if (!res.ok) throw new Error('無法取得遠端版本資訊')
       const json = (await res.json()) as { currentVersion?: string }
       if (!json.currentVersion) throw new Error('遠端版本資訊格式不正確')
@@ -776,7 +782,7 @@ function AboutSection() {
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">版本</dt>
           <dd className="font-mono text-ink dark:text-gray-200 font-medium">
-            {localQuery.isLoading ? '…' : `v${currentVersion}`}
+            {localQuery.isLoading ? '…' : localQuery.isError ? '—' : `v${currentVersion}`}
           </dd>
         </div>
         <div className="flex items-center justify-between">

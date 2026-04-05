@@ -47,8 +47,8 @@ RUN rm -f /etc/nginx/http.d/default.conf
 # ── Uploads directory ──
 RUN mkdir -p /app/uploads
 
-# ── Changelog ──
-COPY changelog.json /app/changelog.json
+# ── Changelog (served as static file by nginx) ──
+COPY changelog.json /usr/share/nginx/html/changelog.json
 
 # ── Startup script ──
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
