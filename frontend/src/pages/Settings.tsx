@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   User, Lock, Download, Upload, Info,
-  Eye, EyeOff, CheckCircle, FileText, AlertCircle, Clock, Shield,
+  Eye, EyeOff, CheckCircle, FileText, AlertCircle, Clock, Shield, History,
 } from 'lucide-react'
 import { usersApi, exportApi, importApi, adminApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import Modal from '@/components/ui/Modal'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
@@ -694,9 +695,34 @@ function ImportSection() {
 
 // ─── About section ────────────────────────────────────────────────────────────
 
+interface ChangelogRelease {
+  version: string
+  date: string
+  type: string
+  summary: string
+  changes: { category: string; description: string }[]
+}
+
+const CATEGORY_LABEL: Record<string, string> = {
+  added:    '新增',
+  changed:  '調整',
+  improved: '改善',
+  fixed:    '修復',
+  removed:  '移除',
+}
+
+const CATEGORY_CLASS: Record<string, string> = {
+  added:    'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  changed:  'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
+  improved: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+  fixed:    'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
+  removed:  'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
+}
+
 function AboutSection() {
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [changelogOpen, setChangelogOpen] = useState(false)
 
   const remoteVersionQuery = useQuery({
     queryKey: ['remote-version', REMOTE_CHANGELOG_BLOB_URL],
@@ -705,10 +731,10 @@ function AboutSection() {
       const res = await fetch(rawUrl, { cache: 'no-store' })
       if (!res.ok) throw new Error('無法取得遠端版本資訊')
 
-      const json = (await res.json()) as { currentVersion?: string }
+      const json = (await res.json()) as { currentVersion?: string; releases?: ChangelogRelease[] }
       if (!json.currentVersion) throw new Error('遠端版本資訊格式不正確')
 
-      return { version: json.currentVersion }
+      return { version: json.currentVersion, releases: json.releases ?? [] }
     },
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -747,6 +773,7 @@ function AboutSection() {
   }
 
   return (
+    <>
     <Section icon={<Info size={16} aria-hidden="true" />} title="關於 VitaShelf">
       <dl className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
@@ -800,16 +827,69 @@ function AboutSection() {
             {updating ? <LoadingSpinner size="sm" /> : '立即更新'}
           </button>
         )}
-        <a
-          href={REMOTE_CHANGELOG_BLOB_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="text-sm text-primary hover:underline"
+        <button
+          type="button"
+          className="text-sm text-primary hover:underline flex items-center gap-1"
+          onClick={() => setChangelogOpen(true)}
         >
+          <History size={14} aria-hidden="true" />
           查看版本紀錄
-        </a>
+        </button>
       </div>
     </Section>
+
+    {/* Changelog modal */}
+    <Modal
+      open={changelogOpen}
+      onClose={() => setChangelogOpen(false)}
+      title="版本紀錄"
+      size="lg"
+    >
+      {remoteVersionQuery.isLoading ? (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner size="lg" />
+        </div>
+      ) : remoteVersionQuery.isError ? (
+        <p className="text-sm text-ink-muted text-center py-8">無法載入版本紀錄，請稍後再試</p>
+      ) : (
+        <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
+          {(remoteVersionQuery.data?.releases ?? []).map((release) => (
+            <div key={release.version} className="border border-surface-border dark:border-gray-700 rounded-lg overflow-hidden">
+              {/* Release header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-surface dark:bg-gray-800">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-semibold text-ink dark:text-gray-100">
+                    v{release.version}
+                  </span>
+                  {release.version === APP_VERSION && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                      目前版本
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-ink-muted dark:text-gray-400">
+                  <span>{release.date}</span>
+                </div>
+              </div>
+              {/* Changes list */}
+              {release.changes?.length > 0 && (
+                <ul className="divide-y divide-surface-border dark:divide-gray-700">
+                  {release.changes.map((change, i) => (
+                    <li key={i} className="flex items-start gap-3 px-4 py-2.5 text-sm">
+                      <span className={`shrink-0 mt-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded ${CATEGORY_CLASS[change.category] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {CATEGORY_LABEL[change.category] ?? change.category}
+                      </span>
+                      <span className="text-ink dark:text-gray-200">{change.description}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Modal>
+    </>
   )
 }
 
