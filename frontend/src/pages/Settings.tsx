@@ -1,11 +1,10 @@
-import { useEffect, useState, useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
-  User, Lock, Download, Upload, Info,
-  Eye, EyeOff, CheckCircle, FileText, AlertCircle, Clock, Shield, History,
+  User, Lock, Info,
+  Eye, EyeOff, CheckCircle, Clock, History,
 } from 'lucide-react'
-import { usersApi, exportApi, importApi, adminApi } from '@/services/api'
+import { usersApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -23,20 +22,6 @@ type ApiLikeError = { response?: { status?: number; data?: { message?: string } 
 function getApiErrorMessage(err: unknown, fallback: string): string {
   return (err as ApiLikeError).response?.data?.message ?? fallback
 }
-
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a   = document.createElement('a')
-  a.href     = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
-
 
 function compareSemver(a: string, b: string): number {
   const av = a.split('.').map((x) => parseInt(x, 10) || 0)
@@ -77,7 +62,6 @@ function ProfileSection() {
   const mutation = useMutation({
     mutationFn: () => usersApi.updateMe({ displayName: displayName.trim() }),
     onSuccess: (res) => {
-      // Update auth context — sidebar will reflect change immediately
       updateUser({ displayName: res.data.displayName })
       toast.success('個人資料已更新')
       setSaved(true)
@@ -339,354 +323,6 @@ function LoginLogsSection() {
   )
 }
 
-// ─── Admin submenu section ───────────────────────────────────────────────────
-
-type AdminSubTab = 'registration' | 'users' | 'logs'
-
-function AdminSubmenuSection() {
-  const { isAdmin } = useAuth()
-  const toast = useToast()
-  const qc = useQueryClient()
-  const [tab, setTab] = useState<AdminSubTab>('registration')
-
-  const { data: settings, isLoading, isError, error } = useQuery({
-    queryKey: ['admin-settings'],
-    queryFn: () => adminApi.getSettings().then((r) => r.data),
-    enabled: isAdmin,
-  })
-
-  const [open, setOpen] = useState(true)
-  const [notice, setNotice] = useState('')
-
-  // Keep local form state in sync with server values.
-  useEffect(() => {
-    if (!settings) return
-    setOpen(settings.registrationOpen)
-    setNotice(settings.registrationNotice ?? '')
-  }, [settings])
-
-  const mutation = useMutation({
-    mutationFn: () => adminApi.updateSettings({ registrationOpen: open, registrationNotice: notice }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-settings'] })
-      toast.success('註冊政策已更新')
-    },
-    onError: (err: unknown) => toast.error(getApiErrorMessage(err, '更新失敗')),
-  })
-
-  if (!isAdmin) return null
-
-  if (isLoading) {
-    return (
-      <Section icon={<Shield size={16} aria-hidden="true" />} title="公開註冊設定（管理員）">
-        <LoadingSpinner />
-      </Section>
-    )
-  }
-
-  if (isError) {
-    const status = (error as ApiLikeError).response?.status
-    if (status === 403) {
-      return (
-        <Section icon={<Shield size={16} aria-hidden="true" />} title="管理員子選單">
-          <p className="text-sm text-ink-muted dark:text-gray-400">
-            目前帳號尚未通過管理員權限驗證，請重新登入後再試。
-          </p>
-        </Section>
-      )
-    }
-
-    return (
-      <Section icon={<Shield size={16} aria-hidden="true" />} title="公開註冊設定（管理員）">
-        <p className="text-sm text-status-danger">目前無法載入公開註冊設定，請稍後再試。</p>
-      </Section>
-    )
-  }
-
-  return (
-    <Section icon={<Shield size={16} aria-hidden="true" />} title="管理員子選單">
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setTab('registration')}
-          className={`px-3 py-1.5 rounded-md text-sm cursor-pointer transition-colors ${
-            tab === 'registration'
-              ? 'bg-primary/10 text-primary dark:bg-primary/20'
-              : 'bg-surface text-ink-muted dark:bg-gray-800 dark:text-gray-400'
-          }`}
-        >
-          註冊政策
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab('users')}
-          className={`px-3 py-1.5 rounded-md text-sm cursor-pointer transition-colors ${
-            tab === 'users'
-              ? 'bg-primary/10 text-primary dark:bg-primary/20'
-              : 'bg-surface text-ink-muted dark:bg-gray-800 dark:text-gray-400'
-          }`}
-        >
-          使用者管理
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab('logs')}
-          className={`px-3 py-1.5 rounded-md text-sm cursor-pointer transition-colors ${
-            tab === 'logs'
-              ? 'bg-primary/10 text-primary dark:bg-primary/20'
-              : 'bg-surface text-ink-muted dark:bg-gray-800 dark:text-gray-400'
-          }`}
-        >
-          登入紀錄
-        </button>
-      </div>
-
-      {tab === 'registration' && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-ink dark:text-gray-200">開放公開註冊</label>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={open}
-              onClick={() => setOpen((v) => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                open ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  open ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-            <span className="text-sm text-ink-muted dark:text-gray-400">
-              {open ? '允許新使用者註冊' : '已關閉註冊'}
-            </span>
-          </div>
-
-          <div>
-            <label htmlFor="admin-registration-notice" className="block text-sm font-medium text-ink dark:text-gray-200 mb-1">
-              關閉註冊提示訊息
-            </label>
-            <textarea
-              id="admin-registration-notice"
-              className="input dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 min-h-[80px]"
-              value={notice}
-              onChange={(e) => setNotice(e.target.value)}
-              placeholder="例如：系統維護中，暫停註冊"
-            />
-          </div>
-
-          <button className="btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            {mutation.isPending ? <LoadingSpinner size="sm" /> : '儲存'}
-          </button>
-        </div>
-      )}
-
-      {tab === 'users' && (
-        <div className="space-y-3">
-          <p className="text-sm text-ink-muted dark:text-gray-400">管理使用者角色與帳號狀態。</p>
-          <Link to="/admin?tab=users" className="btn-primary inline-flex">前往使用者管理</Link>
-        </div>
-      )}
-
-      {tab === 'logs' && (
-        <div className="space-y-3">
-          <p className="text-sm text-ink-muted dark:text-gray-400">查看與管理全站登入紀錄。</p>
-          <Link to="/admin?tab=logs" className="btn-primary inline-flex">前往登入紀錄</Link>
-        </div>
-      )}
-    </Section>
-  )
-}
-
-// ─── Export section ───────────────────────────────────────────────────────────
-
-function ExportSection() {
-  const toast = useToast()
-  const [exportingProducts, setExportingProducts] = useState(false)
-  const [exportingPurchases, setExportingPurchases] = useState(false)
-
-  async function handleExportProducts() {
-    setExportingProducts(true)
-    try {
-      const res = await exportApi.products()
-      downloadBlob(res.data as Blob, `vitashelf-products-${todayStr()}.csv`)
-      toast.success('產品清單已匯出')
-    } catch { toast.error('匯出失敗') }
-    finally { setExportingProducts(false) }
-  }
-
-  async function handleExportPurchases() {
-    setExportingPurchases(true)
-    try {
-      const res = await exportApi.purchases()
-      downloadBlob(res.data as Blob, `vitashelf-purchases-${todayStr()}.csv`)
-      toast.success('購買紀錄已匯出')
-    } catch { toast.error('匯出失敗') }
-    finally { setExportingPurchases(false) }
-  }
-
-  return (
-    <Section icon={<Download size={16} aria-hidden="true" />} title="資料匯出">
-      <p className="text-sm text-ink-muted dark:text-gray-400">以 CSV 格式匯出資料，可用 Excel 或 Numbers 開啟。</p>
-      <div className="flex flex-wrap gap-3">
-        <button className="btn-secondary" onClick={handleExportProducts} disabled={exportingProducts}>
-          {exportingProducts ? <LoadingSpinner size="sm" /> : <Download size={15} />} 匯出產品清單
-        </button>
-        <button className="btn-secondary" onClick={handleExportPurchases} disabled={exportingPurchases}>
-          {exportingPurchases ? <LoadingSpinner size="sm" /> : <Download size={15} />} 匯出購買紀錄
-        </button>
-      </div>
-    </Section>
-  )
-}
-
-// ─── Import section ───────────────────────────────────────────────────────────
-
-const PRODUCT_CSV_TEMPLATE_HEADERS = 'name,brand,category,subCategory,spec,barcode,notes'
-const PRODUCT_CSV_TEMPLATE_EXAMPLE = [
-  PRODUCT_CSV_TEMPLATE_HEADERS,
-  '玫瑰精華液,品牌A,skincare,精華液,30ml,,補水保濕',
-  '維他命C,品牌B,supplement,維他命,60錠,4719854321,,',
-].join('\n')
-
-const PURCHASE_CSV_TEMPLATE_HEADERS = 'productId,productName,productBrand,purchaseDate,quantity,expiryDate,unitPrice,totalPrice,channel,manufactureDate,openedDate,paoMonths,notes'
-const PURCHASE_CSV_TEMPLATE_EXAMPLE = [
-  PURCHASE_CSV_TEMPLATE_HEADERS,
-  'cm1ab2cd30001xyz12345,玫瑰精華液,品牌A,2026-03-26,2,2027-03-26,650,1300,官網,2026-01-10,2026-03-27,12,批次匯入範例',
-].join('\n')
-
-function downloadCSVTemplate(content: string, filename: string) {
-  const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' })
-  const url  = URL.createObjectURL(blob)
-  const a    = document.createElement('a')
-  a.href     = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-function ImportSection() {
-  const toast       = useToast()
-  const queryClient = useQueryClient()
-  const productFileRef  = useRef<HTMLInputElement>(null)
-  const purchaseFileRef = useRef<HTMLInputElement>(null)
-  const [result, setResult] = useState<{ type: 'products' | 'purchases'; imported: number; errors: string[] } | null>(null)
-
-  const productMutation = useMutation({
-    mutationFn: (file: File) => importApi.products(file).then((r) => r.data),
-    onSuccess: (data) => {
-      setResult({ type: 'products', ...data })
-      if (data.imported > 0) {
-        queryClient.invalidateQueries({ queryKey: ['products'] })
-        toast.success(`成功匯入 ${data.imported} 個產品`)
-      } else { toast.error('未匯入任何產品，請檢查格式') }
-      if (productFileRef.current) productFileRef.current.value = ''
-    },
-    onError: (err: unknown) => toast.error(getApiErrorMessage(err, '匯入失敗')),
-  })
-
-  const purchaseMutation = useMutation({
-    mutationFn: (file: File) => importApi.purchases(file).then((r) => r.data),
-    onSuccess: (data) => {
-      setResult({ type: 'purchases', ...data })
-      if (data.imported > 0) {
-        queryClient.invalidateQueries({ queryKey: ['purchases'] })
-        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-        toast.success(`成功匯入 ${data.imported} 筆購買紀錄`)
-      } else { toast.error('未匯入任何購買紀錄，請檢查格式') }
-      if (purchaseFileRef.current) purchaseFileRef.current.value = ''
-    },
-    onError: (err: unknown) => toast.error(getApiErrorMessage(err, '匯入失敗')),
-  })
-
-  function handleProductsFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setResult(null)
-    productMutation.mutate(file)
-  }
-
-  function handlePurchasesFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setResult(null)
-    purchaseMutation.mutate(file)
-  }
-
-  return (
-    <Section icon={<Upload size={16} aria-hidden="true" />} title="資料匯入">
-      <p className="text-sm text-ink-muted dark:text-gray-400">透過 CSV 批次匯入產品或購買紀錄。請先下載對應範本，依格式填寫後上傳。</p>
-
-      <div className="space-y-4">
-        <div className="rounded-md border border-border dark:border-gray-700 p-3 space-y-2">
-          <h3 className="text-sm font-medium text-ink dark:text-gray-200">產品匯入</h3>
-          <div className="bg-surface dark:bg-gray-800 rounded-md p-3 text-xs font-mono text-ink-muted dark:text-gray-400 overflow-x-auto">
-            {PRODUCT_CSV_TEMPLATE_HEADERS}
-          </div>
-          <p className="text-xs text-ink-muted dark:text-gray-500">
-            category 欄位只接受 <code className="font-mono bg-surface dark:bg-gray-800 px-1 rounded">skincare</code> 或{' '}
-            <code className="font-mono bg-surface dark:bg-gray-800 px-1 rounded">supplement</code>
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <button className="btn-secondary" onClick={() => downloadCSVTemplate(PRODUCT_CSV_TEMPLATE_EXAMPLE, 'vitashelf-products-import-template.csv')} type="button">
-              <FileText size={15} /> 下載產品範本
-            </button>
-            <label className="btn btn-primary cursor-pointer">
-              {productMutation.isPending ? <LoadingSpinner size="sm" /> : <Upload size={15} />}
-              {productMutation.isPending ? '匯入中…' : '上傳產品 CSV'}
-              <input ref={productFileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={handleProductsFileChange} disabled={productMutation.isPending} />
-            </label>
-          </div>
-        </div>
-
-        <div className="rounded-md border border-border dark:border-gray-700 p-3 space-y-2">
-          <h3 className="text-sm font-medium text-ink dark:text-gray-200">購買紀錄匯入</h3>
-          <div className="bg-surface dark:bg-gray-800 rounded-md p-3 text-xs font-mono text-ink-muted dark:text-gray-400 overflow-x-auto">
-            {PURCHASE_CSV_TEMPLATE_HEADERS}
-          </div>
-          <p className="text-xs text-ink-muted dark:text-gray-500">
-            <strong>productId</strong> 可從產品詳情頁網址中取得，或留空由系統根據 <strong>productName</strong> 與 <strong>productBrand</strong> 自動匹配。日期建議使用 <span className="font-mono">YYYY-MM-DD</span> 格式；支援跨帳戶匯入。
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <button className="btn-secondary" onClick={() => downloadCSVTemplate(PURCHASE_CSV_TEMPLATE_EXAMPLE, 'vitashelf-purchases-import-template.csv')} type="button">
-              <FileText size={15} /> 下載購買紀錄範本
-            </button>
-            <label className="btn btn-primary cursor-pointer">
-              {purchaseMutation.isPending ? <LoadingSpinner size="sm" /> : <Upload size={15} />}
-              {purchaseMutation.isPending ? '匯入中…' : '上傳購買紀錄 CSV'}
-              <input ref={purchaseFileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={handlePurchasesFileChange} disabled={purchaseMutation.isPending} />
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {result && (
-        <div className="space-y-2">
-          <p className={`text-sm flex items-center gap-1.5 ${result.imported > 0 ? 'text-status-ok' : 'text-status-danger'}`}>
-            {result.imported > 0
-              ? <>
-                <CheckCircle size={14} />
-                成功匯入 {result.imported} {result.type === 'products' ? '個產品' : '筆購買紀錄'}
-              </>
-              : <>
-                <AlertCircle size={14} />
-                未能匯入任何{result.type === 'products' ? '產品' : '購買紀錄'}
-              </>}
-          </p>
-          {result.errors.length > 0 && (
-            <ul className="text-xs text-status-danger space-y-0.5 max-h-32 overflow-y-auto bg-red-50 dark:bg-red-900/20 rounded p-2">
-              {result.errors.map((e, i) => <li key={i}>{e}</li>)}
-            </ul>
-          )}
-        </div>
-      )}
-    </Section>
-  )
-}
-
 // ─── About section ────────────────────────────────────────────────────────────
 
 interface ChangelogRelease {
@@ -718,7 +354,6 @@ function AboutSection() {
   const [updating, setUpdating] = useState(false)
   const [changelogOpen, setChangelogOpen] = useState(false)
 
-  // Local changelog — served as static file, always available
   const localQuery = useQuery({
     queryKey: ['changelog-local'],
     queryFn: async () => {
@@ -730,7 +365,6 @@ function AboutSection() {
   })
   const currentVersion = localQuery.data?.currentVersion ?? ''
 
-  // Remote GitHub check — optional, may fail on air-gapped or private networks
   const remoteVersionQuery = useQuery({
     queryKey: ['remote-version'],
     queryFn: async () => {
@@ -866,7 +500,6 @@ function AboutSection() {
         <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
           {(localQuery.data?.releases ?? []).map((release) => (
             <div key={release.version} className="border border-surface-border dark:border-gray-700 rounded-lg overflow-hidden">
-              {/* Release header */}
               <div className="flex items-center justify-between px-4 py-3 bg-surface dark:bg-gray-800">
                 <div className="flex items-center gap-2">
                   <span className="font-mono font-semibold text-ink dark:text-gray-100">
@@ -880,7 +513,6 @@ function AboutSection() {
                 </div>
                 <span className="text-xs text-ink-muted dark:text-gray-400">{release.date}</span>
               </div>
-              {/* Changes list */}
               {release.changes?.length > 0 && (
                 <ul className="divide-y divide-surface-border dark:divide-gray-700">
                   {release.changes.map((change, i) => (
@@ -914,10 +546,7 @@ export default function Settings() {
 
       <ProfileSection />
       <PasswordSection />
-      <AdminSubmenuSection />
       <LoginLogsSection />
-      <ExportSection />
-      <ImportSection />
       <AboutSection />
     </div>
   )

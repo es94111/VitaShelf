@@ -1,7 +1,39 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.2.8",
+  "currentVersion": "2.3.0",
   "releases": [
+    {
+      "version": "2.3.0",
+      "date": "2026-04-06",
+      "type": "added",
+      "summary": "新增全站庫存異動紀錄頁、資料管理移至管理員頁、版本紀錄視窗化",
+      "changes": [
+        {
+          "category": "added",
+          "description": "新增「庫存歷史異動紀錄」頁面（/stock-logs），顯示全站所有庫存異動，支援分頁、編輯與刪除"
+        },
+        {
+          "category": "added",
+          "description": "側邊欄「產品管理」新增子選單，進入產品相關頁面時展開「庫存異動紀錄」連結"
+        },
+        {
+          "category": "added",
+          "description": "管理員頁面新增「資料管理」分頁，集中資料匯出（產品/購買紀錄）與 CSV 匯入功能"
+        },
+        {
+          "category": "improved",
+          "description": "版本紀錄改為頁面內 Modal 視窗顯示，不再跳轉至外部 GitHub 連結"
+        },
+        {
+          "category": "improved",
+          "description": "版本資訊改由本機靜態檔案 /changelog.json 讀取，解決無法顯示目前版本的問題"
+        },
+        {
+          "category": "removed",
+          "description": "設定頁移除管理員子選單、資料匯出、資料匯入區塊，統一移至管理員頁面"
+        }
+      ]
+    },
     {
       "version": "2.2.8",
       "date": "2026-03-26",

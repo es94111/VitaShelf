@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Shield, Users, ClipboardList, Settings, RefreshCw,
   Trash2, CheckCircle, XCircle, ChevronDown,
+  Download, Upload, FileText, AlertCircle, Database,
 } from 'lucide-react'
-import { adminApi } from '@/services/api'
+import { adminApi, exportApi, importApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -13,22 +14,38 @@ import { format } from 'date-fns'
 import type { LoginLog } from '@/types'
 
 type ApiErr = { response?: { data?: { message?: string } } }
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a   = document.createElement('a')
+  a.href     = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10)
+}
+
 function errMsg(err: unknown, fb: string) { return (err as ApiErr).response?.data?.message ?? fb }
 
 // ─── Tab system ──────────────────────────────────────────────────────────────
 
-type Tab = 'settings' | 'users' | 'logs'
+type Tab = 'settings' | 'users' | 'logs' | 'data'
 
 function parseTab(tab: string | null): Tab {
   if (tab === 'users') return 'users'
   if (tab === 'logs') return 'logs'
+  if (tab === 'data') return 'data'
   return 'settings'
 }
 
 const TABS: { key: Tab; label: string; icon: typeof Settings }[] = [
-  { key: 'settings', label: '註冊政策', icon: Settings },
+  { key: 'settings', label: '註冊政策',   icon: Settings },
   { key: 'users',    label: '使用者管理', icon: Users },
-  { key: 'logs',     label: '登入紀錄',  icon: ClipboardList },
+  { key: 'logs',     label: '登入紀錄',   icon: ClipboardList },
+  { key: 'data',     label: '資料管理',   icon: Database },
 ]
 
 // ─── Registration Settings ───────────────────────────────────────────────────
@@ -353,6 +370,176 @@ function LoginLogs() {
   )
 }
 
+// ─── Data Management ─────────────────────────────────────────────────────────
+
+const PRODUCT_CSV_TEMPLATE_HEADERS = 'name,brand,category,subCategory,spec,barcode,notes'
+const PRODUCT_CSV_TEMPLATE_EXAMPLE = [
+  PRODUCT_CSV_TEMPLATE_HEADERS,
+  '玫瑰精華液,品牌A,skincare,精華液,30ml,,補水保濕',
+  '維他命C,品牌B,supplement,維他命,60錠,4719854321,,',
+].join('\n')
+
+const PURCHASE_CSV_TEMPLATE_HEADERS = 'productId,productName,productBrand,purchaseDate,quantity,expiryDate,unitPrice,totalPrice,channel,manufactureDate,openedDate,paoMonths,notes'
+const PURCHASE_CSV_TEMPLATE_EXAMPLE = [
+  PURCHASE_CSV_TEMPLATE_HEADERS,
+  'cm1ab2cd30001xyz12345,玫瑰精華液,品牌A,2026-03-26,2,2027-03-26,650,1300,官網,2026-01-10,2026-03-27,12,批次匯入範例',
+].join('\n')
+
+function downloadCSVTemplate(content: string, filename: string) {
+  const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function DataManagement() {
+  const toast       = useToast()
+  const qc          = useQueryClient()
+  const productFileRef  = useRef<HTMLInputElement>(null)
+  const purchaseFileRef = useRef<HTMLInputElement>(null)
+  const [exportingProducts,  setExportingProducts]  = useState(false)
+  const [exportingPurchases, setExportingPurchases] = useState(false)
+  const [result, setResult] = useState<{ type: 'products' | 'purchases'; imported: number; errors: string[] } | null>(null)
+
+  async function handleExportProducts() {
+    setExportingProducts(true)
+    try {
+      const res = await exportApi.products()
+      downloadBlob(res.data as Blob, `vitashelf-products-${todayStr()}.csv`)
+      toast.success('產品清單已匯出')
+    } catch { toast.error('匯出失敗') }
+    finally { setExportingProducts(false) }
+  }
+
+  async function handleExportPurchases() {
+    setExportingPurchases(true)
+    try {
+      const res = await exportApi.purchases()
+      downloadBlob(res.data as Blob, `vitashelf-purchases-${todayStr()}.csv`)
+      toast.success('購買紀錄已匯出')
+    } catch { toast.error('匯出失敗') }
+    finally { setExportingPurchases(false) }
+  }
+
+  const productMutation = useMutation({
+    mutationFn: (file: File) => importApi.products(file).then((r) => r.data),
+    onSuccess: (data) => {
+      setResult({ type: 'products', ...data })
+      if (data.imported > 0) {
+        qc.invalidateQueries({ queryKey: ['products'] })
+        toast.success(`成功匯入 ${data.imported} 個產品`)
+      } else { toast.error('未匯入任何產品，請檢查格式') }
+      if (productFileRef.current) productFileRef.current.value = ''
+    },
+    onError: (e: unknown) => toast.error(errMsg(e, '匯入失敗')),
+  })
+
+  const purchaseMutation = useMutation({
+    mutationFn: (file: File) => importApi.purchases(file).then((r) => r.data),
+    onSuccess: (data) => {
+      setResult({ type: 'purchases', ...data })
+      if (data.imported > 0) {
+        qc.invalidateQueries({ queryKey: ['purchases'] })
+        qc.invalidateQueries({ queryKey: ['dashboard'] })
+        toast.success(`成功匯入 ${data.imported} 筆購買紀錄`)
+      } else { toast.error('未匯入任何購買紀錄，請檢查格式') }
+      if (purchaseFileRef.current) purchaseFileRef.current.value = ''
+    },
+    onError: (e: unknown) => toast.error(errMsg(e, '匯入失敗')),
+  })
+
+  return (
+    <div className="space-y-6">
+      {/* Export */}
+      <div>
+        <h3 className="text-sm font-semibold text-ink dark:text-gray-200 flex items-center gap-2 mb-3">
+          <Download size={15} /> 資料匯出
+        </h3>
+        <p className="text-sm text-ink-muted dark:text-gray-400 mb-3">以 CSV 格式匯出資料，可用 Excel 或 Numbers 開啟。</p>
+        <div className="flex flex-wrap gap-3">
+          <button className="btn-secondary" onClick={handleExportProducts} disabled={exportingProducts}>
+            {exportingProducts ? <LoadingSpinner size="sm" /> : <Download size={15} />} 匯出產品清單
+          </button>
+          <button className="btn-secondary" onClick={handleExportPurchases} disabled={exportingPurchases}>
+            {exportingPurchases ? <LoadingSpinner size="sm" /> : <Download size={15} />} 匯出購買紀錄
+          </button>
+        </div>
+      </div>
+
+      <div className="border-t border-surface-border dark:border-gray-700" />
+
+      {/* Import */}
+      <div>
+        <h3 className="text-sm font-semibold text-ink dark:text-gray-200 flex items-center gap-2 mb-3">
+          <Upload size={15} /> 資料匯入
+        </h3>
+        <p className="text-sm text-ink-muted dark:text-gray-400 mb-4">透過 CSV 批次匯入產品或購買紀錄。請先下載對應範本，依格式填寫後上傳。</p>
+
+        <div className="space-y-4">
+          <div className="rounded-md border border-surface-border dark:border-gray-700 p-3 space-y-2">
+            <h4 className="text-sm font-medium text-ink dark:text-gray-200">產品匯入</h4>
+            <div className="bg-surface dark:bg-gray-800 rounded-md p-3 text-xs font-mono text-ink-muted dark:text-gray-400 overflow-x-auto">
+              {PRODUCT_CSV_TEMPLATE_HEADERS}
+            </div>
+            <p className="text-xs text-ink-muted dark:text-gray-500">
+              category 欄位只接受 <code className="font-mono bg-surface dark:bg-gray-800 px-1 rounded">skincare</code> 或{' '}
+              <code className="font-mono bg-surface dark:bg-gray-800 px-1 rounded">supplement</code>
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button className="btn-secondary" onClick={() => downloadCSVTemplate(PRODUCT_CSV_TEMPLATE_EXAMPLE, 'vitashelf-products-import-template.csv')} type="button">
+                <FileText size={15} /> 下載產品範本
+              </button>
+              <label className="btn btn-primary cursor-pointer">
+                {productMutation.isPending ? <LoadingSpinner size="sm" /> : <Upload size={15} />}
+                {productMutation.isPending ? '匯入中…' : '上傳產品 CSV'}
+                <input ref={productFileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setResult(null); productMutation.mutate(f) } }} disabled={productMutation.isPending} />
+              </label>
+            </div>
+          </div>
+
+          <div className="rounded-md border border-surface-border dark:border-gray-700 p-3 space-y-2">
+            <h4 className="text-sm font-medium text-ink dark:text-gray-200">購買紀錄匯入</h4>
+            <div className="bg-surface dark:bg-gray-800 rounded-md p-3 text-xs font-mono text-ink-muted dark:text-gray-400 overflow-x-auto">
+              {PURCHASE_CSV_TEMPLATE_HEADERS}
+            </div>
+            <p className="text-xs text-ink-muted dark:text-gray-500">
+              <strong>productId</strong> 可從產品詳情頁網址取得，或留空由系統根據 <strong>productName</strong> 與 <strong>productBrand</strong> 自動匹配。日期建議使用 <span className="font-mono">YYYY-MM-DD</span> 格式；支援跨帳戶匯入。
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button className="btn-secondary" onClick={() => downloadCSVTemplate(PURCHASE_CSV_TEMPLATE_EXAMPLE, 'vitashelf-purchases-import-template.csv')} type="button">
+                <FileText size={15} /> 下載購買紀錄範本
+              </button>
+              <label className="btn btn-primary cursor-pointer">
+                {purchaseMutation.isPending ? <LoadingSpinner size="sm" /> : <Upload size={15} />}
+                {purchaseMutation.isPending ? '匯入中…' : '上傳購買紀錄 CSV'}
+                <input ref={purchaseFileRef} type="file" accept=".csv,text/csv" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setResult(null); purchaseMutation.mutate(f) } }} disabled={purchaseMutation.isPending} />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {result && (
+          <div className="space-y-2 mt-4">
+            <p className={`text-sm flex items-center gap-1.5 ${result.imported > 0 ? 'text-status-ok' : 'text-status-danger'}`}>
+              {result.imported > 0
+                ? <><CheckCircle size={14} /> 成功匯入 {result.imported} {result.type === 'products' ? '個產品' : '筆購買紀錄'}</>
+                : <><AlertCircle size={14} /> 未能匯入任何{result.type === 'products' ? '產品' : '購買紀錄'}</>}
+            </p>
+            {result.errors.length > 0 && (
+              <ul className="text-xs text-status-danger space-y-0.5 max-h-32 overflow-y-auto bg-red-50 dark:bg-red-900/20 rounded p-2">
+                {result.errors.map((e, i) => <li key={i}>{e}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Admin Page ──────────────────────────────────────────────────────────────
 
 export default function Admin() {
@@ -398,6 +585,7 @@ export default function Admin() {
         {tab === 'settings' && <RegistrationSettings />}
         {tab === 'users' && <UserManagement />}
         {tab === 'logs' && <LoginLogs />}
+        {tab === 'data' && <DataManagement />}
       </div>
     </div>
   )
