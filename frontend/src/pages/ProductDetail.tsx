@@ -46,7 +46,7 @@ export default function ProductDetail() {
 
   const { data: stockLogs } = useQuery({
     queryKey: ['stockLogs', id],
-    queryFn:  () => stockApi.logs(id!).then((r) => r.data),
+    queryFn:  () => stockApi.logs({ productId: id! }).then((r) => r.data),
     enabled:  !!id,
   })
 

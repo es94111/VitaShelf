@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   LayoutDashboard,
@@ -13,6 +13,7 @@ import {
   Sun,
   Moon,
   Shield,
+  Activity,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useAuth } from '@/hooks/useAuth'
@@ -46,6 +47,10 @@ const NAV_ITEMS = [
   { to: '/settings',   icon: Settings,        label: '設定',    badge: false },
 ]
 
+const PRODUCTS_SUB_ITEMS = [
+  { to: '/stock-logs', icon: Activity, label: '庫存異動紀錄' },
+]
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 interface SidebarProps {
@@ -57,6 +62,8 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
   const { logout, user, isAdmin } = useAuth()
   const alertCount = useAlertCount()
   const { theme, toggleTheme } = useTheme()
+  const location = useLocation()
+  const isProductsArea = location.pathname.startsWith('/products') || location.pathname.startsWith('/stock-logs')
 
   const navContent = (
     <aside className="flex flex-col w-60 h-full bg-white dark:bg-gray-900 border-r border-surface-border dark:border-gray-700">
@@ -86,32 +93,57 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="主選單">
         {NAV_ITEMS.map(({ to, icon: Icon, label, badge }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            onClick={onMobileClose}
-            className={({ isActive }) =>
-              clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors duration-150 cursor-pointer',
-                isActive
-                  ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                  : 'text-ink-muted hover:bg-surface hover:text-ink dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
-              )
-            }
-          >
-            <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
-            <span className="flex-1">{label}</span>
-            {badge && alertCount > 0 && (
-              <span
-                className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
-                           rounded-full bg-status-danger text-white text-[11px] font-semibold tabular-nums"
-                aria-label={`${alertCount} 個到期提醒`}
-              >
-                {alertCount > 99 ? '99+' : alertCount}
-              </span>
+          <div key={to}>
+            <NavLink
+              to={to}
+              end={to === '/'}
+              onClick={onMobileClose}
+              className={({ isActive }) =>
+                clsx(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors duration-150 cursor-pointer',
+                  isActive
+                    ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                    : 'text-ink-muted hover:bg-surface hover:text-ink dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                )
+              }
+            >
+              <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+              <span className="flex-1">{label}</span>
+              {badge && alertCount > 0 && (
+                <span
+                  className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
+                             rounded-full bg-status-danger text-white text-[11px] font-semibold tabular-nums"
+                  aria-label={`${alertCount} 個到期提醒`}
+                >
+                  {alertCount > 99 ? '99+' : alertCount}
+                </span>
+              )}
+            </NavLink>
+
+            {/* Sub-menu for 產品管理 */}
+            {to === '/products' && isProductsArea && (
+              <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-surface-border dark:border-gray-700 pl-3">
+                {PRODUCTS_SUB_ITEMS.map(({ to: subTo, icon: SubIcon, label: subLabel }) => (
+                  <NavLink
+                    key={subTo}
+                    to={subTo}
+                    onClick={onMobileClose}
+                    className={({ isActive }) =>
+                      clsx(
+                        'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-xs font-medium transition-colors duration-150 cursor-pointer',
+                        isActive
+                          ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                          : 'text-ink-muted hover:bg-surface hover:text-ink dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                      )
+                    }
+                  >
+                    <SubIcon size={14} strokeWidth={1.75} aria-hidden="true" />
+                    <span>{subLabel}</span>
+                  </NavLink>
+                ))}
+              </div>
             )}
-          </NavLink>
+          </div>
         ))}
 
         {/* Admin link — only for ADMIN role */}

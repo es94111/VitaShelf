@@ -102,8 +102,8 @@ export const stockApi = {
     ),
   adjust: (data: { productId: string; type: StockLog['type']; quantity: number; reason?: string }) =>
     api.post<StockLog>('/stock/adjust', data),
-  logs: (productId?: string) =>
-    api.get<PaginatedResponse<StockLog>>('/stock/logs', { params: { productId } }),
+  logs: (params?: { productId?: string; page?: number; pageSize?: number }) =>
+    api.get<PaginatedResponse<StockLog>>('/stock/logs', { params }),
   update: (id: string, data: { type?: StockLog['type']; quantity?: number; reason?: string }) =>
     api.put<StockLog>(`/stock/${id}`, data),
   delete: (id: string) => api.delete(`/stock/${id}`),

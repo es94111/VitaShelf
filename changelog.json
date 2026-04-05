@@ -1,7 +1,31 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.2.7",
+  "currentVersion": "2.2.8",
   "releases": [
+    {
+      "version": "2.2.8",
+      "date": "2026-03-26",
+      "type": "added",
+      "summary": "新增庫存異動編輯功能",
+      "changes": [
+        {
+          "category": "added",
+          "description": "產品詳情頁新增庫存異動紀錄清單，並支援編輯和刪除功能"
+        },
+        {
+          "category": "added",
+          "description": "PUT /api/stock/:id 路由 - 編輯庫存異動記錄"
+        },
+        {
+          "category": "added",
+          "description": "DELETE /api/stock/:id 路由 - 刪除庫存異動記錄"
+        },
+        {
+          "category": "changed",
+          "description": "Prisma schema 中的 StockLog 模型新增 updatedAt 時間戳欄位"
+        }
+      ]
+    },
     {
       "version": "2.2.7",
       "date": "2026-03-26",
@@ -15,19 +39,9 @@
         {
           "category": "improved",
           "description": "manifest.json 中添加了 192x192 和 512x512 等項量icon 配置"
-        },
-        {
-          "category": "changed",
-          "description": "更新版本是 v2.2.7"
         }
       ]
     },
-    {
-      "version": "2.2.6",
-      "date": "2026-03-26",
-      "type": "added",
-      "summary": "支援跨帳戶購買紀錄匯入",
-      "changes": [
         {
           "category": "added",
           "description": "匯出購買紀錄時新增產品名稱和品牌欄位"

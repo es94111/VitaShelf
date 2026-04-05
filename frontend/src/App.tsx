@@ -14,6 +14,7 @@ import Purchases from '@/pages/Purchases'
 import Categories from '@/pages/Categories'
 import Settings from '@/pages/Settings'
 import Admin from '@/pages/Admin'
+import StockLogs from '@/pages/StockLogs'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -50,6 +51,7 @@ function AppContent() {
                 <Route index element={<Dashboard />} />
                 <Route path="products" element={<Products />} />
                 <Route path="products/:id" element={<ProductDetail />} />
+                <Route path="stock-logs" element={<StockLogs />} />
                 <Route path="alerts" element={<Alerts />} />
                 <Route path="purchases" element={<Purchases />} />
                 <Route path="categories" element={<Categories />} />
