@@ -42,3 +42,4 @@ docker-images/vitashelf-frontend-local.tar
 docker-images/.tmp-vitashelf-backend-local.tar376730483
 .tar
 *.tar
+ROADMAP.md

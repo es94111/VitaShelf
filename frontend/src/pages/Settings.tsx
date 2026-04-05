@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   User, Lock, Info,
-  Eye, EyeOff, CheckCircle, Clock, History,
+  Eye, EyeOff, CheckCircle, Clock, History, Copy,
 } from 'lucide-react'
 import { usersApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
@@ -353,6 +353,8 @@ function AboutSection() {
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
   const [updating, setUpdating] = useState(false)
   const [changelogOpen, setChangelogOpen] = useState(false)
+  const [updateGuideOpen, setUpdateGuideOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   // Changelog is bundled at build time — always available, no HTTP fetch needed
   const localChangelog = changelogJson as { currentVersion: string; releases: ChangelogRelease[] }
@@ -386,6 +388,14 @@ function AboutSection() {
     setLastCheckedAt(new Date())
   }
 
+  const DOCKER_UPDATE_CMD = 'docker compose pull && docker compose up -d'
+
+  async function copyDockerCmd() {
+    await navigator.clipboard.writeText(DOCKER_UPDATE_CMD)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   async function runUpdate() {
     setUpdating(true)
     try {
@@ -398,7 +408,7 @@ function AboutSection() {
         await Promise.all(regs.map((reg) => reg.unregister()))
       }
     } finally {
-      window.location.href = `${window.location.pathname}?updated=${Date.now()}`
+      window.location.replace(window.location.pathname)
     }
   }
 
@@ -460,10 +470,9 @@ function AboutSection() {
           <button
             type="button"
             className="btn-primary"
-            onClick={() => { void runUpdate() }}
-            disabled={updating}
+            onClick={() => setUpdateGuideOpen(true)}
           >
-            {updating ? <LoadingSpinner size="sm" /> : '立即更新'}
+            立即更新
           </button>
         )}
         <button
@@ -476,6 +485,58 @@ function AboutSection() {
         </button>
       </div>
     </Section>
+
+    {/* Update guide modal */}
+    <Modal
+      open={updateGuideOpen}
+      onClose={() => setUpdateGuideOpen(false)}
+      title={`更新至 v${latestVersion ?? ''}`}
+    >
+      <div className="space-y-5 text-sm">
+        <p className="text-ink-muted dark:text-gray-400">
+          VitaShelf 以 Docker 容器部署，更新需要兩個步驟：
+        </p>
+
+        {/* Step 1 */}
+        <div className="space-y-2">
+          <p className="font-semibold text-ink dark:text-gray-200">
+            ① 在伺服器執行更新指令
+          </p>
+          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3 font-mono text-xs text-ink dark:text-gray-200">
+            <span className="flex-1 select-all">{DOCKER_UPDATE_CMD}</span>
+            <button
+              type="button"
+              onClick={() => { void copyDockerCmd() }}
+              className="shrink-0 text-ink-muted dark:text-gray-400 hover:text-primary transition-colors"
+              title="複製指令"
+            >
+              {copied ? <CheckCircle size={15} className="text-status-ok" /> : <Copy size={15} />}
+            </button>
+          </div>
+          <p className="text-xs text-ink-muted dark:text-gray-500">
+            請等容器重新啟動完成後，再執行下一步。
+          </p>
+        </div>
+
+        {/* Step 2 */}
+        <div className="space-y-2">
+          <p className="font-semibold text-ink dark:text-gray-200">
+            ② 清除瀏覽器快取並重新載入
+          </p>
+          <button
+            type="button"
+            className="btn-primary w-full"
+            onClick={() => { setUpdateGuideOpen(false); void runUpdate() }}
+            disabled={updating}
+          >
+            {updating ? <LoadingSpinner size="sm" /> : '清除快取並重新載入'}
+          </button>
+          <p className="text-xs text-ink-muted dark:text-gray-500">
+            此步驟會清除 Service Worker 快取並重新載入頁面，確保瀏覽器取得最新版本。
+          </p>
+        </div>
+      </div>
+    </Modal>
 
     {/* Changelog modal */}
     <Modal

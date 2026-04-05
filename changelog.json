@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.3.3",
+  "currentVersion": "2.3.4",
   "releases": [
+    {
+      "version": "2.3.4",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正「立即更新」按鈕點擊後網站未更新的問題",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "「立即更新」改為兩步驟說明視窗：引導使用者先在伺服器執行 docker compose pull && docker compose up -d，再清除瀏覽器快取"
+        },
+        {
+          "tag": "improved",
+          "text": "nginx.conf 的 SPA fallback 加入 Cache-Control: no-store，確保瀏覽器每次都取得最新的 index.html"
+        }
+      ]
+    },
     {
       "version": "2.3.3",
       "date": "2026-04-06",
