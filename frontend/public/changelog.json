@@ -1,7 +1,27 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.3.0",
+  "currentVersion": "2.3.1",
   "releases": [
+    {
+      "version": "2.3.1",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正設定頁版本資訊無法顯示的問題",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "新增 APP_VERSION 常數作為 fallback，當 /changelog.json 未部署時版本號仍可正確顯示"
+        },
+        {
+          "category": "improved",
+          "description": "Remote 更新檢查失敗時整行隱藏，不再顯示「無法連線至更新伺服器」錯誤訊息"
+        },
+        {
+          "category": "improved",
+          "description": "版本紀錄 Modal 在 changelog.json 不可用時顯示目前版本號作為替代內容"
+        }
+      ]
+    },
     {
       "version": "2.3.0",
       "date": "2026-04-06",

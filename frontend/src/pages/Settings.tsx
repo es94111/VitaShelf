@@ -12,6 +12,9 @@ import Modal from '@/components/ui/Modal'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
+// Bump this constant every release — shown when /changelog.json is unavailable
+const APP_VERSION = '2.3.0'
+
 const LOCAL_CHANGELOG_URL  = '/changelog.json'
 const REMOTE_CHANGELOG_URL = 'https://raw.githubusercontent.com/es94111/VitaShelf/refs/heads/main/changelog.json'
 
@@ -362,8 +365,10 @@ function AboutSection() {
       return res.json() as Promise<{ currentVersion: string; releases: ChangelogRelease[] }>
     },
     staleTime: Infinity,
+    retry: false,
   })
-  const currentVersion = localQuery.data?.currentVersion ?? ''
+  // Always have a version to show: from file → fallback to hardcoded constant
+  const currentVersion = localQuery.data?.currentVersion ?? APP_VERSION
 
   const remoteVersionQuery = useQuery({
     queryKey: ['remote-version'],
@@ -416,32 +421,33 @@ function AboutSection() {
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">版本</dt>
           <dd className="font-mono text-ink dark:text-gray-200 font-medium">
-            {localQuery.isLoading ? '…' : localQuery.isError ? '—' : `v${currentVersion}`}
+            {localQuery.isLoading ? '…' : `v${currentVersion}`}
           </dd>
         </div>
-        <div className="flex items-center justify-between">
-          <dt className="text-ink-muted dark:text-gray-400">最新版本</dt>
-          <dd className="font-mono text-ink dark:text-gray-200 font-medium">
-            {remoteVersionQuery.isFetching
-              ? '檢查中...'
-              : latestVersion
-                ? `v${latestVersion}`
-                : '—'}
-          </dd>
-        </div>
-        <div className="flex items-center justify-between">
-          <dt className="text-ink-muted dark:text-gray-400">更新狀態</dt>
-          <dd className={`font-medium ${hasNewVersion ? 'text-status-warn' : remoteVersionQuery.isError ? 'text-ink-muted' : 'text-status-ok'}`}>
-            {remoteVersionQuery.isError
-              ? '無法連線至更新伺服器'
-              : !latestVersion
-                ? '尚未檢查'
-                : hasNewVersion
-                  ? '有新版本可更新'
-                  : '目前已是最新版本'}
-          </dd>
-        </div>
-        {lastCheckedAt && (
+        {/* 最新版本 & 更新狀態：remote 失敗時整行不顯示，避免誤導 */}
+        {!remoteVersionQuery.isError && (
+          <>
+            <div className="flex items-center justify-between">
+              <dt className="text-ink-muted dark:text-gray-400">最新版本</dt>
+              <dd className="font-mono text-ink dark:text-gray-200 font-medium">
+                {remoteVersionQuery.isFetching ? '檢查中...' : latestVersion ? `v${latestVersion}` : '—'}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between">
+              <dt className="text-ink-muted dark:text-gray-400">更新狀態</dt>
+              <dd className={`font-medium ${hasNewVersion ? 'text-status-warn' : 'text-status-ok'}`}>
+                {remoteVersionQuery.isFetching
+                  ? '檢查中...'
+                  : !latestVersion
+                    ? '尚未檢查'
+                    : hasNewVersion
+                      ? '有新版本可更新'
+                      : '目前已是最新版本'}
+              </dd>
+            </div>
+          </>
+        )}
+        {lastCheckedAt && !remoteVersionQuery.isError && (
           <div className="flex items-center justify-between">
             <dt className="text-ink-muted dark:text-gray-400">上次檢查</dt>
             <dd className="text-ink dark:text-gray-200">{format(lastCheckedAt, 'yyyy-MM-dd HH:mm:ss')}</dd>
@@ -495,7 +501,10 @@ function AboutSection() {
           <LoadingSpinner size="lg" />
         </div>
       ) : localQuery.isError ? (
-        <p className="text-sm text-ink-muted text-center py-8">無法載入版本紀錄，請稍後再試</p>
+        <div className="py-8 text-center space-y-2">
+          <p className="text-sm text-ink-muted">目前版本：<span className="font-mono font-semibold">v{APP_VERSION}</span></p>
+          <p className="text-xs text-ink-faint">詳細版本紀錄在重新部署後可用</p>
+        </div>
       ) : (
         <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
           {(localQuery.data?.releases ?? []).map((release) => (
