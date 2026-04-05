@@ -18,6 +18,7 @@ import dashboardRoutes from './routes/dashboard'
 import tagRoutes      from './routes/tags'
 import exportRoutes   from './routes/export'
 import importRoutes   from './routes/import'
+import changelogRoutes from './routes/changelog'
 import logger         from './middleware/logger'
 
 const app = express()
@@ -48,6 +49,7 @@ app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/tags',      tagRoutes)
 app.use('/api/export',    exportRoutes)
 app.use('/api/import',    importRoutes)
+app.use('/api/changelog', changelogRoutes)
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {

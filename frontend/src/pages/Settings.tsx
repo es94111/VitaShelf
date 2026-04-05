@@ -5,7 +5,7 @@ import {
   User, Lock, Download, Upload, Info,
   Eye, EyeOff, CheckCircle, FileText, AlertCircle, Clock, Shield, History,
 } from 'lucide-react'
-import { usersApi, exportApi, importApi, adminApi } from '@/services/api'
+import { usersApi, exportApi, importApi, adminApi, changelogApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -13,7 +13,6 @@ import Modal from '@/components/ui/Modal'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
 
-const APP_VERSION = '2.2.4'
 const REMOTE_CHANGELOG_BLOB_URL = 'https://github.com/es94111/VitaShelf/blob/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -695,14 +694,6 @@ function ImportSection() {
 
 // ─── About section ────────────────────────────────────────────────────────────
 
-interface ChangelogRelease {
-  version: string
-  date: string
-  type: string
-  summary: string
-  changes: { category: string; description: string }[]
-}
-
 const CATEGORY_LABEL: Record<string, string> = {
   added:    '新增',
   changed:  '調整',
@@ -724,20 +715,28 @@ function AboutSection() {
   const [updating, setUpdating] = useState(false)
   const [changelogOpen, setChangelogOpen] = useState(false)
 
+  // Local changelog — always available via backend
+  const localQuery = useQuery({
+    queryKey: ['changelog-local'],
+    queryFn:  () => changelogApi.get().then((r) => r.data),
+    staleTime: Infinity,
+  })
+  const currentVersion = localQuery.data?.currentVersion ?? '…'
+
+  // Remote GitHub check — optional, may fail on air-gapped or private networks
   const remoteVersionQuery = useQuery({
     queryKey: ['remote-version', REMOTE_CHANGELOG_BLOB_URL],
     queryFn: async () => {
       const rawUrl = toRawGitHubUrl(REMOTE_CHANGELOG_BLOB_URL)
       const res = await fetch(rawUrl, { cache: 'no-store' })
       if (!res.ok) throw new Error('無法取得遠端版本資訊')
-
-      const json = (await res.json()) as { currentVersion?: string; releases?: ChangelogRelease[] }
+      const json = (await res.json()) as { currentVersion?: string }
       if (!json.currentVersion) throw new Error('遠端版本資訊格式不正確')
-
-      return { version: json.currentVersion, releases: json.releases ?? [] }
+      return { version: json.currentVersion }
     },
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
+    retry: false,
   })
 
   useEffect(() => {
@@ -746,9 +745,8 @@ function AboutSection() {
     }
   }, [remoteVersionQuery.data, remoteVersionQuery.error])
 
-  const latestVersion = remoteVersionQuery.data?.version ?? '-'
-  const versionCmp = latestVersion === '-' ? 0 : compareSemver(latestVersion, APP_VERSION)
-  const hasNewVersion = versionCmp > 0
+  const latestVersion = remoteVersionQuery.data?.version
+  const hasNewVersion = !!latestVersion && compareSemver(latestVersion, currentVersion) > 0
 
   async function checkNow() {
     await remoteVersionQuery.refetch()
@@ -762,7 +760,6 @@ function AboutSection() {
         const keys = await caches.keys()
         await Promise.all(keys.map((key) => caches.delete(key)))
       }
-
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations()
         await Promise.all(regs.map((reg) => reg.unregister()))
@@ -778,22 +775,30 @@ function AboutSection() {
       <dl className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">版本</dt>
-          <dd className="font-mono text-ink dark:text-gray-200 font-medium">v{APP_VERSION}</dd>
+          <dd className="font-mono text-ink dark:text-gray-200 font-medium">
+            {localQuery.isLoading ? '…' : `v${currentVersion}`}
+          </dd>
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">最新版本</dt>
           <dd className="font-mono text-ink dark:text-gray-200 font-medium">
-            {remoteVersionQuery.isLoading ? '檢查中...' : `v${latestVersion}`}
+            {remoteVersionQuery.isFetching
+              ? '檢查中...'
+              : latestVersion
+                ? `v${latestVersion}`
+                : '—'}
           </dd>
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">更新狀態</dt>
-          <dd className={`font-medium ${hasNewVersion ? 'text-status-warn' : 'text-status-ok'}`}>
+          <dd className={`font-medium ${hasNewVersion ? 'text-status-warn' : remoteVersionQuery.isError ? 'text-ink-muted' : 'text-status-ok'}`}>
             {remoteVersionQuery.isError
-              ? '無法取得更新資訊'
-              : hasNewVersion
-                ? '有新版本可更新'
-                : '目前已是最新版本'}
+              ? '無法連線至更新伺服器'
+              : !latestVersion
+                ? '尚未檢查'
+                : hasNewVersion
+                  ? '有新版本可更新'
+                  : '目前已是最新版本'}
           </dd>
         </div>
         {lastCheckedAt && (
@@ -845,15 +850,15 @@ function AboutSection() {
       title="版本紀錄"
       size="lg"
     >
-      {remoteVersionQuery.isLoading ? (
+      {localQuery.isLoading ? (
         <div className="flex justify-center py-8">
           <LoadingSpinner size="lg" />
         </div>
-      ) : remoteVersionQuery.isError ? (
+      ) : localQuery.isError ? (
         <p className="text-sm text-ink-muted text-center py-8">無法載入版本紀錄，請稍後再試</p>
       ) : (
         <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
-          {(remoteVersionQuery.data?.releases ?? []).map((release) => (
+          {(localQuery.data?.releases ?? []).map((release) => (
             <div key={release.version} className="border border-surface-border dark:border-gray-700 rounded-lg overflow-hidden">
               {/* Release header */}
               <div className="flex items-center justify-between px-4 py-3 bg-surface dark:bg-gray-800">
@@ -861,15 +866,13 @@ function AboutSection() {
                   <span className="font-mono font-semibold text-ink dark:text-gray-100">
                     v{release.version}
                   </span>
-                  {release.version === APP_VERSION && (
+                  {release.version === currentVersion && (
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
                       目前版本
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-ink-muted dark:text-gray-400">
-                  <span>{release.date}</span>
-                </div>
+                <span className="text-xs text-ink-muted dark:text-gray-400">{release.date}</span>
               </div>
               {/* Changes list */}
               {release.changes?.length > 0 && (

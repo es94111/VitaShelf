@@ -209,6 +209,20 @@ export const adminApi = {
     ),
 }
 
+// ─── Changelog ───────────────────────────────────────────────────────────────
+
+export interface ChangelogRelease {
+  version: string
+  date: string
+  type: string
+  summary: string
+  changes: { category: string; description: string }[]
+}
+
+export const changelogApi = {
+  get: () => api.get<{ projectName: string; currentVersion: string; releases: ChangelogRelease[] }>('/changelog'),
+}
+
 // ─── Export ──────────────────────────────────────────────────────────────────
 
 export const exportApi = {
