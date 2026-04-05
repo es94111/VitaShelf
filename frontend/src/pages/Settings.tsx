@@ -11,11 +11,8 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import Modal from '@/components/ui/Modal'
 import type { LoginLog } from '@/types'
 import { format } from 'date-fns'
+import changelogJson from '@/data/changelog.json'
 
-// Bump this constant every release — shown when /changelog.json is unavailable
-const APP_VERSION = '2.3.0'
-
-const LOCAL_CHANGELOG_URL  = '/changelog.json'
 const REMOTE_CHANGELOG_URL = 'https://raw.githubusercontent.com/es94111/VitaShelf/refs/heads/main/changelog.json'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -357,18 +354,9 @@ function AboutSection() {
   const [updating, setUpdating] = useState(false)
   const [changelogOpen, setChangelogOpen] = useState(false)
 
-  const localQuery = useQuery({
-    queryKey: ['changelog-local'],
-    queryFn: async () => {
-      const res = await fetch(LOCAL_CHANGELOG_URL, { cache: 'no-store' })
-      if (!res.ok) throw new Error('無法讀取版本資訊')
-      return res.json() as Promise<{ currentVersion: string; releases: ChangelogRelease[] }>
-    },
-    staleTime: Infinity,
-    retry: false,
-  })
-  // Always have a version to show: from file → fallback to hardcoded constant
-  const currentVersion = localQuery.data?.currentVersion ?? APP_VERSION
+  // Changelog is bundled at build time — always available, no HTTP fetch needed
+  const localChangelog = changelogJson as { currentVersion: string; releases: ChangelogRelease[] }
+  const currentVersion = localChangelog.currentVersion
 
   const remoteVersionQuery = useQuery({
     queryKey: ['remote-version'],
@@ -421,7 +409,7 @@ function AboutSection() {
         <div className="flex items-center justify-between">
           <dt className="text-ink-muted dark:text-gray-400">版本</dt>
           <dd className="font-mono text-ink dark:text-gray-200 font-medium">
-            {localQuery.isLoading ? '…' : `v${currentVersion}`}
+            v{currentVersion}
           </dd>
         </div>
         {/* 最新版本 & 更新狀態：remote 失敗時整行不顯示，避免誤導 */}
@@ -496,18 +484,9 @@ function AboutSection() {
       title="版本紀錄"
       size="lg"
     >
-      {localQuery.isLoading ? (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner size="lg" />
-        </div>
-      ) : localQuery.isError ? (
-        <div className="py-8 text-center space-y-2">
-          <p className="text-sm text-ink-muted">目前版本：<span className="font-mono font-semibold">v{APP_VERSION}</span></p>
-          <p className="text-xs text-ink-faint">詳細版本紀錄在重新部署後可用</p>
-        </div>
-      ) : (
+      {(
         <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
-          {(localQuery.data?.releases ?? []).map((release) => (
+          {localChangelog.releases.map((release) => (
             <div key={release.version} className="border border-surface-border dark:border-gray-700 rounded-lg overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 bg-surface dark:bg-gray-800">
                 <div className="flex items-center gap-2">
@@ -539,6 +518,7 @@ function AboutSection() {
         </div>
       )}
     </Modal>
+
     </>
   )
 }

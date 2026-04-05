@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.3.1",
+  "currentVersion": "2.3.2",
   "releases": [
+    {
+      "version": "2.3.2",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正 changelog.json 格式錯誤，版本資訊改為 bundle 載入",
+      "changes": [
+        {
+          "category": "fixed",
+          "description": "修正 changelog.json 中 v2.2.6 缺少 release 開頭欄位、v0.3.0 重複 '{' 導致 JSON 解析失敗的問題"
+        },
+        {
+          "category": "improved",
+          "description": "changelog.json 改為 build time import 打包進 bundle，版本號與紀錄不再依賴 HTTP fetch，永遠可用"
+        }
+      ]
+    },
     {
       "version": "2.3.1",
       "date": "2026-04-06",
@@ -94,6 +110,12 @@
         }
       ]
     },
+    {
+      "version": "2.2.6",
+      "date": "2026-03-26",
+      "type": "added",
+      "summary": "新增購買紀錄匯出產品名稱和品牌欄位，支援跨帳戶匯入",
+      "changes": [
         {
           "category": "added",
           "description": "匯出購買紀錄時新增產品名稱和品牌欄位"
@@ -636,7 +658,6 @@
         }
       ]
     },
-    {
     {
       "version": "0.3.0",
       "date": "2026-03-26",
