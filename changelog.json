@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.3.2",
+  "currentVersion": "2.3.3",
   "releases": [
+    {
+      "version": "2.3.3",
+      "date": "2026-04-06",
+      "type": "improved",
+      "summary": "新增網站 ICON（favicon）",
+      "changes": [
+        {
+          "tag": "new",
+          "text": "新增 SVG 格式 favicon，採用藍色圓角方形底搭配白色葉片圖示，與側邊欄品牌一致"
+        },
+        {
+          "tag": "improved",
+          "text": "更新 PWA apple-touch-icon 指向 favicon.svg，改善安裝至主畫面時的圖示顯示"
+        }
+      ]
+    },
     {
       "version": "2.3.2",
       "date": "2026-04-06",
