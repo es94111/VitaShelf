@@ -47,10 +47,13 @@ export default function StockLogs() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: (d: { logId: string; type: StockLog['type']; quantity: number; reason?: string }) =>
+    mutationFn: (d: { logId: string; productId: string; type: StockLog['type']; quantity: number; reason?: string }) =>
       stockApi.update(d.logId, { type: d.type, quantity: d.quantity, reason: d.reason }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['stockLogs-all'] })
+      queryClient.invalidateQueries({ queryKey: ['stock', variables.productId] })
+      queryClient.invalidateQueries({ queryKey: ['stockLogs', variables.productId] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       toast.success('庫存異動已更新')
       setEditOpen(false)
       setEditingLog(null)
@@ -59,9 +62,12 @@ export default function StockLogs() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (logId: string) => stockApi.delete(logId),
-    onSuccess: () => {
+    mutationFn: (d: { logId: string; productId: string }) => stockApi.delete(d.logId),
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['stockLogs-all'] })
+      queryClient.invalidateQueries({ queryKey: ['stock', variables.productId] })
+      queryClient.invalidateQueries({ queryKey: ['stockLogs', variables.productId] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       toast.success('庫存異動已刪除')
     },
     onError: () => toast.error('刪除失敗'),
@@ -82,6 +88,7 @@ export default function StockLogs() {
     }
     updateMutation.mutate({
       logId: editingLog.id,
+      productId: editingLog.productId,
       type: editType,
       quantity: Number(editQty),
       reason: editReason || undefined,
@@ -175,7 +182,7 @@ export default function StockLogs() {
                         className="text-status-danger hover:underline text-xs"
                         onClick={() => {
                           if (confirm('確定要刪除此異動記錄嗎？')) {
-                            deleteMutation.mutate(log.id)
+                            deleteMutation.mutate({ logId: log.id, productId: log.productId })
                           }
                         }}
                       >

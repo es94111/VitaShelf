@@ -1,7 +1,23 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.3.6",
+  "currentVersion": "2.3.7",
   "releases": [
+    {
+      "version": "2.3.7",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正刪除或編輯庫存異動紀錄後庫存數字未即時更新的問題",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "刪除庫存異動紀錄後，目前庫存與已使用數量未即時反映——StockLogs 頁的 mutation 現在會同步 invalidate 產品庫存、產品異動紀錄及儀表板統計的 query cache"
+        },
+        {
+          "tag": "fixed",
+          "text": "編輯庫存異動紀錄後，同樣缺少 cache 刷新，已一併修正"
+        }
+      ]
+    },
     {
       "version": "2.3.6",
       "date": "2026-04-06",
