@@ -1,7 +1,79 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.3.2",
+  "currentVersion": "2.3.6",
   "releases": [
+    {
+      "version": "2.3.6",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正庫存異動紀錄頁面無法載入、購買紀錄修改同步庫存異動",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "修正庫存異動紀錄頁（/stock-logs）因 Express 路由順序錯誤（GET /logs 被 /:productId 攔截）導致資料無法載入的問題"
+        },
+        {
+          "tag": "improved",
+          "text": "新增購買紀錄與庫存異動紀錄的資料關聯（purchaseRecordId），新增購買時以 transaction 同步建立入庫紀錄"
+        },
+        {
+          "tag": "improved",
+          "text": "修改購買紀錄的數量或通路時，自動同步更新對應的庫存入庫紀錄"
+        },
+        {
+          "tag": "improved",
+          "text": "刪除購買紀錄時，同步刪除關聯的入庫紀錄，確保庫存數量正確"
+        },
+        {
+          "tag": "improved",
+          "text": "購買紀錄的新增、修改、刪除 API 加入擁有權驗證，防止跨用戶操作"
+        }
+      ]
+    },
+    {
+      "version": "2.3.5",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正版本紀錄視窗中 v2.3.3、v2.3.4 顯示空白的問題",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "修正 changelog.json 中 v2.3.3、v2.3.4 的 changes 欄位使用了錯誤的 tag/text 格式，統一改回正確的 category/description 格式"
+        }
+      ]
+    },
+    {
+      "version": "2.3.4",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正「立即更新」按鈕點擊後網站未更新的問題",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "「立即更新」改為兩步驟說明視窗：引導使用者先在伺服器執行 docker compose pull && docker compose up -d，再清除瀏覽器快取"
+        },
+        {
+          "tag": "improved",
+          "text": "nginx.conf 的 SPA fallback 加入 Cache-Control: no-store，確保瀏覽器每次都取得最新的 index.html"
+        }
+      ]
+    },
+    {
+      "version": "2.3.3",
+      "date": "2026-04-06",
+      "type": "improved",
+      "summary": "新增網站 ICON（favicon）",
+      "changes": [
+        {
+          "tag": "new",
+          "text": "新增 SVG 格式 favicon，採用藍色圓角方形底搭配白色葉片圖示，與側邊欄品牌一致"
+        },
+        {
+          "tag": "improved",
+          "text": "更新 PWA apple-touch-icon 指向 favicon.svg，改善安裝至主畫面時的圖示顯示"
+        }
+      ]
+    },
     {
       "version": "2.3.2",
       "date": "2026-04-06",
@@ -9,12 +81,12 @@
       "summary": "修正 changelog.json 格式錯誤，版本資訊改為 bundle 載入",
       "changes": [
         {
-          "category": "fixed",
-          "description": "修正 changelog.json 中 v2.2.6 缺少 release 開頭欄位、v0.3.0 重複 '{' 導致 JSON 解析失敗的問題"
+          "tag": "fixed",
+          "text": "修正 changelog.json 中 v2.2.6 缺少 release 開頭欄位、v0.3.0 重複 '{' 導致 JSON 解析失敗的問題"
         },
         {
-          "category": "improved",
-          "description": "changelog.json 改為 build time import 打包進 bundle，版本號與紀錄不再依賴 HTTP fetch，永遠可用"
+          "tag": "improved",
+          "text": "changelog.json 改為 build time import 打包進 bundle，版本號與紀錄不再依賴 HTTP fetch，永遠可用"
         }
       ]
     },
@@ -25,16 +97,16 @@
       "summary": "修正設定頁版本資訊無法顯示的問題",
       "changes": [
         {
-          "category": "fixed",
-          "description": "新增 APP_VERSION 常數作為 fallback，當 /changelog.json 未部署時版本號仍可正確顯示"
+          "tag": "fixed",
+          "text": "新增 APP_VERSION 常數作為 fallback，當 /changelog.json 未部署時版本號仍可正確顯示"
         },
         {
-          "category": "improved",
-          "description": "Remote 更新檢查失敗時整行隱藏，不再顯示「無法連線至更新伺服器」錯誤訊息"
+          "tag": "improved",
+          "text": "Remote 更新檢查失敗時整行隱藏，不再顯示「無法連線至更新伺服器」錯誤訊息"
         },
         {
-          "category": "improved",
-          "description": "版本紀錄 Modal 在 changelog.json 不可用時顯示目前版本號作為替代內容"
+          "tag": "improved",
+          "text": "版本紀錄 Modal 在 changelog.json 不可用時顯示目前版本號作為替代內容"
         }
       ]
     },
@@ -45,28 +117,28 @@
       "summary": "新增全站庫存異動紀錄頁、資料管理移至管理員頁、版本紀錄視窗化",
       "changes": [
         {
-          "category": "added",
-          "description": "新增「庫存歷史異動紀錄」頁面（/stock-logs），顯示全站所有庫存異動，支援分頁、編輯與刪除"
+          "tag": "new",
+          "text": "新增「庫存歷史異動紀錄」頁面（/stock-logs），顯示全站所有庫存異動，支援分頁、編輯與刪除"
         },
         {
-          "category": "added",
-          "description": "側邊欄「產品管理」新增子選單，進入產品相關頁面時展開「庫存異動紀錄」連結"
+          "tag": "new",
+          "text": "側邊欄「產品管理」新增子選單，進入產品相關頁面時展開「庫存異動紀錄」連結"
         },
         {
-          "category": "added",
-          "description": "管理員頁面新增「資料管理」分頁，集中資料匯出（產品/購買紀錄）與 CSV 匯入功能"
+          "tag": "new",
+          "text": "管理員頁面新增「資料管理」分頁，集中資料匯出（產品/購買紀錄）與 CSV 匯入功能"
         },
         {
-          "category": "improved",
-          "description": "版本紀錄改為頁面內 Modal 視窗顯示，不再跳轉至外部 GitHub 連結"
+          "tag": "improved",
+          "text": "版本紀錄改為頁面內 Modal 視窗顯示，不再跳轉至外部 GitHub 連結"
         },
         {
-          "category": "improved",
-          "description": "版本資訊改由本機靜態檔案 /changelog.json 讀取，解決無法顯示目前版本的問題"
+          "tag": "improved",
+          "text": "版本資訊改由本機靜態檔案 /changelog.json 讀取，解決無法顯示目前版本的問題"
         },
         {
-          "category": "removed",
-          "description": "設定頁移除管理員子選單、資料匯出、資料匯入區塊，統一移至管理員頁面"
+          "tag": "removed",
+          "text": "設定頁移除管理員子選單、資料匯出、資料匯入區塊，統一移至管理員頁面"
         }
       ]
     },
@@ -77,20 +149,20 @@
       "summary": "新增庫存異動編輯功能",
       "changes": [
         {
-          "category": "added",
-          "description": "產品詳情頁新增庫存異動紀錄清單，並支援編輯和刪除功能"
+          "tag": "new",
+          "text": "產品詳情頁新增庫存異動紀錄清單，並支援編輯和刪除功能"
         },
         {
-          "category": "added",
-          "description": "PUT /api/stock/:id 路由 - 編輯庫存異動記錄"
+          "tag": "new",
+          "text": "PUT /api/stock/:id 路由 - 編輯庫存異動記錄"
         },
         {
-          "category": "added",
-          "description": "DELETE /api/stock/:id 路由 - 刪除庫存異動記錄"
+          "tag": "new",
+          "text": "DELETE /api/stock/:id 路由 - 刪除庫存異動記錄"
         },
         {
-          "category": "changed",
-          "description": "Prisma schema 中的 StockLog 模型新增 updatedAt 時間戳欄位"
+          "tag": "improved",
+          "text": "Prisma schema 中的 StockLog 模型新增 updatedAt 時間戳欄位"
         }
       ]
     },
@@ -101,12 +173,12 @@
       "summary": "新增網站 ICON",
       "changes": [
         {
-          "category": "added",
-          "description": "新增 favicon.svg 上传到 public 文件夾"
+          "tag": "new",
+          "text": "新增 favicon.svg 上传到 public 文件夾"
         },
         {
-          "category": "improved",
-          "description": "manifest.json 中添加了 192x192 和 512x512 等項量icon 配置"
+          "tag": "improved",
+          "text": "manifest.json 中添加了 192x192 和 512x512 等項量icon 配置"
         }
       ]
     },
@@ -117,16 +189,16 @@
       "summary": "新增購買紀錄匯出產品名稱和品牌欄位，支援跨帳戶匯入",
       "changes": [
         {
-          "category": "added",
-          "description": "匯出購買紀錄時新增產品名稱和品牌欄位"
+          "tag": "new",
+          "text": "匯出購買紀錄時新增產品名稱和品牌欄位"
         },
         {
-          "category": "improved",
-          "description": "匯入購買紀錄時支援產品名稱和品牌自動匹配（productId 可選），可跨帳戶匯入"
+          "tag": "improved",
+          "text": "匯入購買紀錄時支援產品名稱和品牌自動匹配（productId 可選），可跨帳戶匯入"
         },
         {
-          "category": "changed",
-          "description": "購買紀錄匯入範本欄位順序調整，新增 productName 和 productBrand"
+          "tag": "improved",
+          "text": "購買紀錄匯入範本欄位順序調整，新增 productName 和 productBrand"
         }
       ]
     },
@@ -137,12 +209,12 @@
       "summary": "確認匯出格式與範本對齊，更新文檔",
       "changes": [
         {
-          "category": "improved",
-          "description": "確認匯出產品清單與購買紀錄格式完全對齊匯入範本"
+          "tag": "improved",
+          "text": "確認匯出產品清單與購買紀錄格式完全對齊匯入範本"
         },
         {
-          "category": "changed",
-          "description": "更新 SRS.md 與 README.md 文檔版本"
+          "tag": "improved",
+          "text": "更新 SRS.md 與 README.md 文檔版本"
         }
       ]
     },
@@ -153,12 +225,12 @@
       "summary": "購買紀錄匯出格式對齊匯入範本",
       "changes": [
         {
-          "category": "fixed",
-          "description": "匯出購買紀錄欄位改為與下載購買紀錄範本一致，欄位名稱與順序完全對齊"
+          "tag": "fixed",
+          "text": "匯出購買紀錄欄位改為與下載購買紀錄範本一致，欄位名稱與順序完全對齊"
         },
         {
-          "category": "changed",
-          "description": "網頁版本資訊更新為 v2.2.4"
+          "tag": "improved",
+          "text": "網頁版本資訊更新為 v2.2.4"
         }
       ]
     },
@@ -169,12 +241,12 @@
       "summary": "修正管理員公開註冊設定區塊自動消失",
       "changes": [
         {
-          "category": "fixed",
-          "description": "設定頁管理員子選單在權限驗證失敗時改為顯示提示訊息，不再直接消失"
+          "tag": "fixed",
+          "text": "設定頁管理員子選單在權限驗證失敗時改為顯示提示訊息，不再直接消失"
         },
         {
-          "category": "changed",
-          "description": "網頁版本資訊更新為 v2.2.3"
+          "tag": "improved",
+          "text": "網頁版本資訊更新為 v2.2.3"
         }
       ]
     },
@@ -185,12 +257,12 @@
       "summary": "產品匯出格式對齊匯入範本",
       "changes": [
         {
-          "category": "fixed",
-          "description": "匯出產品清單欄位改為與下載產品範本一致，欄位名稱與順序完全對齊"
+          "tag": "fixed",
+          "text": "匯出產品清單欄位改為與下載產品範本一致，欄位名稱與順序完全對齊"
         },
         {
-          "category": "changed",
-          "description": "網頁版本資訊更新為 v2.2.2"
+          "tag": "improved",
+          "text": "網頁版本資訊更新為 v2.2.2"
         }
       ]
     },
@@ -201,16 +273,16 @@
       "summary": "設定頁新增管理員子選單",
       "changes": [
         {
-          "category": "added",
-          "description": "設定頁新增管理員子選單，集中管理註冊政策、使用者管理與登入紀錄入口"
+          "tag": "new",
+          "text": "設定頁新增管理員子選單，集中管理註冊政策、使用者管理與登入紀錄入口"
         },
         {
-          "category": "changed",
-          "description": "管理頁支援透過 URL 參數直接開啟指定分頁"
+          "tag": "improved",
+          "text": "管理頁支援透過 URL 參數直接開啟指定分頁"
         },
         {
-          "category": "changed",
-          "description": "網頁版本資訊更新為 v2.2.1"
+          "tag": "improved",
+          "text": "網頁版本資訊更新為 v2.2.1"
         }
       ]
     },
@@ -221,16 +293,16 @@
       "summary": "新增購買紀錄匯入功能",
       "changes": [
         {
-          "category": "added",
-          "description": "資料匯入新增購買紀錄 CSV 匯入，支援批次建立購買紀錄"
+          "tag": "new",
+          "text": "資料匯入新增購買紀錄 CSV 匯入，支援批次建立購買紀錄"
         },
         {
-          "category": "added",
-          "description": "設定頁匯入區塊新增產品與購買紀錄雙範本與雙上傳入口"
+          "tag": "new",
+          "text": "設定頁匯入區塊新增產品與購買紀錄雙範本與雙上傳入口"
         },
         {
-          "category": "changed",
-          "description": "網頁版本資訊更新為 v2.2.0"
+          "tag": "improved",
+          "text": "網頁版本資訊更新為 v2.2.0"
         }
       ]
     },
@@ -241,12 +313,12 @@
       "summary": "新增網頁內更新按鈕",
       "changes": [
         {
-          "category": "added",
-          "description": "偵測到新版本時，設定頁顯示『立即更新』按鈕，可在網頁上直接執行更新流程"
+          "tag": "new",
+          "text": "偵測到新版本時，設定頁顯示『立即更新』按鈕，可在網頁上直接執行更新流程"
         },
         {
-          "category": "changed",
-          "description": "更新流程會清除前端快取並重新載入頁面，以套用最新部署版本"
+          "tag": "improved",
+          "text": "更新流程會清除前端快取並重新載入頁面，以套用最新部署版本"
         }
       ]
     },
@@ -257,12 +329,12 @@
       "summary": "修正管理員公開註冊選項可見性",
       "changes": [
         {
-          "category": "fixed",
-          "description": "設定頁公開註冊設定改為依後端權限回應判斷，不再依賴本機角色快取，修正管理員看不到開關的問題"
+          "tag": "fixed",
+          "text": "設定頁公開註冊設定改為依後端權限回應判斷，不再依賴本機角色快取，修正管理員看不到開關的問題"
         },
         {
-          "category": "changed",
-          "description": "網頁版本資訊更新為 v2.1.1"
+          "tag": "improved",
+          "text": "網頁版本資訊更新為 v2.1.1"
         }
       ]
     },
@@ -273,12 +345,12 @@
       "summary": "新增網頁版本自動更新檢查",
       "changes": [
         {
-          "category": "added",
-          "description": "設定頁版本資訊可自動檢查最新版本，並顯示目前版本、最新版本與更新狀態"
+          "tag": "new",
+          "text": "設定頁版本資訊可自動檢查最新版本，並顯示目前版本、最新版本與更新狀態"
         },
         {
-          "category": "added",
-          "description": "版本檢查來源改為專案 changelog 檔案，提供手動立即檢查按鈕"
+          "tag": "new",
+          "text": "版本檢查來源改為專案 changelog 檔案，提供手動立即檢查按鈕"
         }
       ]
     },
@@ -289,12 +361,12 @@
       "summary": "設定頁版本資訊與公開註冊設定可見性修正",
       "changes": [
         {
-          "category": "fixed",
-          "description": "前端設定頁版本資訊更新為 v2.0.2，修正網頁版本顯示未同步問題"
+          "tag": "fixed",
+          "text": "前端設定頁版本資訊更新為 v2.0.2，修正網頁版本顯示未同步問題"
         },
         {
-          "category": "added",
-          "description": "設定頁新增管理員可見的公開註冊設定區塊，可直接查看與調整是否開放註冊及提示訊息"
+          "tag": "new",
+          "text": "設定頁新增管理員可見的公開註冊設定區塊，可直接查看與調整是否開放註冊及提示訊息"
         }
       ]
     },
@@ -305,16 +377,16 @@
       "summary": "公開註冊控制與註冊流程一致性修正",
       "changes": [
         {
-          "category": "fixed",
-          "description": "管理頁註冊開關設定修正：載入後會正確同步目前設定值，避免開關顯示與實際狀態不一致"
+          "tag": "fixed",
+          "text": "管理頁註冊開關設定修正：載入後會正確同步目前設定值，避免開關顯示與實際狀態不一致"
         },
         {
-          "category": "changed",
-          "description": "註冊密碼長度規則統一為至少 8 碼，避免前後端檢核不一致造成註冊失敗"
+          "tag": "improved",
+          "text": "註冊密碼長度規則統一為至少 8 碼，避免前後端檢核不一致造成註冊失敗"
         },
         {
-          "category": "changed",
-          "description": "公開註冊流程確認：第一位註冊使用者為管理員，後續註冊依管理員設定決定是否開放"
+          "tag": "improved",
+          "text": "公開註冊流程確認：第一位註冊使用者為管理員，後續註冊依管理員設定決定是否開放"
         }
       ]
     },
@@ -325,96 +397,96 @@
       "summary": "管理員模式、深色/淺色主題切換、Google SSO、登入稽核紀錄、資料庫加密、響應式深色模式",
       "changes": [
         {
-          "category": "added",
-          "description": "frontend + backend: 深色/淺色主題切換 — class-based dark mode，localStorage 先行生效，背景同步後端 PUT /users/me/theme，同步失敗不影響當下使用"
+          "tag": "new",
+          "text": "frontend + backend: 深色/淺色主題切換 — class-based dark mode，localStorage 先行生效，背景同步後端 PUT /users/me/theme，同步失敗不影響當下使用"
         },
         {
-          "category": "added",
-          "description": "frontend: 側邊欄主題切換按鈕（Sun/Moon 圖示），即時切換無閃爍"
+          "tag": "new",
+          "text": "frontend: 側邊欄主題切換按鈕（Sun/Moon 圖示），即時切換無閃爍"
         },
         {
-          "category": "added",
-          "description": "frontend: 帳號設定修改顯示名稱後透過 useAuth.updateUser() 即時同步側邊欄，不需重新整理"
+          "tag": "new",
+          "text": "frontend: 帳號設定修改顯示名稱後透過 useAuth.updateUser() 即時同步側邊欄，不需重新整理"
         },
         {
-          "category": "added",
-          "description": "backend: Google SSO — POST /api/auth/google 接收 Google ID Token 驗證並簽發 JWT，GET /api/auth/google/enabled 供前端偵測是否啟用（依 GOOGLE_CLIENT_ID 環境變數）"
+          "tag": "new",
+          "text": "backend: Google SSO — POST /api/auth/google 接收 Google ID Token 驗證並簽發 JWT，GET /api/auth/google/enabled 供前端偵測是否啟用（依 GOOGLE_CLIENT_ID 環境變數）"
         },
         {
-          "category": "added",
-          "description": "frontend: Login 頁整合 Google Sign-In 按鈕（google.accounts.id），未設定 GOOGLE_CLIENT_ID 時自動隱藏"
+          "tag": "new",
+          "text": "frontend: Login 頁整合 Google Sign-In 按鈕（google.accounts.id），未設定 GOOGLE_CLIENT_ID 時自動隱藏"
         },
         {
-          "category": "added",
-          "description": "backend: 管理員模式 — 第一位註冊使用者自動成為 ADMIN，AdminSettings 單例控管註冊政策（registrationOpen / registrationNotice）"
+          "tag": "new",
+          "text": "backend: 管理員模式 — 第一位註冊使用者自動成為 ADMIN，AdminSettings 單例控管註冊政策（registrationOpen / registrationNotice）"
         },
         {
-          "category": "added",
-          "description": "backend: 管理員 API — GET/PUT /api/admin/settings（註冊政策）、GET /api/admin/users（使用者列表）、PUT /api/admin/users/:id/role（角色變更）、DELETE /api/admin/users/:id（刪除使用者）"
+          "tag": "new",
+          "text": "backend: 管理員 API — GET/PUT /api/admin/settings（註冊政策）、GET /api/admin/users（使用者列表）、PUT /api/admin/users/:id/role（角色變更）、DELETE /api/admin/users/:id（刪除使用者）"
         },
         {
-          "category": "added",
-          "description": "backend: 登入稽核紀錄 — LoginLog model 記錄 userId、email、IP、國家、登入方式（local/google）、成功/失敗、原因，登入時自動寫入"
+          "tag": "new",
+          "text": "backend: 登入稽核紀錄 — LoginLog model 記錄 userId、email、IP、國家、登入方式（local/google）、成功/失敗、原因，登入時自動寫入"
         },
         {
-          "category": "added",
-          "description": "backend: IP 國家查詢 — ipinfo.io API 非同步查詢，內網/本機位址顯示 LOCAL，3 秒逾時不阻塞登入流程"
+          "tag": "new",
+          "text": "backend: IP 國家查詢 — ipinfo.io API 非同步查詢，內網/本機位址顯示 LOCAL，3 秒逾時不阻塞登入流程"
         },
         {
-          "category": "added",
-          "description": "backend: 管理員登入紀錄 API — GET /api/admin/login-logs（分頁 + 篩選）、DELETE /api/admin/login-logs/:id（單筆刪除）、POST /api/admin/login-logs/batch-delete（批次刪除，失敗自動逐筆備援）"
+          "tag": "new",
+          "text": "backend: 管理員登入紀錄 API — GET /api/admin/login-logs（分頁 + 篩選）、DELETE /api/admin/login-logs/:id（單筆刪除）、POST /api/admin/login-logs/batch-delete（批次刪除，失敗自動逐筆備援）"
         },
         {
-          "category": "added",
-          "description": "backend: 使用者自己的登入紀錄 — GET /api/users/me/login-logs（分頁）"
+          "tag": "new",
+          "text": "backend: 使用者自己的登入紀錄 — GET /api/users/me/login-logs（分頁）"
         },
         {
-          "category": "added",
-          "description": "frontend: 管理員頁面 — 三分頁（註冊政策 / 使用者管理 / 登入紀錄），支援批次勾選刪除、手動同步按鈕、上次同步時間、分頁導覽"
+          "tag": "new",
+          "text": "frontend: 管理員頁面 — 三分頁（註冊政策 / 使用者管理 / 登入紀錄），支援批次勾選刪除、手動同步按鈕、上次同步時間、分頁導覽"
         },
         {
-          "category": "added",
-          "description": "frontend: 設定頁新增「登入紀錄」區塊 — 顯示最近 10 次登入（時間/IP/國家/方式/狀態），手動同步按鈕"
+          "tag": "new",
+          "text": "frontend: 設定頁新增「登入紀錄」區塊 — 顯示最近 10 次登入（時間/IP/國家/方式/狀態），手動同步按鈕"
         },
         {
-          "category": "added",
-          "description": "frontend: 註冊頁增加註冊政策檢查 — 管理員關閉註冊時顯示自訂提示，不顯示表單"
+          "tag": "new",
+          "text": "frontend: 註冊頁增加註冊政策檢查 — 管理員關閉註冊時顯示自訂提示，不顯示表單"
         },
         {
-          "category": "added",
-          "description": "backend: ChaCha20-Poly1305 + PBKDF2-SHA256 加密工具 — encrypt()/decrypt() 函式，DB_ENCRYPTION_KEY 環境變數驅動，未設定時停用"
+          "tag": "new",
+          "text": "backend: ChaCha20-Poly1305 + PBKDF2-SHA256 加密工具 — encrypt()/decrypt() 函式，DB_ENCRYPTION_KEY 環境變數驅動，未設定時停用"
         },
         {
-          "category": "added",
-          "description": "backend: 共用 Prisma 單例（utils/prisma.ts），所有 route 檔案改用共用實例，避免多餘連線"
+          "tag": "new",
+          "text": "backend: 共用 Prisma 單例（utils/prisma.ts），所有 route 檔案改用共用實例，避免多餘連線"
         },
         {
-          "category": "changed",
-          "description": "frontend: 全站深色模式 CSS — index.css 新增 .dark 變數、card/btn-secondary/badge/input/table 深色樣式，所有頁面及元件加入 dark: 前綴"
+          "tag": "improved",
+          "text": "frontend: 全站深色模式 CSS — index.css 新增 .dark 變數、card/btn-secondary/badge/input/table 深色樣式，所有頁面及元件加入 dark: 前綴"
         },
         {
-          "category": "changed",
-          "description": "frontend: Login/Register 頁面支援深色模式背景與表單樣式"
+          "tag": "improved",
+          "text": "frontend: Login/Register 頁面支援深色模式背景與表單樣式"
         },
         {
-          "category": "changed",
-          "description": "frontend: Sidebar 新增管理員連結（Shield 圖示）、管理員角色標籤、主題切換按鈕"
+          "tag": "improved",
+          "text": "frontend: Sidebar 新增管理員連結（Shield 圖示）、管理員角色標籤、主題切換按鈕"
         },
         {
-          "category": "changed",
-          "description": "frontend: useAuth hook 新增 role、isAdmin、updateUser、loginWithGoogle"
+          "tag": "improved",
+          "text": "frontend: useAuth hook 新增 role、isAdmin、updateUser、loginWithGoogle"
         },
         {
-          "category": "changed",
-          "description": "frontend: API service 新增 adminApi、usersApi.updateTheme/myLoginLogs、authApi.registrationStatus/googleLogin/googleEnabled"
+          "tag": "improved",
+          "text": "frontend: API service 新增 adminApi、usersApi.updateTheme/myLoginLogs、authApi.registrationStatus/googleLogin/googleEnabled"
         },
         {
-          "category": "changed",
-          "description": "backend: auth 路由回傳 user 物件新增 role 與 theme 欄位"
+          "tag": "improved",
+          "text": "backend: auth 路由回傳 user 物件新增 role 與 theme 欄位"
         },
         {
-          "category": "changed",
-          "description": "backend: Prisma schema — User 新增 theme/authProvider/googleId 欄位、新增 LoginLog/AdminSettings/AuthProvider model"
+          "tag": "improved",
+          "text": "backend: Prisma schema — User 新增 theme/authProvider/googleId 欄位、新增 LoginLog/AdminSettings/AuthProvider model"
         }
       ]
     },
@@ -425,12 +497,12 @@
       "summary": "修復 Docker 部署後資料庫表格不存在的問題 — 補建 Prisma 初始 migration",
       "changes": [
         {
-          "category": "fixed",
-          "description": "backend: 新增 prisma/migrations/20260326000000_init/migration.sql — 初始 migration（建立 User、Tag、ProductTag、Product、PurchaseRecord、StockLog 表格及所有 enum、索引、外鍵），修復 prisma migrate deploy 因缺少 migration 檔案而無法建立資料表的問題"
+          "tag": "fixed",
+          "text": "backend: 新增 prisma/migrations/20260326000000_init/migration.sql — 初始 migration（建立 User、Tag、ProductTag、Product、PurchaseRecord、StockLog 表格及所有 enum、索引、外鍵），修復 prisma migrate deploy 因缺少 migration 檔案而無法建立資料表的問題"
         },
         {
-          "category": "fixed",
-          "description": "backend: 新增 prisma/migrations/migration_lock.toml — Prisma migration 鎖定檔（provider = postgresql），確保 migrate deploy 正確辨識資料庫類型"
+          "tag": "fixed",
+          "text": "backend: 新增 prisma/migrations/migration_lock.toml — Prisma migration 鎖定檔（provider = postgresql），確保 migrate deploy 正確辨識資料庫類型"
         }
       ]
     },
@@ -441,36 +513,36 @@
       "summary": "新增註冊頁面、修復 Docker 部署問題（Nginx 設定目錄、Port 衝突、Prisma CLI、環境變數驗證）",
       "changes": [
         {
-          "category": "added",
-          "description": "frontend: pages/Register.tsx — 完整註冊頁面（顯示名稱 + Email + 密碼 + 確認密碼），風格與 Login 一致，前端表單驗證（密碼長度、密碼一致性），註冊成功後導回登入頁並顯示綠色提示"
+          "tag": "new",
+          "text": "frontend: pages/Register.tsx — 完整註冊頁面（顯示名稱 + Email + 密碼 + 確認密碼），風格與 Login 一致，前端表單驗證（密碼長度、密碼一致性），註冊成功後導回登入頁並顯示綠色提示"
         },
         {
-          "category": "changed",
-          "description": "frontend: App.tsx — 新增 /register 路由"
+          "tag": "improved",
+          "text": "frontend: App.tsx — 新增 /register 路由"
         },
         {
-          "category": "changed",
-          "description": "frontend: pages/Login.tsx — 「立即註冊」從 <a href> 改為 React Router <Link>（避免整頁重載），新增註冊成功返回時的綠色提示訊息"
+          "tag": "improved",
+          "text": "frontend: pages/Login.tsx — 「立即註冊」從 <a href> 改為 React Router <Link>（避免整頁重載），新增註冊成功返回時的綠色提示訊息"
         },
         {
-          "category": "fixed",
-          "description": "Docker: Nginx 設定目錄從 conf.d 改為 http.d（node:20-alpine 使用 Alpine 3.20+，nginx 設定目錄已變更），修復 'server directive is not allowed here' 錯誤"
+          "tag": "fixed",
+          "text": "Docker: Nginx 設定目錄從 conf.d 改為 http.d（node:20-alpine 使用 Alpine 3.20+，nginx 設定目錄已變更），修復 'server directive is not allowed here' 錯誤"
         },
         {
-          "category": "fixed",
-          "description": "Docker: Express 內部 port 環境變數從 PORT 改為 API_PORT（避免 Zeabur/Heroku/Railway 等 PaaS 平台自動注入 PORT 導致與 Nginx 搶佔 port 4000 衝突）"
+          "tag": "fixed",
+          "text": "Docker: Express 內部 port 環境變數從 PORT 改為 API_PORT（避免 Zeabur/Heroku/Railway 等 PaaS 平台自動注入 PORT 導致與 Nginx 搶佔 port 4000 衝突）"
         },
         {
-          "category": "fixed",
-          "description": "Docker: prisma CLI 從 devDependencies 移至 dependencies，確保生產環境 npm ci --omit=dev 後仍可執行 prisma migrate deploy"
+          "tag": "fixed",
+          "text": "Docker: prisma CLI 從 devDependencies 移至 dependencies，確保生產環境 npm ci --omit=dev 後仍可執行 prisma migrate deploy"
         },
         {
-          "category": "added",
-          "description": "Docker: docker-entrypoint.sh 新增 DATABASE_URL 環境變數前置檢查，未設定時輸出清楚錯誤訊息並立即退出"
+          "tag": "new",
+          "text": "Docker: docker-entrypoint.sh 新增 DATABASE_URL 環境變數前置檢查，未設定時輸出清楚錯誤訊息並立即退出"
         },
         {
-          "category": "added",
-          "description": "Docker: docker-entrypoint.sh 新增 JWT_SECRET 自動亂數生成（128 characters / 512 bits），未設定時自動以 4 組 UUID 拼接產生，並輸出警告提示容器重啟後 Token 將失效"
+          "tag": "new",
+          "text": "Docker: docker-entrypoint.sh 新增 JWT_SECRET 自動亂數生成（128 characters / 512 bits），未設定時自動以 4 組 UUID 拼接產生，並輸出警告提示容器重啟後 Token 將失效"
         }
       ]
     },
@@ -481,32 +553,32 @@
       "summary": "全面升級套件至最新版本 — React 19、React Router 7、Tailwind CSS 4、Express 5、Recharts 3",
       "changes": [
         {
-          "category": "changed",
-          "description": "frontend: React 18.3 → 19.2、React Router DOM 6 → 7（library mode 向後相容）、Recharts 2 → 3（Tooltip formatter 型別修正）、Lucide React 0.x → 1.x、Tailwind Merge 2 → 3、TanStack React Query 5.62 → 5.95"
+          "tag": "improved",
+          "text": "frontend: React 18.3 → 19.2、React Router DOM 6 → 7（library mode 向後相容）、Recharts 2 → 3（Tooltip formatter 型別修正）、Lucide React 0.x → 1.x、Tailwind Merge 2 → 3、TanStack React Query 5.62 → 5.95"
         },
         {
-          "category": "changed",
-          "description": "frontend: Tailwind CSS 3 → 4 全面遷移 — 移除 tailwind.config.js 與 postcss.config.js，改用 @tailwindcss/vite 插件 + CSS @theme 區塊定義設計系統（顏色、字體、陰影、動畫），@layer components 中的 @apply 改為 CSS 分組選擇器避免自引用"
+          "tag": "improved",
+          "text": "frontend: Tailwind CSS 3 → 4 全面遷移 — 移除 tailwind.config.js 與 postcss.config.js，改用 @tailwindcss/vite 插件 + CSS @theme 區塊定義設計系統（顏色、字體、陰影、動畫），@layer components 中的 @apply 改為 CSS 分組選擇器避免自引用"
         },
         {
-          "category": "changed",
-          "description": "frontend: Vite 維持 6.4（Vite 8/Rolldown 在 Windows 有相容性問題），@vitejs/plugin-react 4.7，TypeScript 5.9、ESLint 9.39"
+          "tag": "improved",
+          "text": "frontend: Vite 維持 6.4（Vite 8/Rolldown 在 Windows 有相容性問題），@vitejs/plugin-react 4.7，TypeScript 5.9、ESLint 9.39"
         },
         {
-          "category": "changed",
-          "description": "backend: Express 4 → 5（path-to-regexp v8、async error handling）、bcryptjs 2 → 3、Multer 1 → 2（Web Streams API）、node-cron 3 → 4、Winston 3.17 → 3.19、jsonwebtoken 9.0.2 → 9.0.3"
+          "tag": "improved",
+          "text": "backend: Express 4 → 5（path-to-regexp v8、async error handling）、bcryptjs 2 → 3、Multer 1 → 2（Web Streams API）、node-cron 3 → 4、Winston 3.17 → 3.19、jsonwebtoken 9.0.2 → 9.0.3"
         },
         {
-          "category": "changed",
-          "description": "backend: Prisma 維持 6.19（避免 v7 schema 破壞性變更）、TypeScript 5.9、dotenv 16.6"
+          "tag": "improved",
+          "text": "backend: Prisma 維持 6.19（避免 v7 schema 破壞性變更）、TypeScript 5.9、dotenv 16.6"
         },
         {
-          "category": "added",
-          "description": "frontend: 新增 react-is 依賴（Recharts 3 在 React 19 環境下需要獨立安裝）"
+          "tag": "new",
+          "text": "frontend: 新增 react-is 依賴（Recharts 3 在 React 19 環境下需要獨立安裝）"
         },
         {
-          "category": "added",
-          "description": ".github/workflows/deploy.yml — 新增 Lint + SSH Deploy 工作流程（修復原本 npm cache 路徑不存在導致 CI 失敗的問題）"
+          "tag": "new",
+          "text": ".github/workflows/deploy.yml — 新增 Lint + SSH Deploy 工作流程（修復原本 npm cache 路徑不存在導致 CI 失敗的問題）"
         }
       ]
     },
@@ -517,20 +589,20 @@
       "summary": "Phase 7 — Error Boundary、PWA 支援、正式發佈 v1.0.0",
       "changes": [
         {
-          "category": "added",
-          "description": "frontend: components/ui/ErrorBoundary.tsx — React class-based Error Boundary，捕捉渲染錯誤並顯示友善的錯誤頁面（含重試按鈕 + 回首頁），console.error 記錄 componentStack"
+          "tag": "new",
+          "text": "frontend: components/ui/ErrorBoundary.tsx — React class-based Error Boundary，捕捉渲染錯誤並顯示友善的錯誤頁面（含重試按鈕 + 回首頁），console.error 記錄 componentStack"
         },
         {
-          "category": "changed",
-          "description": "frontend: App.tsx — 最外層以 ErrorBoundary 包覆，確保任何頁面崩潰都能被攔截"
+          "tag": "improved",
+          "text": "frontend: App.tsx — 最外層以 ErrorBoundary 包覆，確保任何頁面崩潰都能被攔截"
         },
         {
-          "category": "changed",
-          "description": "frontend: index.html — 新增 PWA meta（theme-color / apple-mobile-web-app / manifest link）、Open Graph tags、apple-touch-icon，正式支援 Add to Home Screen"
+          "tag": "improved",
+          "text": "frontend: index.html — 新增 PWA meta（theme-color / apple-mobile-web-app / manifest link）、Open Graph tags、apple-touch-icon，正式支援 Add to Home Screen"
         },
         {
-          "category": "added",
-          "description": "frontend: public/manifest.json — PWA Web App Manifest（name / short_name / display: standalone / theme_color / icons）"
+          "tag": "new",
+          "text": "frontend: public/manifest.json — PWA Web App Manifest（name / short_name / display: standalone / theme_color / icons）"
         }
       ]
     },
@@ -541,20 +613,20 @@
       "summary": "Phase 6 — CSV 批次匯入產品",
       "changes": [
         {
-          "category": "added",
-          "description": "backend: routes/import.ts — POST /api/import/products：multer memoryStorage 接收 CSV 檔案（2MB 上限），內建 CSV parser 支援引號欄位，逐列驗證 name/brand/category 必填欄位，回傳 { imported, errors } 結果"
+          "tag": "new",
+          "text": "backend: routes/import.ts — POST /api/import/products：multer memoryStorage 接收 CSV 檔案（2MB 上限），內建 CSV parser 支援引號欄位，逐列驗證 name/brand/category 必填欄位，回傳 { imported, errors } 結果"
         },
         {
-          "category": "changed",
-          "description": "backend: index.ts — 掛載 /api/import 路由"
+          "tag": "improved",
+          "text": "backend: index.ts — 掛載 /api/import 路由"
         },
         {
-          "category": "added",
-          "description": "frontend: services/api.ts — 新增 importApi.products()（multipart/form-data 上傳）"
+          "tag": "new",
+          "text": "frontend: services/api.ts — 新增 importApi.products()（multipart/form-data 上傳）"
         },
         {
-          "category": "changed",
-          "description": "frontend: pages/Settings.tsx — 新增「資料匯入」區塊：下載 CSV 範本按鈕（含範例資料）、檔案上傳觸發匯入、顯示成功數量及逐列錯誤訊息、自動 invalidate products cache"
+          "tag": "improved",
+          "text": "frontend: pages/Settings.tsx — 新增「資料匯入」區塊：下載 CSV 範本按鈕（含範例資料）、檔案上傳觸發匯入、顯示成功數量及逐列錯誤訊息、自動 invalidate products cache"
         }
       ]
     },
@@ -565,24 +637,24 @@
       "summary": "Phase 5 — 儀表板強化 + 已刪除產品管理",
       "changes": [
         {
-          "category": "added",
-          "description": "backend: routes/dashboard.ts — 新增 GET /brand-breakdown（依品牌分組計數，回傳 Top 10）與 GET /recent-activity（最近 8 筆 StockLog，含 product.name）"
+          "tag": "new",
+          "text": "backend: routes/dashboard.ts — 新增 GET /brand-breakdown（依品牌分組計數，回傳 Top 10）與 GET /recent-activity（最近 8 筆 StockLog，含 product.name）"
         },
         {
-          "category": "changed",
-          "description": "backend: routes/products.ts — GET / 支援 deleted=true query param，切換 isDeleted 篩選條件"
+          "tag": "improved",
+          "text": "backend: routes/products.ts — GET / 支援 deleted=true query param，切換 isDeleted 篩選條件"
         },
         {
-          "category": "changed",
-          "description": "frontend: services/api.ts — ProductsQuery 新增 deleted 欄位；dashboardApi 新增 brandBreakdown() 與 recentActivity()"
+          "tag": "improved",
+          "text": "frontend: services/api.ts — ProductsQuery 新增 deleted 欄位；dashboardApi 新增 brandBreakdown() 與 recentActivity()"
         },
         {
-          "category": "changed",
-          "description": "frontend: pages/Dashboard.tsx — 新增品牌分佈橫向 BarChart（Recharts layout=vertical）、最近庫存異動 Feed（相對時間 + 產品連結 + 類型圖示）；StatCard 使用 StatCardSkeleton；即將到期表格加上「查看全部」連結"
+          "tag": "improved",
+          "text": "frontend: pages/Dashboard.tsx — 新增品牌分佈橫向 BarChart（Recharts layout=vertical）、最近庫存異動 Feed（相對時間 + 產品連結 + 類型圖示）；StatCard 使用 StatCardSkeleton；即將到期表格加上「查看全部」連結"
         },
         {
-          "category": "changed",
-          "description": "frontend: pages/Products.tsx — 新增「一般產品 / 已刪除」分頁 Tab；已刪除 Tab 顯示軟刪除產品並提供「還原」按鈕（useMutation + toast）"
+          "tag": "improved",
+          "text": "frontend: pages/Products.tsx — 新增「一般產品 / 已刪除」分頁 Tab；已刪除 Tab 顯示軟刪除產品並提供「還原」按鈕（useMutation + toast）"
         }
       ]
     },
@@ -593,36 +665,36 @@
       "summary": "Phase 4 — 分類標籤管理、設定頁、行動裝置響應式佈局",
       "changes": [
         {
-          "category": "added",
-          "description": "backend: routes/tags.ts — 新增 PUT /:id 編輯標籤（名稱/顏色）；GET / 回傳 productCount 欄位（_count.products）"
+          "tag": "new",
+          "text": "backend: routes/tags.ts — 新增 PUT /:id 編輯標籤（名稱/顏色）；GET / 回傳 productCount 欄位（_count.products）"
         },
         {
-          "category": "added",
-          "description": "backend: routes/auth.ts — 新增 PUT /users/me（更新顯示名稱）及 POST /users/me/change-password（修改密碼，含目前密碼驗證）"
+          "tag": "new",
+          "text": "backend: routes/auth.ts — 新增 PUT /users/me（更新顯示名稱）及 POST /users/me/change-password（修改密碼，含目前密碼驗證）"
         },
         {
-          "category": "added",
-          "description": "frontend: services/api.ts — 新增 TagWithCount 型別、tagsApi.update()、usersApi（me / updateMe / changePassword）"
+          "tag": "new",
+          "text": "frontend: services/api.ts — 新增 TagWithCount 型別、tagsApi.update()、usersApi（me / updateMe / changePassword）"
         },
         {
-          "category": "added",
-          "description": "frontend: pages/Categories.tsx — 分類標籤管理頁：標籤卡片 Grid（顏色方塊 + 名稱 + 產品數）、新增/編輯 Modal（10 色預設 Swatches + 自訂 color picker + hex 輸入 + 即時預覽）、刪除確認 Modal（顯示受影響產品數警告）"
+          "tag": "new",
+          "text": "frontend: pages/Categories.tsx — 分類標籤管理頁：標籤卡片 Grid（顏色方塊 + 名稱 + 產品數）、新增/編輯 Modal（10 色預設 Swatches + 自訂 color picker + hex 輸入 + 即時預覽）、刪除確認 Modal（顯示受影響產品數警告）"
         },
         {
-          "category": "added",
-          "description": "frontend: pages/Settings.tsx — 設定頁四大區塊：個人資料（顯示名稱可編輯、Email 唯讀）、修改密碼（目前/新/確認密碼 + 顯示/隱藏切換）、資料匯出（產品/購買紀錄 CSV）、關於 VitaShelf（版本資訊）"
+          "tag": "new",
+          "text": "frontend: pages/Settings.tsx — 設定頁四大區塊：個人資料（顯示名稱可編輯、Email 唯讀）、修改密碼（目前/新/確認密碼 + 顯示/隱藏切換）、資料匯出（產品/購買紀錄 CSV）、關於 VitaShelf（版本資訊）"
         },
         {
-          "category": "changed",
-          "description": "frontend: components/layout/Sidebar.tsx — 重構為桌面版（lg:flex 永遠顯示）+ 行動版（fixed slide-in drawer，含 X 關閉按鈕；NavLink onClick 自動關閉 drawer）"
+          "tag": "improved",
+          "text": "frontend: components/layout/Sidebar.tsx — 重構為桌面版（lg:flex 永遠顯示）+ 行動版（fixed slide-in drawer，含 X 關閉按鈕；NavLink onClick 自動關閉 drawer）"
         },
         {
-          "category": "changed",
-          "description": "frontend: components/layout/Layout.tsx — 加入行動版頂部 Header（漢堡按鈕 + VitaShelf 標題）、半透明黑色遮罩（點擊關閉 drawer）、mobileNavOpen state 管理"
+          "tag": "improved",
+          "text": "frontend: components/layout/Layout.tsx — 加入行動版頂部 Header（漢堡按鈕 + VitaShelf 標題）、半透明黑色遮罩（點擊關閉 drawer）、mobileNavOpen state 管理"
         },
         {
-          "category": "changed",
-          "description": "frontend: App.tsx — 移除 PlaceholderPage，正式掛載 /categories（Categories）及 /settings（Settings）路由"
+          "tag": "improved",
+          "text": "frontend: App.tsx — 移除 PlaceholderPage，正式掛載 /categories（Categories）及 /settings（Settings）路由"
         }
       ]
     },
@@ -633,28 +705,28 @@
       "summary": "Phase 3 — 購買紀錄 CRUD 完整前端 UI",
       "changes": [
         {
-          "category": "added",
-          "description": "frontend: hooks/useDebounce.ts — 通用 debounce hook（預設 350ms），防止搜尋框每次 keystroke 都觸發請求"
+          "tag": "new",
+          "text": "frontend: hooks/useDebounce.ts — 通用 debounce hook（預設 350ms），防止搜尋框每次 keystroke 都觸發請求"
         },
         {
-          "category": "added",
-          "description": "frontend: components/features/PurchaseForm.tsx — 購買紀錄表單（新增/編輯）：產品下拉、日期、數量、單價 × 數量自動計算總價、通路選單、Progressive Disclosure（製造日期/開封日/PAO 預設收起）、blur 驗證、到期日不可早於購買日驗證、aria-live 錯誤提示"
+          "tag": "new",
+          "text": "frontend: components/features/PurchaseForm.tsx — 購買紀錄表單（新增/編輯）：產品下拉、日期、數量、單價 × 數量自動計算總價、通路選單、Progressive Disclosure（製造日期/開封日/PAO 預設收起）、blur 驗證、到期日不可早於購買日驗證、aria-live 錯誤提示"
         },
         {
-          "category": "added",
-          "description": "frontend: pages/Purchases.tsx — 購買紀錄列表頁：搜尋（client-side debounce）、產品篩選、新增/編輯/刪除 Modal、ExpiryCell 到期色彩標示、分頁、overflow-x-auto 行動裝置相容"
+          "tag": "new",
+          "text": "frontend: pages/Purchases.tsx — 購買紀錄列表頁：搜尋（client-side debounce）、產品篩選、新增/編輯/刪除 Modal、ExpiryCell 到期色彩標示、分頁、overflow-x-auto 行動裝置相容"
         },
         {
-          "category": "changed",
-          "description": "frontend: Sidebar.tsx — 「到期提醒」導覽項目加入即時 alert count 紅色數字徽章（expiring + expired 合計），超過 99 顯示 99+，aria-label 無障礙說明"
+          "tag": "improved",
+          "text": "frontend: Sidebar.tsx — 「到期提醒」導覽項目加入即時 alert count 紅色數字徽章（expiring + expired 合計），超過 99 顯示 99+，aria-label 無障礙說明"
         },
         {
-          "category": "changed",
-          "description": "frontend: ProductDetail.tsx — 庫存面板新增「新增購買紀錄」主要按鈕（Pre-selected product，省去重新選擇步驟）"
+          "tag": "improved",
+          "text": "frontend: ProductDetail.tsx — 庫存面板新增「新增購買紀錄」主要按鈕（Pre-selected product，省去重新選擇步驟）"
         },
         {
-          "category": "changed",
-          "description": "frontend: App.tsx — 正式掛載 Purchases 路由（/purchases）"
+          "tag": "improved",
+          "text": "frontend: App.tsx — 正式掛載 Purchases 路由（/purchases）"
         }
       ]
     },
@@ -665,56 +737,56 @@
       "summary": "Phase 2 — 後端 API 完善 + 前端產品 CRUD 完整 UI",
       "changes": [
         {
-          "category": "added",
-          "description": "backend: src/utils/stock.ts — 共用庫存計算工具（computeStock、computeStockFromLogs、getAlertLevel、getNearestExpiry），供多個 route 共用，消除重複邏輯"
+          "tag": "new",
+          "text": "backend: src/utils/stock.ts — 共用庫存計算工具（computeStock、computeStockFromLogs、getAlertLevel、getNearestExpiry），供多個 route 共用，消除重複邏輯"
         },
         {
-          "category": "added",
-          "description": "backend: src/utils/upload.ts — Multer 圖片上傳設定（JPEG/PNG/WebP/AVIF、5MB 上限、隨機 hex 檔名），含 Promise 封裝的 handleUpload()"
+          "tag": "new",
+          "text": "backend: src/utils/upload.ts — Multer 圖片上傳設定（JPEG/PNG/WebP/AVIF、5MB 上限、隨機 hex 檔名），含 Promise 封裝的 handleUpload()"
         },
         {
-          "category": "added",
-          "description": "backend: prisma/seed.ts — 開發用種子資料（1 個 Demo 帳號、6 個標籤、6 個保養品、5 個保健食品，含多種到期狀態供 UI 展示）"
+          "tag": "new",
+          "text": "backend: prisma/seed.ts — 開發用種子資料（1 個 Demo 帳號、6 個標籤、6 個保養品、5 個保健食品，含多種到期狀態供 UI 展示）"
         },
         {
-          "category": "changed",
-          "description": "backend: routes/products.ts — 重構為使用 stock.ts 工具，新增圖片上傳支援（multipart/form-data），修正標籤更新邏輯（先刪後建），補完欄位篩選（tag）"
+          "tag": "improved",
+          "text": "backend: routes/products.ts — 重構為使用 stock.ts 工具，新增圖片上傳支援（multipart/form-data），修正標籤更新邏輯（先刪後建），補完欄位篩選（tag）"
         },
         {
-          "category": "changed",
-          "description": "backend: package.json — 補上 date-fns 依賴（原本 routes 已 import 但缺少宣告）"
+          "tag": "improved",
+          "text": "backend: package.json — 補上 date-fns 依賴（原本 routes 已 import 但缺少宣告）"
         },
         {
-          "category": "added",
-          "description": "frontend: components/ui/Toast.tsx — Toast 通知系統（ToastProvider + useToast hook），4 種類型（success/error/warning/info），4 秒自動消失，aria-live polite，slideInRight 動畫"
+          "tag": "new",
+          "text": "frontend: components/ui/Toast.tsx — Toast 通知系統（ToastProvider + useToast hook），4 種類型（success/error/warning/info），4 秒自動消失，aria-live polite，slideInRight 動畫"
         },
         {
-          "category": "added",
-          "description": "frontend: components/ui/Modal.tsx — 通用 Modal 元件，4 種尺寸，Escape 關閉、焦點捕捉（focus trap）、scaleIn 動畫、50% 黑色遮罩"
+          "tag": "new",
+          "text": "frontend: components/ui/Modal.tsx — 通用 Modal 元件，4 種尺寸，Escape 關閉、焦點捕捉（focus trap）、scaleIn 動畫、50% 黑色遮罩"
         },
         {
-          "category": "added",
-          "description": "frontend: components/ui/Skeleton.tsx — Skeleton 載入元件（Skeleton、StatCardSkeleton、TableRowSkeleton、ProductListSkeleton）"
+          "tag": "new",
+          "text": "frontend: components/ui/Skeleton.tsx — Skeleton 載入元件（Skeleton、StatCardSkeleton、TableRowSkeleton、ProductListSkeleton）"
         },
         {
-          "category": "added",
-          "description": "frontend: components/features/ProductForm.tsx — 完整產品表單（新增/編輯），含圖片上傳預覽、子分類動態選項、標籤多選、blur 時驗證、LoadingSpinner 送出回饋"
+          "tag": "new",
+          "text": "frontend: components/features/ProductForm.tsx — 完整產品表單（新增/編輯），含圖片上傳預覽、子分類動態選項、標籤多選、blur 時驗證、LoadingSpinner 送出回饋"
         },
         {
-          "category": "added",
-          "description": "frontend: pages/ProductDetail.tsx — 產品詳情頁，含編輯/刪除/庫存異動（Modal 確認），購買紀錄表格，庫存狀況面板"
+          "tag": "new",
+          "text": "frontend: pages/ProductDetail.tsx — 產品詳情頁，含編輯/刪除/庫存異動（Modal 確認），購買紀錄表格，庫存狀況面板"
         },
         {
-          "category": "changed",
-          "description": "frontend: pages/Products.tsx — 整合 ProductListSkeleton、ProductForm Modal、點擊列導覽至詳情頁，placeholder opacity 過渡效果"
+          "tag": "improved",
+          "text": "frontend: pages/Products.tsx — 整合 ProductListSkeleton、ProductForm Modal、點擊列導覽至詳情頁，placeholder opacity 過渡效果"
         },
         {
-          "category": "changed",
-          "description": "frontend: App.tsx — 加入 ToastProvider 包覆、新增 /products/:id 路由"
+          "tag": "improved",
+          "text": "frontend: App.tsx — 加入 ToastProvider 包覆、新增 /products/:id 路由"
         },
         {
-          "category": "changed",
-          "description": "frontend: tailwind.config.js — 新增 scaleIn / slideInRight keyframe 動畫"
+          "tag": "improved",
+          "text": "frontend: tailwind.config.js — 新增 scaleIn / slideInRight keyframe 動畫"
         }
       ]
     },
@@ -725,24 +797,24 @@
       "summary": "JWT Secret 自動亂數產生機制",
       "changes": [
         {
-          "category": "added",
-          "description": "新增 backend/src/utils/jwtSecret.ts：啟動時驗證 JWT_SECRET，開發環境自動以 crypto.randomBytes(48) 產生 96-char hex secret 並寫入 .env；生產環境未設定或長度不足 32 字元則 process.exit(1)"
+          "tag": "new",
+          "text": "新增 backend/src/utils/jwtSecret.ts：啟動時驗證 JWT_SECRET，開發環境自動以 crypto.randomBytes(48) 產生 96-char hex secret 並寫入 .env；生產環境未設定或長度不足 32 字元則 process.exit(1)"
         },
         {
-          "category": "added",
-          "description": "新增 scripts/setup-env.mjs：一鍵腳本，複製 .env.example → .env 並自動填入 128-char hex JWT_SECRET，支援 --force 覆寫旗標"
+          "tag": "new",
+          "text": "新增 scripts/setup-env.mjs：一鍵腳本，複製 .env.example → .env 並自動填入 128-char hex JWT_SECRET，支援 --force 覆寫旗標"
         },
         {
-          "category": "added",
-          "description": "新增根目錄 package.json，加入 npm run setup:env 與 setup:env:force 指令"
+          "tag": "new",
+          "text": "新增根目錄 package.json，加入 npm run setup:env 與 setup:env:force 指令"
         },
         {
-          "category": "changed",
-          "description": "backend/src/index.ts 啟動序列最前端呼叫 resolveJwtSecret()，確保所有路由載入前 secret 已驗證完畢"
+          "tag": "improved",
+          "text": "backend/src/index.ts 啟動序列最前端呼叫 resolveJwtSecret()，確保所有路由載入前 secret 已驗證完畢"
         },
         {
-          "category": "changed",
-          "description": "README.md 快速開始新增 npm run setup:env 為首次必做步驟"
+          "tag": "improved",
+          "text": "README.md 快速開始新增 npm run setup:env 為首次必做步驟"
         }
       ]
     },
@@ -753,68 +825,68 @@
       "summary": "專案初始化、需求規劃與完整程式碼骨架",
       "changes": [
         {
-          "category": "added",
-          "description": "建立專案初始結構與英文名稱 VitaShelf"
+          "tag": "new",
+          "text": "建立專案初始結構與英文名稱 VitaShelf"
         },
         {
-          "category": "added",
-          "description": "撰寫完整軟體需求規格書 (SRS.md)：產品管理、購買紀錄、有效期限管理、庫存管理、分類標籤、儀表板統計、使用者管理、資料匯出入"
+          "tag": "new",
+          "text": "撰寫完整軟體需求規格書 (SRS.md)：產品管理、購買紀錄、有效期限管理、庫存管理、分類標籤、儀表板統計、使用者管理、資料匯出入"
         },
         {
-          "category": "added",
-          "description": "前端骨架：React 18 + TypeScript + Vite + Tailwind CSS（Flat Design 設計系統：Primary #2563EB、Fira Code/Fira Sans 字體）"
+          "tag": "new",
+          "text": "前端骨架：React 18 + TypeScript + Vite + Tailwind CSS（Flat Design 設計系統：Primary #2563EB、Fira Code/Fira Sans 字體）"
         },
         {
-          "category": "added",
-          "description": "前端頁面：Dashboard（統計卡片 + Recharts 圖表 + 到期提醒表格）、Products（搜尋/篩選/分頁列表）、Alerts（到期/低庫存提醒）、Login（表單驗證 + JWT）"
+          "tag": "new",
+          "text": "前端頁面：Dashboard（統計卡片 + Recharts 圖表 + 到期提醒表格）、Products（搜尋/篩選/分頁列表）、Alerts（到期/低庫存提醒）、Login（表單驗證 + JWT）"
         },
         {
-          "category": "added",
-          "description": "前端共用元件：Sidebar 導覽列、StatCard、AlertBadge、LoadingSpinner、EmptyState"
+          "tag": "new",
+          "text": "前端共用元件：Sidebar 導覽列、StatCard、AlertBadge、LoadingSpinner、EmptyState"
         },
         {
-          "category": "added",
-          "description": "前端服務層：axios API client（自動附加 JWT + 401 redirect）涵蓋所有 API 端點"
+          "tag": "new",
+          "text": "前端服務層：axios API client（自動附加 JWT + 401 redirect）涵蓋所有 API 端點"
         },
         {
-          "category": "added",
-          "description": "後端骨架：Node.js + Express + TypeScript，含 JWT 認證 middleware、統一錯誤處理"
+          "tag": "new",
+          "text": "後端骨架：Node.js + Express + TypeScript，含 JWT 認證 middleware、統一錯誤處理"
         },
         {
-          "category": "added",
-          "description": "後端 API 路由：auth、products、purchases、stock、alerts、dashboard、tags、export（CSV）"
+          "tag": "new",
+          "text": "後端 API 路由：auth、products、purchases、stock、alerts、dashboard、tags、export（CSV）"
         },
         {
-          "category": "added",
-          "description": "Prisma Schema：User、Product、PurchaseRecord、StockLog、Tag、ProductTag 完整資料模型"
+          "tag": "new",
+          "text": "Prisma Schema：User、Product、PurchaseRecord、StockLog、Tag、ProductTag 完整資料模型"
         },
         {
-          "category": "added",
-          "description": "前端 Dockerfile（多階段建置：Node builder + Nginx production）"
+          "tag": "new",
+          "text": "前端 Dockerfile（多階段建置：Node builder + Nginx production）"
         },
         {
-          "category": "added",
-          "description": "後端 Dockerfile（多階段建置：builder + production，含 non-root user 安全設定）"
+          "tag": "new",
+          "text": "後端 Dockerfile（多階段建置：builder + production，含 non-root user 安全設定）"
         },
         {
-          "category": "added",
-          "description": "docker-compose.yml（開發環境：前端 HMR + 後端 hot reload + PostgreSQL + healthcheck）"
+          "tag": "new",
+          "text": "docker-compose.yml（開發環境：前端 HMR + 後端 hot reload + PostgreSQL + healthcheck）"
         },
         {
-          "category": "added",
-          "description": "docker-compose.prod.yml（生產環境：從 GHCR 拉取映像 + 環境變數注入）"
+          "tag": "new",
+          "text": "docker-compose.prod.yml（生產環境：從 GHCR 拉取映像 + 環境變數注入）"
         },
         {
-          "category": "added",
-          "description": "GitHub Actions workflow（3 Jobs：Lint → Build & Push GHCR → SSH Deploy，含 layer cache 加速）"
+          "tag": "new",
+          "text": "GitHub Actions workflow（3 Jobs：Lint → Build & Push GHCR → SSH Deploy，含 layer cache 加速）"
         },
         {
-          "category": "added",
-          "description": "Nginx 反向代理設定：SPA fallback、API proxy、靜態資源快取、Gzip 壓縮、安全 headers"
+          "tag": "new",
+          "text": "Nginx 反向代理設定：SPA fallback、API proxy、靜態資源快取、Gzip 壓縮、安全 headers"
         },
         {
-          "category": "added",
-          "description": ".env.example 與 .gitignore"
+          "tag": "new",
+          "text": ".env.example 與 .gitignore"
         }
       ]
     }

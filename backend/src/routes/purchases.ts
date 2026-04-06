@@ -41,25 +41,36 @@ router.post('/', authenticate, async (req: AuthRequest, res, next) => {
     const product = await prisma.product.findFirst({ where: { id: productId, userId: req.user!.userId } })
     if (!product) { res.status(404).json({ message: '找不到此產品' }); return }
 
-    const record = await prisma.purchaseRecord.create({
-      data: {
-        productId,
-        purchaseDate: new Date(purchaseDate),
-        quantity: Number(quantity),
-        unitPrice: unitPrice ? Number(unitPrice) : undefined,
-        totalPrice: totalPrice ? Number(totalPrice) : undefined,
-        channel,
-        expiryDate: new Date(expiryDate),
-        manufactureDate: manufactureDate ? new Date(manufactureDate) : undefined,
-        openedDate: openedDate ? new Date(openedDate) : undefined,
-        paoMonths: paoMonths ? Number(paoMonths) : undefined,
-        notes,
-      },
-    })
+    // Create purchase record and linked stock IN log in a transaction
+    const record = await prisma.$transaction(async (tx) => {
+      const purchase = await tx.purchaseRecord.create({
+        data: {
+          productId,
+          purchaseDate: new Date(purchaseDate),
+          quantity: Number(quantity),
+          unitPrice: unitPrice ? Number(unitPrice) : undefined,
+          totalPrice: totalPrice ? Number(totalPrice) : undefined,
+          channel,
+          expiryDate: new Date(expiryDate),
+          manufactureDate: manufactureDate ? new Date(manufactureDate) : undefined,
+          openedDate: openedDate ? new Date(openedDate) : undefined,
+          paoMonths: paoMonths ? Number(paoMonths) : undefined,
+          notes,
+        },
+      })
 
-    // Auto-create stock IN log
-    await prisma.stockLog.create({
-      data: { productId, type: 'IN', quantity: Number(quantity), reason: `購買入庫 — ${channel ?? ''}` },
+      // Auto-create stock IN log linked to this purchase record
+      await tx.stockLog.create({
+        data: {
+          productId,
+          type: 'IN',
+          quantity: Number(quantity),
+          reason: `購買入庫 — ${channel ?? ''}`,
+          purchaseRecordId: purchase.id,
+        },
+      })
+
+      return purchase
     })
 
     res.status(201).json(record)
@@ -73,17 +84,43 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
     const purchaseId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 
-    const { purchaseDate, quantity, unitPrice, totalPrice, channel, expiryDate, notes } = req.body
-    await prisma.purchaseRecord.update({
-      where: { id: purchaseId },
-      data: {
-        purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
-        quantity: quantity ? Number(quantity) : undefined,
-        unitPrice: unitPrice ? Number(unitPrice) : undefined,
-        totalPrice: totalPrice ? Number(totalPrice) : undefined,
-        channel, expiryDate: expiryDate ? new Date(expiryDate) : undefined, notes,
-      },
+    // Verify ownership
+    const existing = await prisma.purchaseRecord.findFirst({
+      where: { id: purchaseId, product: { userId: req.user!.userId } },
     })
+    if (!existing) { res.status(404).json({ message: '找不到此購買紀錄' }); return }
+
+    const { purchaseDate, quantity, unitPrice, totalPrice, channel, expiryDate, manufactureDate, openedDate, paoMonths, notes } = req.body
+
+    await prisma.$transaction(async (tx) => {
+      await tx.purchaseRecord.update({
+        where: { id: purchaseId },
+        data: {
+          purchaseDate:    purchaseDate    ? new Date(purchaseDate)    : undefined,
+          quantity:        quantity        ? Number(quantity)          : undefined,
+          unitPrice:       unitPrice       ? Number(unitPrice)         : undefined,
+          totalPrice:      totalPrice      ? Number(totalPrice)        : undefined,
+          channel,
+          expiryDate:      expiryDate      ? new Date(expiryDate)      : undefined,
+          manufactureDate: manufactureDate ? new Date(manufactureDate) : undefined,
+          openedDate:      openedDate      ? new Date(openedDate)      : undefined,
+          paoMonths:       paoMonths       ? Number(paoMonths)         : undefined,
+          notes,
+        },
+      })
+
+      // Sync the linked stock IN log if quantity or channel changed
+      if (quantity !== undefined || channel !== undefined) {
+        await tx.stockLog.updateMany({
+          where: { purchaseRecordId: purchaseId },
+          data: {
+            ...(quantity !== undefined ? { quantity: Number(quantity) } : {}),
+            ...(channel !== undefined ? { reason: `購買入庫 — ${channel ?? ''}` } : {}),
+          },
+        })
+      }
+    })
+
     res.json({ message: '更新成功' })
   } catch (err) {
     next(err)
@@ -94,7 +131,20 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
   try {
     const purchaseId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
-    await prisma.purchaseRecord.delete({ where: { id: purchaseId } })
+
+    // Verify ownership
+    const existing = await prisma.purchaseRecord.findFirst({
+      where: { id: purchaseId, product: { userId: req.user!.userId } },
+    })
+    if (!existing) { res.status(404).json({ message: '找不到此購買紀錄' }); return }
+
+    // Nullify the link on the stock log before deleting (cascade SetNull handles FK,
+    // but we explicitly delete the linked IN log to keep stock accurate)
+    await prisma.$transaction(async (tx) => {
+      await tx.stockLog.deleteMany({ where: { purchaseRecordId: purchaseId } })
+      await tx.purchaseRecord.delete({ where: { id: purchaseId } })
+    })
+
     res.json({ message: '已刪除' })
   } catch (err) {
     next(err)

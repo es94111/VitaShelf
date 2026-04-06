@@ -131,19 +131,23 @@ model PurchaseRecord {
   notes           String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  stockLog        StockLog?
 }
 
 // ─── StockLog ──────────────────────────────────────────────────────────────────
 
 model StockLog {
-  id        String       @id @default(cuid())
-  productId String
-  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  type      StockLogType
-  quantity  Int
-  reason    String?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id               String          @id @default(cuid())
+  productId        String
+  product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  purchaseRecordId String?         @unique
+  purchaseRecord   PurchaseRecord? @relation(fields: [purchaseRecordId], references: [id], onDelete: SetNull)
+  type             StockLogType
+  quantity         Int
+  reason           String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 }
 
 enum StockLogType {

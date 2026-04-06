@@ -18,6 +18,30 @@ async function computeStock(productId: string) {
   return { currentStock: Math.max(0, current), openedCount: opened, discardedCount: discarded }
 }
 
+// GET /api/stock/logs — MUST be before /:productId to avoid route conflict
+router.get('/logs', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const { productId, page = '1', pageSize = '30' } = req.query as Record<string, string>
+    const skip = (Number(page) - 1) * Number(pageSize)
+    const where = {
+      product: { userId: req.user!.userId },
+      ...(productId ? { productId } : {}),
+    }
+    const [logs, total] = await Promise.all([
+      prisma.stockLog.findMany({
+        where,
+        include: { product: { select: { id: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip, take: Number(pageSize),
+      }),
+      prisma.stockLog.count({ where }),
+    ])
+    res.json({ data: logs, total, page: Number(page), pageSize: Number(pageSize), totalPages: Math.ceil(total / Number(pageSize)) })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // GET /api/stock/:productId
 router.get('/:productId', authenticate, async (req: AuthRequest, res, next) => {
   try {
@@ -38,30 +62,6 @@ router.post('/adjust', authenticate, async (req: AuthRequest, res, next) => {
     if (!product) { res.status(404).json({ message: '找不到此產品' }); return }
     const log = await prisma.stockLog.create({ data: { productId, type, quantity: Number(quantity), reason } })
     res.status(201).json(log)
-  } catch (err) {
-    next(err)
-  }
-})
-
-// GET /api/stock/logs
-router.get('/logs', authenticate, async (req: AuthRequest, res, next) => {
-  try {
-    const { productId, page = '1', pageSize = '30' } = req.query as Record<string, string>
-    const skip = (Number(page) - 1) * Number(pageSize)
-    const where = {
-      product: { userId: req.user!.userId },
-      ...(productId ? { productId } : {}),
-    }
-    const [logs, total] = await Promise.all([
-      prisma.stockLog.findMany({
-        where,
-        include: { product: { select: { id: true, name: true } } },
-        orderBy: { createdAt: 'desc' },
-        skip, take: Number(pageSize),
-      }),
-      prisma.stockLog.count({ where }),
-    ])
-    res.json({ data: logs, total, page: Number(page), pageSize: Number(pageSize), totalPages: Math.ceil(total / Number(pageSize)) })
   } catch (err) {
     next(err)
   }

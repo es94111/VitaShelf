@@ -1,7 +1,35 @@
 {
   "projectName": "VitaShelf",
-  "currentVersion": "2.3.5",
+  "currentVersion": "2.3.6",
   "releases": [
+    {
+      "version": "2.3.6",
+      "date": "2026-04-06",
+      "type": "fixed",
+      "summary": "修正庫存異動紀錄頁面無法載入、購買紀錄修改同步庫存異動",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "修正庫存異動紀錄頁（/stock-logs）因 Express 路由順序錯誤（GET /logs 被 /:productId 攔截）導致資料無法載入的問題"
+        },
+        {
+          "tag": "improved",
+          "text": "新增購買紀錄與庫存異動紀錄的資料關聯（purchaseRecordId），新增購買時以 transaction 同步建立入庫紀錄"
+        },
+        {
+          "tag": "improved",
+          "text": "修改購買紀錄的數量或通路時，自動同步更新對應的庫存入庫紀錄"
+        },
+        {
+          "tag": "improved",
+          "text": "刪除購買紀錄時，同步刪除關聯的入庫紀錄，確保庫存數量正確"
+        },
+        {
+          "tag": "improved",
+          "text": "購買紀錄的新增、修改、刪除 API 加入擁有權驗證，防止跨用戶操作"
+        }
+      ]
+    },
     {
       "version": "2.3.5",
       "date": "2026-04-06",
