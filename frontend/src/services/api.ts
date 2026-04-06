@@ -207,6 +207,8 @@ export const adminApi = {
     api.post<{ deleted: number; failed?: number; errors?: string[]; message: string }>(
       '/admin/login-logs/batch-delete', { ids },
     ),
+  triggerUpdate: () =>
+    api.post<{ message: string }>('/admin/update'),
 }
 
 // ─── Changelog ───────────────────────────────────────────────────────────────
@@ -216,7 +218,7 @@ export interface ChangelogRelease {
   date: string
   type: string
   summary: string
-  changes: { category: string; description: string }[]
+  changes: { tag: string; text: string }[]
 }
 
 export const changelogApi = {

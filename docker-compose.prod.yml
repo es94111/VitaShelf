@@ -5,6 +5,8 @@ services:
   vitashelf:
     image: ${DOCKERHUB_USERNAME}/vitashelf:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "4000:4000"
     environment:
@@ -24,6 +26,22 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  # ── Watchtower (on-demand Docker image update trigger) ───────────────────────
+  watchtower:
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_HTTP_API_UPDATE: "true"
+      WATCHTOWER_HTTP_API_TOKEN: ${WATCHTOWER_TOKEN}
+      WATCHTOWER_HTTP_API_PERIODIC_POLLS: "true"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_NO_STARTUP_MESSAGE: "true"
+    command: --http-api-update --label-enable
+    ports:
+      - "127.0.0.1:8080:8080"
 
   # ── Database ──────────────────────────────────────────────────────────────────
   db:

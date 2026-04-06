@@ -247,4 +247,33 @@ router.post('/login-logs/batch-delete', async (req: AuthRequest, res: Response, 
   }
 })
 
+// ─── POST /api/admin/update — trigger Watchtower to pull & restart ───────────
+
+router.post('/update', async (_req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const token = process.env.WATCHTOWER_TOKEN
+    if (!token) {
+      res.status(503).json({ message: 'WATCHTOWER_TOKEN 未設定，無法自動更新' })
+      return
+    }
+
+    const watchtowerUrl = process.env.WATCHTOWER_URL ?? 'http://watchtower:8080'
+
+    const response = await fetch(`${watchtowerUrl}/v1/update`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '')
+      res.status(502).json({ message: `Watchtower 回應異常 (${response.status})${body ? ': ' + body : ''}` })
+      return
+    }
+
+    res.json({ message: '更新指令已送出，容器即將重啟，請稍候...' })
+  } catch (err) {
+    next(err)
+  }
+})
+
 export default router

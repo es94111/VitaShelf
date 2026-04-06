@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   User, Lock, Info,
-  Eye, EyeOff, CheckCircle, Clock, History, Copy,
+  Eye, EyeOff, CheckCircle, Clock, History,
 } from 'lucide-react'
-import { usersApi } from '@/services/api'
+import { usersApi, adminApi } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -330,20 +330,18 @@ interface ChangelogRelease {
   date: string
   type: string
   summary: string
-  changes: { category: string; description: string }[]
+  changes: { tag: string; text: string }[]
 }
 
-const CATEGORY_LABEL: Record<string, string> = {
-  added:    '新增',
-  changed:  '調整',
+const TAG_LABEL: Record<string, string> = {
+  new:      '新增',
   improved: '改善',
   fixed:    '修復',
   removed:  '移除',
 }
 
-const CATEGORY_CLASS: Record<string, string> = {
-  added:    'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
-  changed:  'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
+const TAG_CLASS: Record<string, string> = {
+  new:      'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
   improved: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
   fixed:    'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
   removed:  'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
@@ -352,9 +350,9 @@ const CATEGORY_CLASS: Record<string, string> = {
 function AboutSection() {
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'triggering' | 'waiting' | 'reloading' | 'error'>('idle')
+  const [updateError, setUpdateError] = useState('')
   const [changelogOpen, setChangelogOpen] = useState(false)
-  const [updateGuideOpen, setUpdateGuideOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
 
   // Changelog is bundled at build time — always available, no HTTP fetch needed
   const localChangelog = changelogJson as { currentVersion: string; releases: ChangelogRelease[] }
@@ -388,20 +386,56 @@ function AboutSection() {
     setLastCheckedAt(new Date())
   }
 
-  const DOCKER_UPDATE_CMD = 'docker compose pull && docker compose up -d'
-
-  async function copyDockerCmd() {
-    await navigator.clipboard.writeText(DOCKER_UPDATE_CMD)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   async function runUpdate() {
     setUpdating(true)
+    setUpdateError('')
+    setUpdateStatus('triggering')
+    try {
+      await adminApi.triggerUpdate()
+    } catch (err) {
+      const msg = (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        ?? (err instanceof Error ? err.message : '更新失敗，請稍後再試')
+      setUpdateError(msg)
+      setUpdateStatus('error')
+      setUpdating(false)
+      return
+    }
+
+    // Poll /health until server comes back after container restart
+    setUpdateStatus('waiting')
+    const start = Date.now()
+    const maxWait = 3 * 60 * 1000 // 3 minutes
+    let pollTimedOut = false
+    await new Promise<void>((resolve) => {
+      const timer = setInterval(async () => {
+        if (Date.now() - start > maxWait) {
+          clearInterval(timer)
+          pollTimedOut = true
+          setUpdateError('伺服器重啟超時，請手動重新整理頁面')
+          setUpdateStatus('error')
+          setUpdating(false)
+          resolve()
+          return
+        }
+        try {
+          const r = await fetch('/health', { cache: 'no-store' })
+          if (r.ok) {
+            clearInterval(timer)
+            resolve()
+          }
+        } catch {
+          // still restarting, keep waiting
+        }
+      }, 3000)
+    })
+    if (pollTimedOut) return
+
+    // Clear browser cache and reload
+    setUpdateStatus('reloading')
     try {
       if ('caches' in window) {
         const keys = await caches.keys()
-        await Promise.all(keys.map((key) => caches.delete(key)))
+        await Promise.all(keys.map((k) => caches.delete(k)))
       }
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations()
@@ -457,12 +491,12 @@ function AboutSection() {
         </div>
       </dl>
 
-      <div className="flex items-center gap-2 pt-2">
+      <div className="flex flex-wrap items-center gap-2 pt-2">
         <button
           type="button"
           className="btn-secondary"
           onClick={() => { void checkNow() }}
-          disabled={remoteVersionQuery.isFetching}
+          disabled={remoteVersionQuery.isFetching || updating}
         >
           {remoteVersionQuery.isFetching ? <LoadingSpinner size="sm" /> : '立即檢查更新'}
         </button>
@@ -470,10 +504,21 @@ function AboutSection() {
           <button
             type="button"
             className="btn-primary"
-            onClick={() => setUpdateGuideOpen(true)}
+            onClick={() => { void runUpdate() }}
+            disabled={updating}
           >
-            立即更新
+            {updating ? (
+              <span className="flex items-center gap-1.5">
+                <LoadingSpinner size="sm" />
+                {updateStatus === 'triggering' && '送出更新中...'}
+                {updateStatus === 'waiting' && '等待伺服器重啟...'}
+                {updateStatus === 'reloading' && '重新載入中...'}
+              </span>
+            ) : '立即更新'}
           </button>
+        )}
+        {updateStatus === 'error' && updateError && (
+          <p className="text-xs text-status-error w-full">{updateError}</p>
         )}
         <button
           type="button"
@@ -485,58 +530,6 @@ function AboutSection() {
         </button>
       </div>
     </Section>
-
-    {/* Update guide modal */}
-    <Modal
-      open={updateGuideOpen}
-      onClose={() => setUpdateGuideOpen(false)}
-      title={`更新至 v${latestVersion ?? ''}`}
-    >
-      <div className="space-y-5 text-sm">
-        <p className="text-ink-muted dark:text-gray-400">
-          VitaShelf 以 Docker 容器部署，更新需要兩個步驟：
-        </p>
-
-        {/* Step 1 */}
-        <div className="space-y-2">
-          <p className="font-semibold text-ink dark:text-gray-200">
-            ① 在伺服器執行更新指令
-          </p>
-          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-3 font-mono text-xs text-ink dark:text-gray-200">
-            <span className="flex-1 select-all">{DOCKER_UPDATE_CMD}</span>
-            <button
-              type="button"
-              onClick={() => { void copyDockerCmd() }}
-              className="shrink-0 text-ink-muted dark:text-gray-400 hover:text-primary transition-colors"
-              title="複製指令"
-            >
-              {copied ? <CheckCircle size={15} className="text-status-ok" /> : <Copy size={15} />}
-            </button>
-          </div>
-          <p className="text-xs text-ink-muted dark:text-gray-500">
-            請等容器重新啟動完成後，再執行下一步。
-          </p>
-        </div>
-
-        {/* Step 2 */}
-        <div className="space-y-2">
-          <p className="font-semibold text-ink dark:text-gray-200">
-            ② 清除瀏覽器快取並重新載入
-          </p>
-          <button
-            type="button"
-            className="btn-primary w-full"
-            onClick={() => { setUpdateGuideOpen(false); void runUpdate() }}
-            disabled={updating}
-          >
-            {updating ? <LoadingSpinner size="sm" /> : '清除快取並重新載入'}
-          </button>
-          <p className="text-xs text-ink-muted dark:text-gray-500">
-            此步驟會清除 Service Worker 快取並重新載入頁面，確保瀏覽器取得最新版本。
-          </p>
-        </div>
-      </div>
-    </Modal>
 
     {/* Changelog modal */}
     <Modal
@@ -566,10 +559,10 @@ function AboutSection() {
                 <ul className="divide-y divide-surface-border dark:divide-gray-700">
                   {release.changes.map((change, i) => (
                     <li key={i} className="flex items-start gap-3 px-4 py-2.5 text-sm">
-                      <span className={`shrink-0 mt-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded ${CATEGORY_CLASS[change.category] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {CATEGORY_LABEL[change.category] ?? change.category}
+                      <span className={`shrink-0 mt-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded ${TAG_CLASS[change.tag] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {TAG_LABEL[change.tag] ?? change.tag}
                       </span>
-                      <span className="text-ink dark:text-gray-200">{change.description}</span>
+                      <span className="text-ink dark:text-gray-200">{change.text}</span>
                     </li>
                   ))}
                 </ul>
