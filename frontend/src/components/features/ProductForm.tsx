@@ -38,6 +38,22 @@ interface Props {
   onCancel:  () => void
 }
 
+function sanitizeImageSrc(src: string | undefined): string {
+  if (!src) return ''
+
+  if (src.startsWith('blob:')) return src
+  if (src.startsWith('/')) return src
+
+  try {
+    const parsed = new URL(src)
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return src
+  } catch {
+    return ''
+  }
+
+  return ''
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ProductForm({ product, onSuccess, onCancel }: Props) {
@@ -62,7 +78,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
       : EMPTY,
   )
   const [imageFile,    setImageFile]    = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string>(product?.imageUrl ?? '')
+  const [imagePreview, setImagePreview] = useState<string>(() => sanitizeImageSrc(product?.imageUrl))
   const [errors,       setErrors]       = useState<Partial<Record<keyof FormState, string>>>({})
 
   // Fetch tags
