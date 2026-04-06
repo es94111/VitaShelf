@@ -10,12 +10,13 @@ services:
     ports:
       - "4000:4000"
     environment:
-      DATABASE_URL:  ${DATABASE_URL}
-      JWT_SECRET:    ${JWT_SECRET}
-      NODE_ENV:      production
-      API_PORT:      "4001"
-      CORS_ORIGIN:   ${CORS_ORIGIN:-http://localhost}
-      UPLOAD_DIR:    /app/uploads
+      DATABASE_URL:     ${DATABASE_URL}
+      JWT_SECRET:       ${JWT_SECRET}
+      NODE_ENV:         production
+      API_PORT:         "4001"
+      CORS_ORIGIN:      ${CORS_ORIGIN:-http://localhost}
+      UPLOAD_DIR:       /app/uploads
+      WATCHTOWER_TOKEN: ${WATCHTOWER_TOKEN}
     volumes:
       - uploads_data:/app/uploads
     depends_on:
