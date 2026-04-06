@@ -7,7 +7,11 @@ const router = Router()
 
 function toCsv(headers: string[], rows: (string | number | null | undefined)[][]): string {
   const escape = (v: string | number | null | undefined) => {
-    const s = String(v ?? '')
+    const raw = String(v ?? '')
+    // Prevent CSV/Formula injection when opened in spreadsheet apps.
+    // Some apps ignore leading control characters/whitespace before evaluating formulas.
+    // Prefix dangerous values with apostrophe even when [=+-@] is preceded by them.
+    const s = /^[\u0000-\u0020\u007f]*[=+\-@]/.test(raw) ? `'${raw}` : raw
     return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
   }
   return [headers, ...rows].map((row) => row.map(escape).join(',')).join('\r\n')

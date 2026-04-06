@@ -13,10 +13,29 @@ const ALLOWED_MIME = new Set([
   'image/avif',
 ])
 
+const MIME_EXTENSION: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/avif': '.avif',
+}
+
+const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
+const MIME_ALLOWED_EXTENSIONS: Record<string, Set<string>> = {
+  'image/jpeg': new Set(['.jpg', '.jpeg']),
+  'image/png': new Set(['.png']),
+  'image/webp': new Set(['.webp']),
+  'image/avif': new Set(['.avif']),
+}
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
   filename: (_req, file, cb) => {
-    const ext  = path.extname(file.originalname).toLowerCase()
+    const ext = MIME_EXTENSION[file.mimetype]
+    if (!ext) {
+      cb(new Error('不支援的檔案格式'), '')
+      return
+    }
     const name = crypto.randomBytes(16).toString('hex')
     cb(null, `${name}${ext}`)
   },
@@ -27,7 +46,15 @@ function fileFilter(
   file: Express.Multer.File,
   cb: FileFilterCallback,
 ): void {
-  if (ALLOWED_MIME.has(file.mimetype)) {
+  const ext = path.extname(file.originalname).toLowerCase()
+  const expectedExt = MIME_EXTENSION[file.mimetype]
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    cb(new Error('副檔名必須為 .jpg、.jpeg、.png、.webp、.avif'))
+    return
+  }
+
+  const mimeMatchedExt = MIME_ALLOWED_EXTENSIONS[file.mimetype]
+  if (ALLOWED_MIME.has(file.mimetype) && expectedExt && mimeMatchedExt?.has(ext)) {
     cb(null, true)
   } else {
     cb(new Error('只接受 JPG、PNG、WebP、AVIF 格式的圖片'))
