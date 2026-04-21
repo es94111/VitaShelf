@@ -32,7 +32,7 @@ export function resolveJwtSecret(): string {
     }
     if (secret!.length < MIN_LENGTH) {
       console.error(
-        `[FATAL] JWT_SECRET is too short (${secret!.length} chars). Minimum is ${MIN_LENGTH}.`,
+        `[FATAL] JWT_SECRET is too short. Minimum is ${MIN_LENGTH} chars.`,
       )
       process.exit(1)
     }
@@ -48,10 +48,9 @@ export function resolveJwtSecret(): string {
     persistToEnvFile(generated)
 
     console.warn(
-      '\n⚠️  [JWT_SECRET] Not set — a random secret has been generated for this session:\n' +
-      `   ${generated}\n` +
-      '   This secret has been written to your .env file.\n' +
-      '   ⚡ Existing JWT tokens will be invalidated on each restart until you fix this.\n',
+      '\n⚠️  [JWT_SECRET] Not set — a random secret has been generated for this session.\n' +
+      '   The secret has been written to your .env file (not printed here for safety).\n' +
+      '   ⚡ Existing JWT tokens will be invalidated on each restart until you set a permanent value.\n',
     )
     return generated
   }
