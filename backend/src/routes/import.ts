@@ -1,10 +1,15 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import multer from 'multer'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 import { heavyRateLimit } from '../middleware/rateLimit'
 
 const router = Router()
+
+// Router-wide rate limit (inline so CodeQL `js/missing-rate-limiting`
+// recognises the barrier without following cross-module re-exports).
+router.use(rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false }))
 
 // Memory storage — we only need the buffer, not a file on disk
 const upload = multer({
