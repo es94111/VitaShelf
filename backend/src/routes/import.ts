@@ -26,14 +26,21 @@ const upload = multer({
 
 // ─── Simple CSV parser (handles basic quoted fields) ──────────────────────────
 
+// Defensive cap so that a hostile input with a tampered `.length` (or a single
+// absurdly long row) cannot turn the parser loop into an indefinite hang.
+// Protects against CodeQL `js/loop-bound-injection` and real-world DoS.
+const MAX_CSV_LINE_LENGTH = 100_000
+
 function parseCSVLine(line: string): string[] {
+  const safeLine: string = typeof line === 'string' ? line : ''
+  const len = Math.min(safeLine.length, MAX_CSV_LINE_LENGTH)
   const values: string[] = []
   let current = ''
   let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]
+  for (let i = 0; i < len; i++) {
+    const ch = safeLine[i]
     if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') { current += '"'; i++ }
+      if (inQuotes && safeLine[i + 1] === '"') { current += '"'; i++ }
       else inQuotes = !inQuotes
     } else if (ch === ',' && !inQuotes) {
       values.push(current.trim())
