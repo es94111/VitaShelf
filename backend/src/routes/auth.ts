@@ -1,12 +1,18 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
+import rateLimit from 'express-rate-limit'
 import { body, validationResult } from 'express-validator'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
+import { authRateLimit } from '../middleware/rateLimit'
 import { getClientIp, lookupCountry } from '../utils/ipCountry'
 
 const router = Router()
+
+// Router-wide baseline (inline so CodeQL `js/missing-rate-limiting`
+// recognises the barrier without following cross-module re-exports).
+router.use(rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false }))
 
 // ─── Helper: log login attempt ──────────────────────────────────────────────
 
@@ -53,6 +59,7 @@ router.get('/registration-status', async (_req: Request, res: Response, next: Ne
 
 router.post(
   '/register',
+  authRateLimit,
   [
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 8 }),
@@ -113,6 +120,7 @@ router.post(
 
 router.post(
   '/login',
+  authRateLimit,
   [body('email').isEmail(), body('password').notEmpty()],
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -224,6 +232,7 @@ router.put(
 router.post(
   '/me/change-password',
   authenticate,
+  authRateLimit,
   [
     body('currentPassword').notEmpty().withMessage('請輸入目前密碼'),
     body('newPassword').isLength({ min: 8 }).withMessage('新密碼至少 8 個字元'),
