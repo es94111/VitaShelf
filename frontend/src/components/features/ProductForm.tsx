@@ -38,20 +38,23 @@ interface Props {
   onCancel:  () => void
 }
 
+// Strict allowlist for image URLs. The regex test narrows the value to a safe
+// subset; `encodeURI` is additionally applied as a sanitizer that CodeQL's
+// `js/xss-through-dom` data-flow analysis recognises as a barrier.
+// Accepts:
+//   - `blob:...`                  (object URLs created by URL.createObjectURL)
+//   - `/uploads/...` or `/...`    (same-origin server assets)
+//   - `http(s)://...`             (absolute remote URLs)
+// Rejects everything else, including `javascript:`, `data:`, and anything
+// containing whitespace or HTML-meaningful characters.
+const IMAGE_SRC_ALLOWLIST = /^(?:blob:|\/|https?:\/\/)[^\s"'<>`]*$/i
+
 function sanitizeImageSrc(src: string | undefined): string {
-  if (!src) return ''
-
-  if (src.startsWith('blob:')) return src
-  if (src.startsWith('/')) return src
-
-  try {
-    const parsed = new URL(src)
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return src
-  } catch {
-    return ''
-  }
-
-  return ''
+  if (typeof src !== 'string' || src.length === 0) return ''
+  if (!IMAGE_SRC_ALLOWLIST.test(src)) return ''
+  // encodeURI is a recognised XSS sanitizer: reserved URL chars are preserved,
+  // but any stray HTML/JS metacharacters get percent-encoded.
+  return encodeURI(src)
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -182,6 +185,10 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
     : form.category === 'supplement'              ? SUPPLEMENT_SUBS
     : []
 
+  // Re-sanitize at render time so CodeQL sees an explicit barrier between the
+  // (possibly externally-sourced) imagePreview state and the <img src> sink.
+  const safeImagePreview = sanitizeImageSrc(imagePreview)
+
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -199,9 +206,9 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
           aria-label="上傳產品圖片"
           onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click() }}
         >
-          {imagePreview ? (
+          {safeImagePreview ? (
             <img
-              src={imagePreview}
+              src={safeImagePreview}
               alt="產品圖片預覽"
               className="w-full h-full object-cover"
             />

@@ -1,15 +1,18 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
-import { createRateLimit } from '../middleware/rateLimit'
+import { readRateLimit, writeRateLimit } from '../middleware/rateLimit'
 import { handleUpload } from '../utils/upload'
 import { computeStockFromLogs, getAlertLevel, getNearestExpiry } from '../utils/stock'
 
 const router = Router()
-const writeRateLimit = createRateLimit(60 * 1000, 20)
+
+// Router-wide rate limit (inline for CodeQL recognition).
+router.use(rateLimit({ windowMs: 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }))
 
 // GET /api/products
-router.get('/', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const {
       search    = '',
@@ -86,7 +89,7 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // GET /api/products/:id
-router.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/:id', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const productId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 
@@ -121,7 +124,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // POST /api/products
-router.post('/', authenticate, async (req: AuthRequest, res, next) => {
+router.post('/', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     await handleUpload(req, res)
 
@@ -168,7 +171,7 @@ router.post('/', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // PUT /api/products/:id
-router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.put('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const productId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 
@@ -226,7 +229,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // DELETE /api/products/:id  (soft delete)
-router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.delete('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const productId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 
