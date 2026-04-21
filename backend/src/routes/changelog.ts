@@ -1,8 +1,13 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import path from 'path'
 import fs from 'fs'
 
 const router = Router()
+
+// Router-wide rate limit (inline so CodeQL `js/missing-rate-limiting`
+// recognises the barrier). Changelog is public but still hits the filesystem.
+router.use(rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false }))
 
 // Resolve changelog.json — try production path first (/app), then dev (project root)
 function resolveChangelogPath(): string | null {
