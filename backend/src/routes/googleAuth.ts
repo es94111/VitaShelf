@@ -7,6 +7,7 @@ import https from 'node:https'
 import jwt from 'jsonwebtoken'
 import prisma from '../utils/prisma'
 import { getClientIp, lookupCountry } from '../utils/ipCountry'
+import { authRateLimit } from '../middleware/rateLimit'
 
 const router = Router()
 
@@ -51,7 +52,7 @@ async function verifyGoogleToken(idToken: string): Promise<GoogleTokenPayload | 
 
 // ─── POST /api/auth/google — Google SSO login/register ──────────────────────
 
-router.post('/google', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/google', authRateLimit, async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!process.env.GOOGLE_CLIENT_ID) {
       res.status(501).json({ message: 'Google 登入未啟用' })

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
+import { readRateLimit, writeRateLimit } from '../middleware/rateLimit'
 
 const router = Router()
 
@@ -19,7 +20,7 @@ async function computeStock(productId: string) {
 }
 
 // GET /api/stock/logs — MUST be before /:productId to avoid route conflict
-router.get('/logs', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/logs', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const { productId, page = '1', pageSize = '30' } = req.query as Record<string, string>
     const skip = (Number(page) - 1) * Number(pageSize)
@@ -43,7 +44,7 @@ router.get('/logs', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // GET /api/stock/:productId
-router.get('/:productId', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/:productId', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const productId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId
     const product = await prisma.product.findFirst({ where: { id: productId, userId: req.user!.userId } })
@@ -55,7 +56,7 @@ router.get('/:productId', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // POST /api/stock/adjust
-router.post('/adjust', authenticate, async (req: AuthRequest, res, next) => {
+router.post('/adjust', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const { productId, type, quantity, reason } = req.body
     const product = await prisma.product.findFirst({ where: { id: productId, userId: req.user!.userId } })
@@ -68,7 +69,7 @@ router.post('/adjust', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // PUT /api/stock/:id — Edit stock log
-router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.put('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const logId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
     const { type, quantity, reason } = req.body
@@ -97,7 +98,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // DELETE /api/stock/:id — Delete stock log
-router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.delete('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const logId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 

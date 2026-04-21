@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
+import { readRateLimit, writeRateLimit } from '../middleware/rateLimit'
 
 const router = Router()
 
 // GET /api/tags — list with product count
-router.get('/', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const tags = await prisma.tag.findMany({
       where: { userId: req.user!.userId },
@@ -25,7 +26,7 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // POST /api/tags
-router.post('/', authenticate, async (req: AuthRequest, res, next) => {
+router.post('/', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const { name, color } = req.body
     if (!name?.trim()) {
@@ -40,7 +41,7 @@ router.post('/', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // PUT /api/tags/:id
-router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.put('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const tagId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 
@@ -66,7 +67,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // DELETE /api/tags/:id
-router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.delete('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const tagId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
     await prisma.tag.deleteMany({ where: { id: tagId, userId: req.user!.userId } })

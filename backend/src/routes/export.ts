@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
+import { heavyRateLimit } from '../middleware/rateLimit'
 import { format } from 'date-fns'
 
 const router = Router()
@@ -18,7 +19,7 @@ function toCsv(headers: string[], rows: (string | number | null | undefined)[][]
 }
 
 // GET /api/export/products
-router.get('/products', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/products', authenticate, heavyRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const products = await prisma.product.findMany({
       where: { userId: req.user!.userId, isDeleted: false },
@@ -45,7 +46,7 @@ router.get('/products', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // GET /api/export/purchases
-router.get('/purchases', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/purchases', authenticate, heavyRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const purchases = await prisma.purchaseRecord.findMany({
       where: { product: { userId: req.user!.userId } },

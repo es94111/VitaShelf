@@ -1,12 +1,13 @@
 import { Router } from 'express'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
+import { readRateLimit } from '../middleware/rateLimit'
 import { startOfMonth, endOfMonth, subMonths, format, isPast, addDays } from 'date-fns'
 
 const router = Router()
 
 // GET /api/dashboard/stats
-router.get('/stats', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/stats', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const userId = req.user!.userId
     const now = new Date()
@@ -56,7 +57,7 @@ router.get('/stats', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // GET /api/dashboard/monthly-spend  — last 6 months
-router.get('/monthly-spend', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/monthly-spend', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const userId = req.user!.userId
     const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), 5 - i))
@@ -82,7 +83,7 @@ router.get('/monthly-spend', authenticate, async (req: AuthRequest, res, next) =
 })
 
 // GET /api/dashboard/category-breakdown
-router.get('/category-breakdown', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/category-breakdown', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const userId = req.user!.userId
     const [skincare, supplement] = await Promise.all([
@@ -97,7 +98,7 @@ router.get('/category-breakdown', authenticate, async (req: AuthRequest, res, ne
 })
 
 // GET /api/dashboard/brand-breakdown — top 10 brands by product count
-router.get('/brand-breakdown', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/brand-breakdown', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const userId = req.user!.userId
     const products = await prisma.product.findMany({
@@ -120,7 +121,7 @@ router.get('/brand-breakdown', authenticate, async (req: AuthRequest, res, next)
 })
 
 // GET /api/dashboard/recent-activity — last 8 stock logs across all products
-router.get('/recent-activity', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/recent-activity', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const userId = req.user!.userId
     const logs = await prisma.stockLog.findMany({

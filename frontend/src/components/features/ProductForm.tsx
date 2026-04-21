@@ -182,6 +182,10 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
     : form.category === 'supplement'              ? SUPPLEMENT_SUBS
     : []
 
+  // Re-sanitize at render time so CodeQL sees an explicit barrier between the
+  // (possibly externally-sourced) imagePreview state and the <img src> sink.
+  const safeImagePreview = sanitizeImageSrc(imagePreview)
+
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
@@ -199,9 +203,9 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
           aria-label="上傳產品圖片"
           onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click() }}
         >
-          {imagePreview ? (
+          {safeImagePreview ? (
             <img
-              src={imagePreview}
+              src={safeImagePreview}
               alt="產品圖片預覽"
               className="w-full h-full object-cover"
             />

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
+import { heavyRateLimit } from '../middleware/rateLimit'
 
 const router = Router()
 
@@ -82,6 +83,7 @@ function toDate(value: string | undefined): Date | undefined {
 router.post(
   '/products',
   authenticate,
+  heavyRateLimit,
   upload.single('file'),
   async (req: AuthRequest, res, next) => {
     try {
@@ -151,6 +153,7 @@ router.post(
 router.post(
   '/purchases',
   authenticate,
+  heavyRateLimit,
   upload.single('file'),
   async (req: AuthRequest, res, next) => {
     try {

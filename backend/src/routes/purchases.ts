@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
+import { readRateLimit, writeRateLimit } from '../middleware/rateLimit'
 
 const router = Router()
 
 // GET /api/purchases
-router.get('/', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const { productId, page = '1', pageSize = '20' } = req.query as Record<string, string>
     const skip = (Number(page) - 1) * Number(pageSize)
@@ -33,7 +34,7 @@ router.get('/', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // POST /api/purchases
-router.post('/', authenticate, async (req: AuthRequest, res, next) => {
+router.post('/', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const { productId, purchaseDate, quantity, unitPrice, totalPrice, channel, expiryDate, manufactureDate, openedDate, paoMonths, notes } = req.body
 
@@ -80,7 +81,7 @@ router.post('/', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // PUT /api/purchases/:id
-router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.put('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const purchaseId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 
@@ -128,7 +129,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res, next) => {
 })
 
 // DELETE /api/purchases/:id
-router.delete('/:id', authenticate, async (req: AuthRequest, res, next) => {
+router.delete('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, next) => {
   try {
     const purchaseId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id
 
