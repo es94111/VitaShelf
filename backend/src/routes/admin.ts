@@ -1,9 +1,14 @@
 import { Router, type Response, type NextFunction } from 'express'
+import rateLimit from 'express-rate-limit'
 import { body, validationResult } from 'express-validator'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 
 const router = Router()
+
+// Router-wide rate limit (inline so CodeQL `js/missing-rate-limiting`
+// recognises the barrier without following cross-module re-exports).
+router.use(rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false }))
 
 // ─── Middleware: require ADMIN role ─────────────────────────────────────────
 
