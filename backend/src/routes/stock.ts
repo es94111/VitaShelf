@@ -1,9 +1,13 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 import { readRateLimit, writeRateLimit } from '../middleware/rateLimit'
 
 const router = Router()
+
+// Router-wide rate limit (inline for CodeQL recognition).
+router.use(rateLimit({ windowMs: 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }))
 
 async function computeStock(productId: string) {
   const logs = await prisma.stockLog.findMany({ where: { productId } })

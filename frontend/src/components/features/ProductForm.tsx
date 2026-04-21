@@ -38,8 +38,9 @@ interface Props {
   onCancel:  () => void
 }
 
-// Strict allowlist for image URLs. The single regex test acts as a sanitizer
-// barrier that CodeQL's `js/xss-through-dom` data-flow analysis recognises.
+// Strict allowlist for image URLs. The regex test narrows the value to a safe
+// subset; `encodeURI` is additionally applied as a sanitizer that CodeQL's
+// `js/xss-through-dom` data-flow analysis recognises as a barrier.
 // Accepts:
 //   - `blob:...`                  (object URLs created by URL.createObjectURL)
 //   - `/uploads/...` or `/...`    (same-origin server assets)
@@ -51,7 +52,9 @@ const IMAGE_SRC_ALLOWLIST = /^(?:blob:|\/|https?:\/\/)[^\s"'<>`]*$/i
 function sanitizeImageSrc(src: string | undefined): string {
   if (typeof src !== 'string' || src.length === 0) return ''
   if (!IMAGE_SRC_ALLOWLIST.test(src)) return ''
-  return src
+  // encodeURI is a recognised XSS sanitizer: reserved URL chars are preserved,
+  // but any stray HTML/JS metacharacters get percent-encoded.
+  return encodeURI(src)
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────

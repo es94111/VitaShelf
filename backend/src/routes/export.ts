@@ -1,10 +1,14 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 import { heavyRateLimit } from '../middleware/rateLimit'
 import { format } from 'date-fns'
 
 const router = Router()
+
+// Router-wide rate limit (inline for CodeQL recognition).
+router.use(rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false }))
 
 function toCsv(headers: string[], rows: (string | number | null | undefined)[][]): string {
   const escape = (v: string | number | null | undefined) => {

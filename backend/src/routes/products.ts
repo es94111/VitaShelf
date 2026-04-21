@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 import { readRateLimit, writeRateLimit } from '../middleware/rateLimit'
@@ -6,6 +7,9 @@ import { handleUpload } from '../utils/upload'
 import { computeStockFromLogs, getAlertLevel, getNearestExpiry } from '../utils/stock'
 
 const router = Router()
+
+// Router-wide rate limit (inline for CodeQL recognition).
+router.use(rateLimit({ windowMs: 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }))
 
 // GET /api/products
 router.get('/', authenticate, readRateLimit, async (req: AuthRequest, res, next) => {
