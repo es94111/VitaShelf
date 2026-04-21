@@ -1,9 +1,14 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import prisma from '../utils/prisma'
 import { authenticate, type AuthRequest } from '../middleware/auth'
 import { addDays, differenceInDays, isPast } from 'date-fns'
 
 const router = Router()
+
+// Router-wide rate limit (inline so CodeQL `js/missing-rate-limiting`
+// recognises the barrier without following cross-module re-exports).
+router.use(rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false }))
 
 function alertLevel(expiryDate: Date) {
   if (isPast(expiryDate)) return 'expired'
