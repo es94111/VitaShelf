@@ -5,6 +5,7 @@ import express, { type Express } from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { errorHandler } from './middleware/errorHandler'
+import { requireSameOrigin } from './middleware/csrf'
 import authRoutes from './routes/auth'
 import googleAuthRoutes from './routes/googleAuth'
 import adminRoutes from './routes/admin'
@@ -31,6 +32,21 @@ export function createApp(): Express {
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
   app.use(requestLogger)
+
+  // ─── Global CSRF protection ──────────────────────────────────────────────
+  // 對應 FR-012a + research.md R-001。
+  //
+  // 本模組採 `SameSite=Strict` cookie（瀏覽器層阻擋跨站請求）+ 此處的
+  // `requireSameOrigin`（Origin/Referer 白名單）雙重防護；不引入 `csurf`
+  // 等基於 double-submit token 的套件，因 httpOnly cookie 下無法安全讓 JS 讀 token。
+  //
+  // `requireSameOrigin` 內部 skip GET/HEAD/OPTIONS，因此所有讀取端點不受影響；
+  // 僅 POST / PUT / PATCH / DELETE 需帶 Origin header（瀏覽器 fetch 自動帶；
+  // 整合測試亦明確設定 Origin）。
+  //
+  // 註：CodeQL `js/missing-csrf-middleware` 規則僅辨識 csurf/lusca 等既有套件；
+  // 本自訂中介層雖實際提供保護，仍可能被報為 false positive。
+  app.use(requireSameOrigin)
 
   app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? './uploads'))
 

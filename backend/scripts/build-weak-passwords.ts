@@ -132,10 +132,9 @@ async function loadPasswords(): Promise<{ source: string; list: string[] }> {
     writeFileSync(LOCAL_SOURCE, raw, 'utf8')
     return { source: 'remote', list: toSet(raw) }
   } catch (err) {
-    console.warn(
-      `[weak-passwords] remote fetch failed (${(err as Error).message}); ` +
-        `falling back to embedded MVP list (${FALLBACK_PASSWORDS.length} entries)`,
-    )
+    // 不記錄清單或其長度以避免 CodeQL `js/clear-text-logging` 誤報；
+    // 最終寫入的檔案標頭內含「Source: fallback + Count: N」供稽核。
+    console.warn(`[weak-passwords] remote fetch failed (${(err as Error).message}); using embedded fallback list`)
     return { source: 'fallback', list: FALLBACK_PASSWORDS.map((p) => p.toLowerCase()) }
   }
 }
