@@ -11,16 +11,18 @@ datasource db {
 // ─── User ──────────────────────────────────────────────────────────────────────
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  password     String
-  displayName  String
-  role         String   @default("USER")
-  theme        String   @default("light")
-  authProvider String   @default("LOCAL")
-  googleId     String?  @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  displayName       String
+  role              String   @default("USER")
+  theme             String   @default("light")
+  authProvider      String   @default("LOCAL")
+  googleId          String?  @unique
+  isActive          Boolean  @default(true)
+  passwordChangedAt DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   products  Product[]
   tags      Tag[]
@@ -51,6 +53,10 @@ model LoginLog {
   success   Boolean
   reason    String?
   createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([email, createdAt])
+  @@index([success, createdAt])
 }
 
 // ─── Tag ───────────────────────────────────────────────────────────────────────

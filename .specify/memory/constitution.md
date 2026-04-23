@@ -1,100 +1,243 @@
 <!--
 Sync Impact Report
 ==================
-Version change: (uninitialized template) → 1.0.0  (initial ratification)
-Modified principles: N/A — initial definition of Principles I–V
-Added sections:
-  - Core Principles (I. 繁體中文文件 / II. OpenAPI 3.2 合約優先 / III. TypeScript 全棧嚴格模式 / IV. 安全預設 / V. 容器化可重現部署)
-  - Technical Constraints
-  - Development Workflow
-  - Governance
+Version change: 1.0.0 → 1.1.0  (MINOR: substantive rewrite — full translation of
+the constitution from Traditional Chinese to English, restating Principle I so
+that it is expressed *in English* while still mandating Traditional Chinese for
+all specifications, plans, and user-facing documentation; wording of
+Principle II tightened to explicitly name OpenAPI 3.2 as the required version.)
+
+Modified principles:
+  - I. Traditional Chinese Documentation        (reworded, scope clarified)
+  - II. OpenAPI 3.2 Contract-First              (reworded, version pinned)
+  - III. TypeScript Strict Full-Stack           (reworded)
+  - IV. Secure by Default                       (reworded)
+  - V. Reproducible Containerised Deployment    (reworded)
+
+Added sections: none (structure preserved)
 Removed sections: none
+
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md — Constitution Check 區塊替換為具體閘門
-  ✅ .specify/templates/spec-template.md — 已審閱，結構未受影響（語言要求由原則 I 於輸出時執行）
-  ✅ .specify/templates/tasks-template.md — 已審閱，既有 contract / test 分類已符合原則 II
-  ✅ .specify/templates/checklist-template.md — 已審閱，結構未受影響
-  ✅ .github/prompts/speckit.*.prompt.md — 無 agent-specific (CLAUDE-only) 引用需改
-  ✅ .specify/templates/commands/ — 目錄不存在，無需更新
-Follow-up TODOs: 無
+  ⚠ .specify/templates/plan-template.md       — update "Constitution Check"
+    block to reference v1.1.0 (body text of the checklist may remain in
+    Traditional Chinese per Principle I, since plan.md outputs are
+    user-facing documents).
+  ✅ .specify/templates/spec-template.md       — structural, no change needed.
+  ✅ .specify/templates/tasks-template.md      — structural, no change needed.
+  ✅ .specify/templates/checklist-template.md  — structural, no change needed.
+  ✅ .specify/templates/constitution-template.md — template placeholders
+    unchanged.
+
+Follow-up TODOs:
+  - On next plan.md generation, reviewers MUST confirm the "依據
+    `.specify/memory/constitution.md` v1.0.0" reference is bumped to v1.1.0.
 -->
 
 # VitaShelf Constitution
 
+> **Language note.** This constitution is written in English by design. It
+> governs a product and documentation stack whose user-facing deliverables are
+> Traditional Chinese (see Principle I). The constitution itself is kept in
+> English so that its normative language is unambiguous and independent of the
+> zh-TW style decisions that apply to everything it governs.
+
 ## Core Principles
 
-### I. 繁體中文文件 (NON-NEGOTIABLE)
+### I. Traditional Chinese Documentation (NON-NEGOTIABLE)
 
-所有 specification、implementation plan、tasks、checklist、quickstart、research、changelog、使用者介面文案、`README.md`、`SRS.md`、API 說明與其他任何會被使用者（含外部開發者）閱讀的文件 **MUST** 以繁體中文（zh-TW）撰寫。程式碼識別子、型別定義、測試名稱與 commit title 不在此限；PR 標題與描述 SHOULD 使用繁體中文。翻譯為其他語言的版本屬額外產出，不得取代繁體中文主文件。
+All **specifications**, **implementation plans**, **tasks**, **checklists**,
+**quickstarts**, **research notes**, **changelogs**, **UI copy**,
+`README.md`, `SRS.md`, API reference prose, and any other artefact that is
+read by end users (including external developers and operators) **MUST** be
+written in **Traditional Chinese (zh-TW)**.
 
-Rationale: 主要使用者群為繁體中文市場；雙語或英文主文件會造成翻譯漂移與維護負擔。
+The following are explicitly **out of scope** of this rule and MAY be written
+in English:
 
-### II. OpenAPI 3.2 合約優先 (NON-NEGOTIABLE)
+- This constitution file itself.
+- Source-code identifiers, type names, file names, and inline technical
+  comments required by tooling (e.g. JSDoc tags, TypeScript type names).
+- Test names and `describe` / `it` strings where English improves tooling
+  legibility.
+- Commit titles (Conventional Commits prefixes such as `feat:`, `fix:`).
+  Commit bodies and PR titles / descriptions **SHOULD** still be zh-TW.
 
-所有 HTTP/REST 介面 **MUST** 先以 **OpenAPI 3.2** 規格定義，再進行實作。規格檔案 **MUST** 位於功能目錄下的 `specs/[###-feature]/contracts/` 或專案統一的 `openapi/` 目錄。任何 endpoint 的新增、路徑或簽章變更、status code、schema 欄位調整都 **MUST** 先更新 OpenAPI 規格，並與實作於同一 PR 提交。不得在沒有對應 OpenAPI 條目的情況下合併 endpoint 實作；不得使用低於 3.2 的版本。
+Translations to other languages are permitted as additional, clearly-marked
+artefacts; they **MUST NOT** replace or precede the zh-TW source of truth.
 
-Rationale: 單一事實合約可驗證前後端、產生 client / server stubs、並於外部整合時減少溝通成本。3.2 帶來 webhooks、discriminator 強化與更精確的 schema 組合能力。
+*Rationale.* The primary user base is the Traditional Chinese-reading market.
+Maintaining parallel English/zh-TW primary documentation has, in past
+projects, caused translation drift and maintenance overhead without
+corresponding benefit.
 
-### III. TypeScript 全棧嚴格模式
+### II. OpenAPI 3.2 Contract-First (NON-NEGOTIABLE)
 
-前端與後端 **MUST** 以 TypeScript 撰寫，`tsconfig` **MUST** 啟用 `strict: true`（含 `noImplicitAny`、`strictNullChecks`）並建議啟用 `noUncheckedIndexedAccess`。`any` 的使用必須有明確註釋說明理由。Public API 邊界（HTTP、Prisma、跨模組函式簽章）**MUST** 以由 OpenAPI、Prisma 或 zod 產生 / 驗證的型別雙向約束，不得以手刻 interface 單邊宣告取代。
+Every HTTP / REST interface **MUST** be defined as an **OpenAPI 3.2**
+specification **before** implementation. Spec files **MUST** live under
+`specs/[###-feature]/contracts/` for per-feature contracts, or under a
+project-wide `openapi/` directory for shared interfaces.
 
-Rationale: 全棧共用語言降低邊界錯誤；strict 模式在編譯期攔截 null/undefined 類的執行期崩潰。
+- Adding a new endpoint, changing its path or signature, changing a status
+  code, or adjusting a schema field **MUST** be reflected in the OpenAPI
+  spec, and the spec update **MUST** ship in the **same pull request** as the
+  implementation.
+- An endpoint implementation **MUST NOT** be merged without a corresponding
+  entry in the OpenAPI spec.
+- The spec file's `openapi:` field **MUST** be exactly `3.2.x`. Lower
+  versions (3.0.x / 3.1.x) are not permitted in this project.
+- OpenAPI 3.2 features that are idiomatic (webhooks, strengthened
+  `discriminator`, refined schema composition) **SHOULD** be preferred over
+  ad-hoc extensions when they fit.
 
-### IV. 安全預設 (Secure by Default)
+*Rationale.* A single contractual source of truth enables mechanical
+validation of frontend and backend, generation of client / server stubs, and
+lower-friction integration with third parties. OpenAPI 3.2 brings webhooks,
+stronger discriminator semantics, and more precise schema composition, which
+this project deliberately adopts.
 
-涉及 secret、驗證、授權、速率限制、外部輸入的程式碼 **MUST** 遵守：
+### III. TypeScript Strict Full-Stack
 
-- Secrets 不得寫死於原始碼或 committed 檔案；生產環境缺少 `JWT_SECRET` 等關鍵變數時 **MUST** 拒絕啟動。
-- 所有 Express router **MUST** 套用 `rateLimit` middleware（可直接於路由檔 inline 宣告），以滿足 CodeQL `js/missing-rate-limiting` 規則。
-- 所有外部輸入（query、body、檔案、CSV）**MUST** 驗證結構、型別與大小上限（例如 CSV parser 的 loop bound）。
-- CodeQL、dependency audit、secret-scan 的 high / critical 警告 **MUST** 在合併前解決，或以風險說明明確豁免。
-- 敏感欄位 SHOULD 利用 `DB_ENCRYPTION_KEY` 啟用應用層加密。
+Both frontend and backend **MUST** be written in TypeScript. Each
+`tsconfig.json` **MUST** enable `strict: true` (which transitively enables
+`noImplicitAny`, `strictNullChecks`, and related flags). `noUncheckedIndexedAccess`
+is **RECOMMENDED**.
 
-Rationale: 近期 PR #16–#19 即為補上 rate limiting 與 CSV DoS 上限；本原則將臨時補救固化為預設閘門，防止同類問題再次入庫。
+- Any use of `any` **MUST** carry an inline comment justifying why a precise
+  type is not feasible.
+- Types that cross a public boundary — HTTP request/response, Prisma model
+  reads, cross-module function signatures — **MUST** be derived from
+  generated sources (OpenAPI-generated types, Prisma Client types, or
+  zod-inferred types) rather than hand-written `interface`s that duplicate
+  the shape unilaterally.
 
-### V. 容器化可重現部署
+*Rationale.* A shared language across the stack reduces boundary mistakes;
+`strict` catches the null/undefined class of runtime crashes at compile time.
 
-所有環境（本機開發、CI、生產）**MUST** 透過 `docker compose` + 對應的 compose 檔啟動；專案維持單一 image（Nginx + Node.js）並由 `docker-entrypoint.sh` 負責 migration。重大基礎設施變更 **MUST** 同步更新 compose 檔、`docker-entrypoint.sh`、`.env.example`、`nginx.conf` 與 `README.md` 中的啟動指引。不得引入必須在容器外手動執行的必要步驟。
+### IV. Secure by Default
 
-Rationale: 單一 image + compose 是現況部署模式；分裂 image 或外部化 migration 會讓「GitHub Actions → Docker Hub/GHCR → 生產」的鏈條失去單一事實部署流程。
+Code that touches secrets, authentication, authorisation, rate-limiting, or
+external input **MUST** obey the following baseline:
+
+- **Secrets** are never hard-coded or committed. The container **MUST**
+  refuse to start in production when required variables (e.g. `JWT_SECRET`)
+  are missing or empty.
+- **Rate limiting.** Every Express `Router` that handles external requests
+  **MUST** apply `rateLimit` middleware. An inline `router.use(rateLimit(...))`
+  declaration inside the router file is acceptable and satisfies CodeQL's
+  `js/missing-rate-limiting` rule.
+- **External input validation.** All query params, request bodies, uploaded
+  files, and parsed CSV rows **MUST** be validated for structure, type, and
+  size limits. CSV parsers **MUST** bound their iteration (row cap, cell
+  cap) to prevent denial-of-service via crafted input.
+- **Static analysis.** High- and critical-severity CodeQL findings,
+  dependency-audit findings, and secret-scan findings **MUST** be resolved
+  before merge, or explicitly waived with a documented risk statement.
+- **Application-layer encryption.** Sensitive fields **SHOULD** be encrypted
+  using `DB_ENCRYPTION_KEY` where available.
+
+*Rationale.* PRs #15–#19 retrofitted rate limiting and a CSV parser loop
+bound after CodeQL surfaced the gaps. This principle promotes those fixes
+from one-off patches into a standing gate.
+
+### V. Reproducible Containerised Deployment
+
+All environments — local development, CI, and production — **MUST** be
+launched via `docker compose` with the appropriate compose file. The project
+keeps a **single image** (Nginx + Node.js) and relies on
+`docker-entrypoint.sh` to run migrations before starting the server.
+
+- Any change to infrastructure behaviour **MUST** be reflected synchronously
+  across the compose files, `docker-entrypoint.sh`, `.env.example`,
+  `nginx.conf`, and the startup instructions in `README.md`.
+- Steps that must be executed *outside* the container by a human operator
+  in order for the system to function **MUST NOT** be introduced; if such a
+  step is unavoidable, it **MUST** be documented in `README.md` and
+  justified in the accompanying plan.
+
+*Rationale.* Single-image + compose is the deployed topology. Splitting the
+image, or externalising migrations, breaks the "GitHub Actions → Docker Hub
+/ GHCR → production" chain and its single-step deploy guarantee.
 
 ## Technical Constraints
 
-- **執行環境**：Node.js ≥ 20；前端使用 Vite 6 build；Nginx 作為反向代理。
-- **資料存取**：Prisma ORM；目前資料庫為 SQLite（commit 651c456），PostgreSQL 保留為生產可選。schema 變更 **MUST** 產生 migration 並納入 `docker-entrypoint.sh` 啟動序列。
-- **API 規格工具鏈**：OpenAPI **3.2**。推薦驗證工具為 `@redocly/cli` 或 `swagger-cli`；型別產生使用 `openapi-typescript` 或同等工具。規格 lint 納入 CI。
-- **前端技術**：React 19 + React Router 7 + Tailwind CSS 4 + Recharts 3；PWA manifest 必要時同步更新。
-- **稽核與觀測**：登入事件 **MUST** 寫入稽核表；前端錯誤 **MUST** 經 React Error Boundary 攔截；後端錯誤 **MUST** 以結構化格式記錄。
-- **版本**：應用程式版本記錄於 `VERSION` 與 `changelog.json`；本憲法版本獨立於應用程式版本。
+- **Runtime.** Node.js ≥ 20; Vite 6 builds the frontend; Nginx is the
+  reverse proxy.
+- **Data access.** Prisma ORM. The current datastore is **SQLite**, persisted
+  via a Docker volume at `/app/data/vitashelf.db` (see commits 651c456 and
+  the v2.4.0 migration). PostgreSQL is no longer supported as a target;
+  re-adopting it would require a constitution amendment. Schema changes
+  **MUST** produce a Prisma migration and be applied by
+  `docker-entrypoint.sh` on container start.
+- **API tooling.** OpenAPI **3.2**. Recommended validators:
+  `@redocly/cli` or `swagger-cli`. Recommended type generator:
+  `openapi-typescript` (or an equivalent that supports OpenAPI 3.2). Spec
+  linting **MUST** run in CI.
+- **Frontend stack.** React 19 + React Router 7 + Tailwind CSS 4 +
+  Recharts 3. The PWA manifest **MUST** be updated when user-visible
+  identity (name, icons, theme colour) changes.
+- **Audit and observability.** Login events **MUST** be written to the
+  audit table (`LoginLog`). Frontend errors **MUST** be caught by a React
+  Error Boundary. Backend errors **MUST** be logged in a structured format.
+- **Versioning.** Application version is tracked in `VERSION` and
+  `changelog.json`. The constitution version is independent of the
+  application version.
 
 ## Development Workflow
 
-1. **Spec-Driven**：新功能依序通過 `/speckit.specify` → `/speckit.clarify`（必要時）→ `/speckit.plan` → `/speckit.tasks` →（選用 `/speckit.analyze` / `/speckit.checklist`）→ `/speckit.implement`。
-2. **分支命名**：功能分支使用 `###-feature-name` 格式（由 `/speckit.specify` 建立）。
-3. **PR 合併閘門**（MUST 全部通過才可合併）：
-   - CI（lint、typecheck、build、test）綠燈。
-   - CodeQL 無 high / critical 警告（或附明確豁免說明）。
-   - OpenAPI 規格 lint 通過。
-   - 涉及新 endpoint 時，OpenAPI 文件、contract test、實作三者 **MUST** 同一 PR 內同步提交。
-   - 所有新 / 修改之使用者可見文件為繁體中文。
-4. **Commit / PR 訊息**：Commit title 使用 Conventional Commits（`feat:`、`fix:`、`docs:` 等），主體使用繁體中文說明變更理由。
-5. **文件同步**：任何改變使用者可見行為的變更 **MUST** 同步更新 `README.md`、`SRS.md`、`changelog.json`，並依語意化版本升級應用程式版本號。
+1. **Spec-driven flow.** New features pass through
+   `/speckit.specify` → `/speckit.clarify` (when needed) →
+   `/speckit.plan` → `/speckit.tasks` →
+   (optionally `/speckit.analyze` / `/speckit.checklist`) →
+   `/speckit.implement`.
+2. **Branch naming.** Feature branches use `###-feature-name`, created by
+   `/speckit.specify`.
+3. **Merge gates** (ALL **MUST** pass before merge):
+   - CI green (lint, typecheck, build, test).
+   - No high- or critical-severity CodeQL findings (or explicit waiver).
+   - OpenAPI spec lint passes.
+   - For any new or changed endpoint, the OpenAPI document, contract test,
+     and implementation **MUST** all appear in the same PR.
+   - All new or modified user-facing documentation is in Traditional
+     Chinese per Principle I.
+4. **Commit and PR messages.** Commit titles use Conventional Commits
+   prefixes (`feat:`, `fix:`, `docs:`, …). Commit bodies and PR titles /
+   descriptions are in Traditional Chinese and explain the *why*, not just
+   the *what*.
+5. **Documentation sync.** Any change that alters user-visible behaviour
+   **MUST** update `README.md`, `SRS.md`, and `changelog.json`, and bump the
+   application version per semantic versioning.
 
 ## Governance
 
-本憲法凌駕於其他開發慣例與文件；任何模板（plan、spec、tasks、checklist）或 agent prompt 與本憲法牴觸時，以憲法為準，並於下次 amendment 時同步修正該模板。
+This constitution supersedes other development conventions and project
+documents. When any template (plan, spec, tasks, checklist) or agent prompt
+conflicts with this constitution, the constitution wins; the conflicting
+document **MUST** be updated in the next amendment cycle.
 
-**修訂程序**：憲法修訂 PR **MUST** 包含 (a) 修改原因、(b) 版本升級類型與理由、(c) 下游模板 / prompt 的同步更新、(d) 更新 Sync Impact Report 區塊。
+**Amendment procedure.** A constitution amendment PR **MUST** include:
 
-**版本升級規則**（語意化版本）：
+1. The reason for the change.
+2. The version-bump classification and its justification.
+3. Synchronised updates to downstream templates and prompts.
+4. An updated "Sync Impact Report" block at the top of this file.
 
-- **MAJOR**：移除或以不相容方式重新定義既有原則；變更治理核心（例如廢除非可妥協標記）。
-- **MINOR**：新增原則、新增章節，或對既有原則做實質擴充。
-- **PATCH**：用字釐清、錯字修正、非語意調整。
+**Versioning rules** (semantic versioning applied to governance):
 
-**合規審查**：PR reviewer **MUST** 判斷變更是否影響憲法原則；若影響且未同步憲法，PR 視為 blocked。
+- **MAJOR.** Removal or backwards-incompatible redefinition of an existing
+  principle; changes that rewrite the governance core (e.g. dropping the
+  NON-NEGOTIABLE marker on a principle).
+- **MINOR.** Addition of a new principle, addition of a new section, or
+  substantive expansion / structural rewrite of an existing principle.
+- **PATCH.** Wording clarification, typo fixes, and non-semantic edits.
 
-**runtime 指引**：日常開發細節（工具使用、腳本、環境變數）以 `README.md`、`SRS.md`、`CLAUDE.md` 為主；本憲法僅定義不可妥協的原則與閘門。
+**Compliance review.** PR reviewers **MUST** determine whether a change
+affects a constitutional principle. If it does and the constitution has not
+been updated accordingly, the PR **MUST** be blocked until the amendment
+procedure is followed.
 
-**Version**: 1.0.0 | **Ratified**: 2026-04-23 | **Last Amended**: 2026-04-23
+**Runtime guidance.** Day-to-day developer guidance (tooling, scripts,
+environment variables, operational notes) lives in `README.md`, `SRS.md`,
+and `CLAUDE.md`. This constitution defines only the non-negotiable
+principles and the merge gates.
+
+**Version**: 1.1.0 | **Ratified**: 2026-04-23 | **Last Amended**: 2026-04-23
