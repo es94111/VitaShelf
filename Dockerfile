@@ -47,6 +47,9 @@ RUN rm -f /etc/nginx/http.d/default.conf
 # ── Uploads directory ──
 RUN mkdir -p /app/uploads
 
+# ── SQLite data directory ──
+RUN mkdir -p /app/data
+
 # ── Changelog (served as static file by nginx) ──
 COPY changelog.json /usr/share/nginx/html/changelog.json
 
@@ -57,6 +60,7 @@ RUN chmod +x /app/docker-entrypoint.sh
 ENV NODE_ENV=production
 ENV API_PORT=4001
 ENV CORS_ORIGIN=http://localhost
+ENV DATABASE_URL=file:/app/data/vitashelf.db
 
 EXPOSE 4000
 

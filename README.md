@@ -45,7 +45,7 @@
 |------|------|
 | 前端 | React 19 + TypeScript + Vite 6 + Tailwind CSS 4 |
 | 後端 | Node.js + Express 5 + TypeScript |
-| 資料庫 | PostgreSQL + Prisma ORM |
+| 資料庫 | SQLite（.db 檔案）+ Prisma ORM |
 | 容器化 | Docker（單一 Image：Nginx + Node.js） + Docker Compose |
 | CI/CD | GitHub Actions → Docker Hub / GHCR |
 
@@ -67,7 +67,7 @@ cd VitaShelf
 # 產生 .env 並自動填入隨機 JWT_SECRET（首次必做）
 npm run setup:env
 
-# 啟動開發環境（PostgreSQL）
+# 啟動開發環境（SQLite，資料檔存於 backend/data/vitashelf.db）
 docker compose up -d
 
 # 後端
@@ -100,11 +100,8 @@ cp .env.example .env
 
 | 變數 | 說明 | 範例 |
 |------|------|------|
-| `DATABASE_URL` | PostgreSQL 連線字串 | `postgresql://user:pass@db:5432/vitashelf` |
+| `DATABASE_URL` | SQLite 檔案路徑（Prisma 格式） | `file:/app/data/vitashelf.db` |
 | `JWT_SECRET` | JWT 簽章金鑰（建議 64 字元以上亂數）| `openssl rand -hex 32` |
-| `POSTGRES_USER` | PostgreSQL 使用者名稱 | `vitashelf` |
-| `POSTGRES_PASSWORD` | PostgreSQL 密碼 | `your_password` |
-| `POSTGRES_DB` | PostgreSQL 資料庫名稱 | `vitashelf` |
 
 > **注意**：生產環境未設定 `JWT_SECRET` 時，容器將拒絕啟動。
 

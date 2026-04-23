@@ -34,8 +34,8 @@ router.get('/', authenticate, readRateLimit, async (req: AuthRequest, res, next)
       ...(search
         ? {
             OR: [
-              { name:  { contains: search, mode: 'insensitive' as const } },
-              { brand: { contains: search, mode: 'insensitive' as const } },
+              { name:  { contains: search } },
+              { brand: { contains: search } },
             ],
           }
         : {}),

@@ -1,12 +1,12 @@
 #!/bin/sh
 set -e
 
-# Validate required environment variables
-if [ -z "$DATABASE_URL" ]; then
-  echo "[VitaShelf] ERROR: DATABASE_URL environment variable is not set."
-  echo "[VitaShelf] Please configure DATABASE_URL in your deployment environment."
-  exit 1
-fi
+# Default DATABASE_URL points at the SQLite volume at /app/data
+: "${DATABASE_URL:=file:/app/data/vitashelf.db}"
+export DATABASE_URL
+
+# Ensure data directory exists (mounted volume may be empty on first run)
+mkdir -p /app/data
 
 # Auto-generate JWT_SECRET if not set
 if [ -z "$JWT_SECRET" ]; then
@@ -15,6 +15,7 @@ if [ -z "$JWT_SECRET" ]; then
   echo "[VitaShelf] WARNING: All sessions will be invalidated on container restart. Set JWT_SECRET to a fixed value to avoid this."
 fi
 
+echo "[VitaShelf] Using DATABASE_URL=$DATABASE_URL"
 echo "[VitaShelf] Running database migrations..."
 cd /app && ./node_modules/.bin/prisma migrate deploy
 

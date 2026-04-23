@@ -29,33 +29,14 @@ services:
       - ./backend:/app
       - /app/node_modules
       - uploads_data:/app/uploads
+      - sqlite_data:/app/data
     environment:
-      DATABASE_URL: postgresql://vitashelf:vitashelf@db:5432/vitashelf
+      DATABASE_URL: file:/app/data/vitashelf.db
       JWT_SECRET: dev-secret-change-in-production
       NODE_ENV: development
       PORT: "4000"
       CORS_ORIGIN: http://localhost:3000
-    depends_on:
-      db:
-        condition: service_healthy
-
-  # ── Database ──────────────────────────────────────────────────────────────
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: vitashelf
-      POSTGRES_PASSWORD: vitashelf
-      POSTGRES_DB: vitashelf
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vitashelf"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
-  pgdata:
+  sqlite_data:
   uploads_data:

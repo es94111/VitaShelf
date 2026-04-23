@@ -4,39 +4,31 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // ─── User ──────────────────────────────────────────────────────────────────────
 
 model User {
-  id           String       @id @default(cuid())
-  email        String       @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   password     String
   displayName  String
-  role         Role         @default(USER)
-  theme        String       @default("light")
-  authProvider AuthProvider @default(LOCAL)
-  googleId     String?      @unique
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  role         String   @default("USER")
+  theme        String   @default("light")
+  authProvider String   @default("LOCAL")
+  googleId     String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   products  Product[]
   tags      Tag[]
   loginLogs LoginLog[]
 }
 
-enum Role {
-  ADMIN
-  USER
-  VIEWER
-}
-
-enum AuthProvider {
-  LOCAL
-  GOOGLE
-}
+// Role:         "ADMIN" | "USER" | "VIEWER"
+// AuthProvider: "LOCAL" | "GOOGLE"
 
 // ─── AdminSettings ──────────────────────────────────────────────────────────────
 
@@ -87,30 +79,27 @@ model ProductTag {
 // ─── Product ───────────────────────────────────────────────────────────────────
 
 model Product {
-  id          String          @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   brand       String
-  category    ProductCategory
+  category    String
   subCategory String?
   spec        String?
   barcode     String?
   imageUrl    String?
   notes       String?
-  isDeleted   Boolean         @default(false)
+  isDeleted   Boolean  @default(false)
   userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   tags      ProductTag[]
   purchases PurchaseRecord[]
   stockLogs StockLog[]
 }
 
-enum ProductCategory {
-  SKINCARE
-  SUPPLEMENT
-}
+// ProductCategory: "SKINCARE" | "SUPPLEMENT"
 
 // ─── PurchaseRecord ────────────────────────────────────────────────────────────
 
@@ -120,8 +109,8 @@ model PurchaseRecord {
   product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   purchaseDate    DateTime
   quantity        Int
-  unitPrice       Decimal?  @db.Decimal(10, 2)
-  totalPrice      Decimal?  @db.Decimal(10, 2)
+  unitPrice       Float?
+  totalPrice      Float?
   channel         String?
   receiptUrl      String?
   manufactureDate DateTime?
@@ -143,16 +132,11 @@ model StockLog {
   product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   purchaseRecordId String?         @unique
   purchaseRecord   PurchaseRecord? @relation(fields: [purchaseRecordId], references: [id], onDelete: SetNull)
-  type             StockLogType
+  type             String
   quantity         Int
   reason           String?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 }
 
-enum StockLogType {
-  IN
-  OUT_USE
-  OUT_DISCARD
-  ADJUST
-}
+// StockLogType: "IN" | "OUT_USE" | "OUT_DISCARD" | "ADJUST"
