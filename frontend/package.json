@@ -7,7 +7,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "typecheck": "tsc --noEmit",
+    "api:types": "node scripts/generate-api-types.mjs ../specs/001-auth-module/contracts/auth.openapi.yaml src/types/auth-api.d.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.8",
@@ -31,6 +33,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "openapi-typescript": "^7.13.0",
     "prettier": "^3.4.2",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",

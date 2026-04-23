@@ -1,0 +1,506 @@
+openapi: 3.2.0
+info:
+  title: VitaShelf 認證模組 API
+  description: |
+    VitaShelf 認證模組（FR-001 ~ FR-028f）的對外 HTTP / REST 合約。
+
+    **安全機制**：
+    - 登入憑證以 `Set-Cookie: token=<JWT>; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=604800` 下發；前端 **不可** 讀取。
+    - 所有狀態改變端點（非 GET/HEAD/OPTIONS）受 CSRF 防護：需提供 `Origin` header 且值屬於白網域（`SameSite=Strict` 已提供主要防護，`Origin` 檢查為第二層）。
+    - 所有 endpoint 接受的密碼規則：長度 ≥ 8 + 不得命中內建 top-10,000 常見弱密碼清單。
+
+    **憲法對齊**：
+    - Principle I — 本檔的 `description` 欄位以繁體中文撰寫；OpenAPI 結構欄位（operationId、schema 名）保持英文。
+    - Principle II — 本檔 `openapi:` 欄位為 **3.2.0**。
+    - Principle IV — 所有端點的錯誤情境皆明確定義；`429` 含 `Retry-After` header。
+  version: 1.0.0
+  contact:
+    name: VitaShelf Team
+  license:
+    name: Proprietary
+
+servers:
+  - url: /api
+    description: VitaShelf API 基礎路徑（由 Nginx 反向代理至 Express port 4001）
+
+tags:
+  - name: auth
+    description: 註冊、登入、登出
+  - name: users
+    description: 當前使用者的個人資料與密碼變更
+
+security: []
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      operationId: register
+      summary: 註冊新帳號
+      description: |
+        以 email + 密碼 + displayName 建立新帳號（`role=USER`、`authProvider=LOCAL`、`theme=light`、`isActive=true`）。
+        需 `AdminSettings.registrationOpen=true`，否則回 403。
+        密碼需滿足：長度 ≥ 8 + 不命中 top-10,000 弱密碼清單。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: 註冊成功；**不** 自動登入，使用者需另外呼叫 `/auth/login`。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: 輸入驗證錯誤（email 格式、密碼長度/弱密碼、displayName 空）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: 公開註冊已關閉（`AdminSettings.registrationOpen=false`）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              example:
+                message: 目前不開放註冊
+        '409':
+          description: Email 已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              example:
+                message: 帳號已存在
+
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      summary: 以 email + 密碼登入
+      description: |
+        驗證成功則下發 httpOnly cookie（`token=<JWT>; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`）。
+        回應本體僅含 `user`，**不** 含 token 明文。
+
+        **限流規則（FR-021）**：同 IP 每分鐘最多 5 次失敗；第 6 次觸發 429 + `Retry-After` + `retryAfterSeconds`。
+        成功登入不計入失敗次數（`skipSuccessfulRequests`）。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登入成功；cookie 已透過 `Set-Cookie` 下發。
+          headers:
+            Set-Cookie:
+              description: 下發 JWT cookie
+              schema:
+                type: string
+              example: 'token=eyJhbGciOi...; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=604800'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccessResponse'
+        '400':
+          description: 輸入驗證錯誤
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: 帳號不存在或密碼錯誤（統一訊息，避免 enumeration）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              example:
+                message: 帳號或密碼錯誤
+        '403':
+          description: 帳號已被管理員停用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              example:
+                message: 帳號已被停用
+        '429':
+          description: 限流觸發；`Retry-After` header + `retryAfterSeconds` body
+          headers:
+            Retry-After:
+              description: 距限流窗口結束的整數秒數（RFC 9110）
+              schema:
+                type: integer
+                minimum: 1
+              example: 45
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitedResponse'
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      summary: 登出當前裝置
+      description: |
+        後端以 `Set-Cookie: token=; Max-Age=0` 清除 auth cookie。
+        不維護 token 黑名單；其他裝置的既有 cookie 仍有效至其自然到期（或密碼變更觸發全裝置失效）。
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: 登出成功；cookie 已清除。
+          headers:
+            Set-Cookie:
+              description: 清除 auth cookie
+              schema:
+                type: string
+              example: 'token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericSuccess'
+              example:
+                message: 已登出
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfForbidden'
+
+  /users/me:
+    get:
+      tags: [users]
+      operationId: getCurrentUser
+      summary: 取得當前使用者資訊
+      description: |
+        Single source of truth；前端可據此判斷是否已登入（200 = 已登入、401 = 未登入）。
+        回傳欄位不含 `password`、`passwordChangedAt`、`googleId`。
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: 目前使用者的個人資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [users]
+      operationId: updateCurrentUser
+      summary: 更新顯示名稱或主題
+      description: |
+        僅允許更新 `displayName` 與 `theme`；其他欄位（email、role、password、isActive）**不** 被接受。
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: 更新後的使用者資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: 輸入驗證錯誤（displayName 空、theme 非法值）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/CsrfForbidden'
+
+  /users/me/change-password:
+    post:
+      tags: [users]
+      operationId: changePassword
+      summary: 變更密碼（需提供舊密碼）
+      description: |
+        於同一資料庫 transaction 更新 `password` 與 `passwordChangedAt`；
+        回應時以 `Set-Cookie: token=; Max-Age=0` **清除當前 cookie**——
+        使用者（及其他裝置）**必須** 重新登入（FR-020b / FR-020c）。
+        新密碼需滿足與註冊相同的密碼規則。
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: 密碼變更成功；cookie 已清除，需重新登入。
+          headers:
+            Set-Cookie:
+              description: 清除 auth cookie（強制重新登入）
+              schema:
+                type: string
+              example: 'token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericSuccess'
+              example:
+                message: 密碼已更新，請重新登入
+        '400':
+          description: 新密碼驗證失敗（長度或弱密碼）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: 未登入，或舊密碼錯誤（統一為 401 避免密碼 oracle）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              example:
+                message: 帳號或密碼錯誤
+        '403':
+          $ref: '#/components/responses/CsrfForbidden'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: |
+        JWT (HS256) 於 httpOnly + Secure + SameSite=Strict cookie。
+        Payload: `{ userId, email, role, iat, exp }`；有效期 7 天。
+        JWT 驗證時比對 `iat >= user.passwordChangedAt`（允許 ±60 秒時鐘偏差）。
+
+  schemas:
+    User:
+      type: object
+      required: [id, email, displayName, role, authProvider, theme, isActive, createdAt, updatedAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: 使用者唯一識別（cuid）
+          example: clxabc123def456
+        email:
+          type: string
+          format: email
+          description: 登入 email（已正規化為小寫）
+          example: alice@example.com
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          example: Alice Chen
+        role:
+          type: string
+          enum: [ADMIN, USER, VIEWER]
+          default: USER
+        authProvider:
+          type: string
+          enum: [LOCAL, GOOGLE]
+          default: LOCAL
+        theme:
+          type: string
+          enum: [light, dark]
+          default: light
+        isActive:
+          type: boolean
+          description: 帳號啟用旗標；`false` 代表已被管理員停用
+          default: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RegisterRequest:
+      type: object
+      required: [email, password, displayName]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: 將於伺服器端經 trim + lowercase 正規化
+          example: Alice@Example.com
+        password:
+          type: string
+          minLength: 8
+          description: |
+            長度 ≥ 8（UTF-8 code points）；
+            **不** 能命中內建 top-10,000 常見弱密碼清單。
+            伺服器以 SHA-256 pre-hash + bcrypt(cost=12) 儲存。
+          writeOnly: true
+          example: Str0ngPassword!
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: trim 後非空
+          example: Alice
+
+    RegisterResponse:
+      type: object
+      required: [user]
+      additionalProperties: false
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          example: alice@example.com
+        password:
+          type: string
+          minLength: 1
+          description: 登入階段不做長度/弱密碼檢查（避免正規化差異導致合法使用者被擋）
+          writeOnly: true
+
+    LoginSuccessResponse:
+      type: object
+      required: [user]
+      additionalProperties: false
+      description: |
+        **注意**：無 `token` 欄位。JWT 已透過 `Set-Cookie` header 下發，
+        前端 JavaScript 無法也無須讀取 token。
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+
+    UpdateProfileRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        theme:
+          type: string
+          enum: [light, dark]
+
+    ChangePasswordRequest:
+      type: object
+      required: [oldPassword, newPassword]
+      additionalProperties: false
+      properties:
+        oldPassword:
+          type: string
+          minLength: 1
+          writeOnly: true
+        newPassword:
+          type: string
+          minLength: 8
+          description: 長度 ≥ 8 + 不命中弱密碼清單
+          writeOnly: true
+
+    GenericSuccess:
+      type: object
+      required: [message]
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: 操作成功
+
+    GenericError:
+      type: object
+      required: [message]
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          description: 使用者可見的繁體中文錯誤訊息
+
+    ValidationError:
+      type: object
+      required: [message, errors]
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: 輸入驗證失敗
+        errors:
+          type: array
+          items:
+            type: object
+            required: [path, message]
+            additionalProperties: false
+            properties:
+              path:
+                type: string
+                description: 欄位名（JSON path）
+                example: email
+              message:
+                type: string
+                description: 該欄位的繁中錯誤訊息
+                example: email 格式錯誤
+
+    RateLimitedResponse:
+      type: object
+      required: [message, retryAfterSeconds]
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: 登入嘗試次數過多，請稍後再試
+        retryAfterSeconds:
+          type: integer
+          minimum: 1
+          description: |
+            距限流窗口結束的整數秒數。
+            與 `Retry-After` header 的值完全一致。
+            前端可據此顯示倒數。
+          example: 45
+
+  responses:
+    Unauthorized:
+      description: 未登入、cookie 過期、或因密碼變更而失效
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericError'
+          examples:
+            not_authenticated:
+              value:
+                message: 需要登入
+            expired:
+              value:
+                message: 憑證已失效，請重新登入
+
+    CsrfForbidden:
+      description: |
+        CSRF 防護攔截（`Origin` header 缺失或不在白名單）。
+        `SameSite=Strict` cookie 於一般跨站情境已阻擋請求；此 403 僅於非標準 UA 觸發。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericError'
+          example:
+            message: 請求來源不被允許

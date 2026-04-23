@@ -31,7 +31,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+依據 `.specify/memory/constitution.md` v1.1.0 衍生的閘門：
+
+- [ ] **I. 繁體中文文件**：本 plan、spec、tasks、quickstart、research 等使用者可見輸出皆以繁體中文（zh-TW）撰寫（`.specify/memory/constitution.md` 本身除外）。
+- [ ] **II. OpenAPI 3.2 合約優先**：若涉及 HTTP/REST 變更，`contracts/` 下規劃了 OpenAPI **3.2** 規格檔（`openapi: 3.2.x`）；endpoint 實作不會先於規格合併。
+- [ ] **III. TypeScript 嚴格模式**：新增 / 修改的模組保持 `strict: true`；未引入 `any` 或停用 strict 旗標。
+- [ ] **IV. 安全預設**：新 router 已規劃 `rateLimit`；外部輸入已規劃驗證與上限；secrets 以環境變數注入；CodeQL 高風險警告已處理。
+- [ ] **V. 容器化部署**：執行流程可於 `docker compose` 內重現；schema 變更已納入 migration 與 `docker-entrypoint.sh`。
+
+若任一項無法通過，於下方 Complexity Tracking 填寫理由；若理由與原則核心牴觸，**MUST** 先走憲法修訂流程再繼續。
 
 ## Project Structure
 

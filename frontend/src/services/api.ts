@@ -13,45 +13,80 @@ import type {
 const api = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,  // 對應 T025 / R-008：讓瀏覽器自動夾帶 auth cookie
 })
 
-// Attach JWT token to every request
+// 向下相容期間：若 localStorage 仍有舊 token（pre-cookie 遷移），附上 Bearer header；
+// backend/src/middleware/auth.ts 於 cookie 缺失時 fallback 讀取 Authorization header。
+// 待所有舊 token 過期後可移除此 interceptor。
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
-// Redirect to /login on 401
+// 401 處理：清除本地殘留憑證 + 導回登入（排除 /users/me 自身以避免登入頁載入時無限迴圈）
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const status = err.response?.status
+    const requestUrl: string = err.config?.url ?? ''
+    if (status === 401 && !requestUrl.endsWith('/users/me')) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      localStorage.removeItem('user')
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(err)
   },
 )
 
+/** 從 429 錯誤中抽出 retryAfterSeconds；優先 body，其次 Retry-After header（FR-023a/b）。 */
+export function extractRetryAfter(err: unknown): number | null {
+  if (typeof err !== 'object' || err === null) return null
+  const e = err as { response?: { status?: number; data?: { retryAfterSeconds?: unknown }; headers?: Record<string, string | string[] | undefined> } }
+  if (e.response?.status !== 429) return null
+  const bodyVal = e.response.data?.retryAfterSeconds
+  if (typeof bodyVal === 'number' && bodyVal > 0) return bodyVal
+  const headerVal = e.response.headers?.['retry-after']
+  const h = Array.isArray(headerVal) ? headerVal[0] : headerVal
+  if (typeof h === 'string') {
+    const n = parseInt(h, 10)
+    if (!Number.isNaN(n) && n > 0) return n
+  }
+  return null
+}
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
+
+/** FR-008：登入成功後 token 由 Set-Cookie 下發，回應 body 僅含 user。
+ *  舊 Google SSO 路徑仍回 `{ token, user }` — 保留欄位以免破壞既有流程。 */
+export interface AuthUserDTO {
+  id: string
+  email: string
+  displayName: string
+  role: string
+  theme: string
+  authProvider?: string
+  isActive?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
 
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post<{
-      token: string
-      user: { id: string; email: string; displayName: string; role: string; theme: string }
-    }>('/auth/login', { email, password }),
+    api.post<{ user: AuthUserDTO }>('/auth/login', { email, password }),
   register: (email: string, password: string, displayName: string) =>
-    api.post('/auth/register', { email, password, displayName }),
-  logout: () => api.post('/auth/logout'),
-  me: () => api.get('/users/me'),
+    api.post<{ user: AuthUserDTO }>('/auth/register', { email, password, displayName }),
+  logout: () => api.post<{ message: string }>('/auth/logout'),
+  me: () => api.get<AuthUserDTO>('/users/me'),
   registrationStatus: () =>
     api.get<{ open: boolean; notice: string; hasUsers: boolean }>('/auth/registration-status'),
   googleLogin: (idToken: string) =>
     api.post<{
-      token: string
-      user: { id: string; email: string; displayName: string; role: string; theme: string }
+      token?: string
+      user: AuthUserDTO
     }>('/auth/google', { idToken }),
   googleEnabled: () =>
     api.get<{ enabled: boolean; clientId: string | null }>('/auth/google/enabled'),

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Leaf, AlertCircle } from 'lucide-react'
-import { authApi } from '@/services/api'
+import { auth, extractAuthErrorMessage } from '@/services/auth'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function Register() {
@@ -18,12 +18,12 @@ export default function Register() {
 
   // Check registration status
   useEffect(() => {
-    authApi.registrationStatus().then(({ data }) => {
+    auth.registrationStatus().then((data) => {
       if (!data.open && data.hasUsers) {
         setRegistrationClosed(true)
         setClosedNotice(data.notice || '目前不開放註冊')
       }
-    }).catch(() => {})
+    }).catch(() => { /* ignore */ })
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,18 +37,12 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await authApi.register(email, password, displayName)
+      await auth.register({ email, password, displayName })
+      // 對應 spec：註冊成功後不自動登入，導回 /login
       navigate('/login', { replace: true, state: { registered: true } })
     } catch (err: unknown) {
-      if (
-        typeof err === 'object' && err !== null && 'response' in err &&
-        typeof (err as Record<string, unknown>).response === 'object'
-      ) {
-        const response = (err as { response: { data?: { message?: string } } }).response
-        setError(response.data?.message ?? '註冊失敗，請稍後再試。')
-      } else {
-        setError('註冊失敗，請稍後再試。')
-      }
+      // extractAuthErrorMessage 優先取 ValidationError.errors[0].message（含「此密碼過於常見」）
+      setError(extractAuthErrorMessage(err, '註冊失敗，請稍後再試。'))
     } finally {
       setLoading(false)
     }
