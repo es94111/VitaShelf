@@ -28,7 +28,10 @@
       "WebFetch(domain:mis.twse.com.tw)",
       "WebFetch(domain:oauth2.googleapis.com)",
       "WebFetch(domain:accounts.google.com)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(specify init *)",
+      "Bash(uvx *)",
+      "Bash(yes y *)"
     ]
   }
 }
