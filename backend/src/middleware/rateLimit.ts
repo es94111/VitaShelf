@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit'
+import rateLimit, { MemoryStore } from 'express-rate-limit'
 import type { RequestHandler, Request } from 'express'
 
 /**
@@ -50,6 +50,32 @@ export const authRateLimit = rateLimit({
   legacyHeaders: false,
   keyGenerator: keyByUserOrIp,
   handler: tooManyRequests,
+})
+
+/** Login endpoint（對應 FR-021/022/023 + FR-023a/b/c）：
+ *  每 IP / 分鐘最多 5 次失敗；回應夾帶 Retry-After header + body 的
+ *  retryAfterSeconds；成功登入不計入失敗次數。 */
+export const loginRateLimitStore = new MemoryStore()
+export const loginRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) => `login-ip:${req.ip ?? 'unknown'}`,  // 以 IP 為維度（FR-023）
+  store: loginRateLimitStore,
+  handler: (req, res) => {
+    const rl = (req as Request & { rateLimit?: { resetTime?: Date } }).rateLimit
+    const resetTime = rl?.resetTime
+    const retryAfterSeconds = resetTime
+      ? Math.max(1, Math.ceil((resetTime.getTime() - Date.now()) / 1000))
+      : 60
+    res.setHeader('Retry-After', String(retryAfterSeconds))
+    res.status(429).json({
+      message: '登入嘗試次數過多，請稍後再試',
+      retryAfterSeconds,
+    })
+  },
 })
 
 /** Heavy endpoints: CSV import / export — small batch to protect DB / CPU. */

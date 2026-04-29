@@ -1,0 +1,81 @@
+# CI workflow — 對應 tasks.md T008 與憲法 §Development Workflow 的合併閘門：
+#   - OpenAPI 3.2 規格 lint 通過
+#   - backend / frontend TypeScript strict 無錯誤
+#   - backend 測試（unit + integration）綠燈
+#
+# CodeQL 分析由獨立 workflow（codeql.yml）負責。
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  openapi-lint:
+    name: OpenAPI 3.2 lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint:openapi
+
+  backend:
+    name: Backend (typecheck + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: file:./data/test.db
+      JWT_SECRET: ci-test-secret-must-be-long-enough-for-hs256-aaaaaaa
+      CORS_ORIGIN: http://localhost:3000
+      NODE_ENV: test
+      LOG_LEVEL: error
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: mkdir -p data
+      - name: Apply Prisma migrations
+        run: npx prisma migrate deploy
+      - name: Generate Prisma Client
+        run: npx prisma generate
+      - name: Build weak-passwords list
+        run: npm run build:weak-passwords
+      - name: TypeScript typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm run test:unit
+      - name: Integration tests
+        run: npm run test:integration
+
+  frontend:
+    name: Frontend (typecheck)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Generate auth API types from OpenAPI 3.2
+        run: npm run api:types
+      - name: TypeScript typecheck
+        run: npm run typecheck

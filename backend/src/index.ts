@@ -4,63 +4,18 @@ import { resolveJwtSecret } from './utils/jwtSecret'
 // Validate / auto-generate JWT_SECRET before anything else loads
 resolveJwtSecret()
 
-import express from 'express'
-import cors from 'cors'
-import { errorHandler } from './middleware/errorHandler'
-import authRoutes     from './routes/auth'
-import googleAuthRoutes from './routes/googleAuth'
-import adminRoutes    from './routes/admin'
-import productRoutes  from './routes/products'
-import purchaseRoutes from './routes/purchases'
-import stockRoutes    from './routes/stock'
-import alertRoutes    from './routes/alerts'
-import dashboardRoutes from './routes/dashboard'
-import tagRoutes      from './routes/tags'
-import exportRoutes   from './routes/export'
-import importRoutes   from './routes/import'
-import changelogRoutes from './routes/changelog'
-import logger         from './middleware/logger'
+import { createApp } from './app'
+import prisma from './utils/prisma'
+import { logger } from './utils/logger'
+import { startLoginLogCleanupScheduler } from './schedulers/loginLogCleanup'
 
-const app = express()
+const app = createApp()
 const PORT = process.env.API_PORT ?? process.env.PORT ?? 4000
-
-// ─── Middleware ───────────────────────────────────────────────────────────────
-app.use(cors({
-  origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
-  credentials: true,
-}))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(logger)
-
-// ─── Static uploads ───────────────────────────────────────────────────────────
-app.use('/uploads', express.static(process.env.UPLOAD_DIR ?? './uploads'))
-
-// ─── Routes ───────────────────────────────────────────────────────────────────
-app.use('/api/auth',      authRoutes)
-app.use('/api/auth',      googleAuthRoutes)
-app.use('/api/users',     authRoutes)
-app.use('/api/admin',     adminRoutes)
-app.use('/api/products',  productRoutes)
-app.use('/api/purchases', purchaseRoutes)
-app.use('/api/stock',     stockRoutes)
-app.use('/api/alerts',    alertRoutes)
-app.use('/api/dashboard', dashboardRoutes)
-app.use('/api/tags',      tagRoutes)
-app.use('/api/export',    exportRoutes)
-app.use('/api/import',    importRoutes)
-app.use('/api/changelog', changelogRoutes)
-
-// ─── Health Check ─────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', version: '2.0.0', timestamp: new Date().toISOString() })
-})
-
-// ─── Error Handler ────────────────────────────────────────────────────────────
-app.use(errorHandler)
 
 app.listen(PORT, () => {
   console.log(`VitaShelf API running on port ${PORT}`)
+  // 註冊 LoginLog 清除排程（FR-028a / R-003）
+  startLoginLogCleanupScheduler(prisma, logger)
 })
 
 export default app

@@ -4,9 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "npm run build:weak-passwords && tsc",
+    "build:weak-passwords": "tsx scripts/build-weak-passwords.ts",
     "start": "node dist/index.js",
     "lint": "eslint . --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test --test-concurrency=1 tests/unit/*.test.ts tests/integration/*.test.ts",
+    "test:unit": "node --import tsx --test tests/unit/*.test.ts",
+    "test:integration": "node --import tsx --test --test-concurrency=1 tests/integration/*.test.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
@@ -15,6 +20,7 @@
   "dependencies": {
     "@prisma/client": "^6.19.2",
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^16.6.1",
@@ -29,11 +35,19 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^2.1.0",
     "@types/node": "^22.19.15",
+    "@types/node-cron": "^3.0.11",
+    "@types/supertest": "^7.2.0",
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1",
+    "js-yaml": "^4.1.1",
+    "supertest": "^7.2.2",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3"
   }

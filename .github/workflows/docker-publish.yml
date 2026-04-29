@@ -20,8 +20,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2026-04-23：新版 node:20-alpine 於 QEMU 模擬 linux/arm64 時會發生
+      # SIGILL（Illegal instruction）、`npm ci` exit code 132。
+      # 固定 binfmt image 至已知可用版本以迴避。
+      # Issue: https://github.com/docker/setup-qemu-action/issues/198
       - name: Set up QEMU (for multi-platform builds)
         uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt:qemu-v8.1.5
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

@@ -1,5 +1,4 @@
 import https from 'node:https'
-import http from 'node:http'
 
 const PRIVATE_RANGES = [
   /^127\./,
@@ -7,6 +6,10 @@ const PRIVATE_RANGES = [
   /^172\.(1[6-9]|2\d|3[01])\./,
   /^192\.168\./,
   /^::1$/,
+  /^::ffff:127\./i,       // IPv4-mapped IPv6 loopback（Node 預設）
+  /^::ffff:10\./i,
+  /^::ffff:192\.168\./i,
+  /^::ffff:172\.(1[6-9]|2\d|3[01])\./i,
   /^0\.0\.0\.0$/,
   /^fd[0-9a-f]{2}:/i,
   /^fe80:/i,
@@ -36,10 +39,9 @@ export async function lookupCountry(ip: string): Promise<string> {
 
   return new Promise((resolve) => {
     const timeout = setTimeout(() => resolve(''), 3000)
-    const client = ip.includes(':') ? http : https
     const url = `https://ipinfo.io/${encodeURIComponent(ip)}/json`
 
-    client
+    https
       .get(url, { timeout: 3000 }, (res) => {
         let data = ''
         res.on('data', (chunk: Buffer) => { data += chunk.toString() })

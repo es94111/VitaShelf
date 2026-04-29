@@ -8,6 +8,18 @@ import { computeStockFromLogs, getAlertLevel, getNearestExpiry } from '../utils/
 
 const router = Router()
 
+// 驗證從前端傳來的既有伺服器圖片路徑（避免任意值寫入 imageUrl）。
+// 僅允許 `/uploads/<safe-filename>.<ext>` — 檔名僅允許英數、底線、連字號與點。
+const EXISTING_IMAGE_URL_RE = /^\/uploads\/[A-Za-z0-9_.-]+\.(?:jpg|jpeg|png|webp|avif)$/i
+
+function pickExistingImageUrl(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  if (!EXISTING_IMAGE_URL_RE.test(value)) return undefined
+  // 排除 path traversal
+  if (value.includes('..')) return undefined
+  return value
+}
+
 // Router-wide rate limit (inline for CodeQL recognition).
 router.use(rateLimit({ windowMs: 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }))
 
@@ -129,7 +141,9 @@ router.post('/', authenticate, writeRateLimit, async (req: AuthRequest, res, nex
     await handleUpload(req, res)
 
     const { name, brand, category, subCategory, spec, barcode, notes, tagIds } = req.body
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined
+    const imageUrl = req.file
+      ? `/uploads/${req.file.filename}`
+      : pickExistingImageUrl(req.body.imageUrl)
 
     if (!name || !brand || !category) {
       res.status(400).json({ message: '名稱、品牌、分類為必填欄位' })
@@ -178,7 +192,9 @@ router.put('/:id', authenticate, writeRateLimit, async (req: AuthRequest, res, n
     await handleUpload(req, res)
 
     const { name, brand, category, subCategory, spec, barcode, notes, tagIds } = req.body
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined
+    const imageUrl = req.file
+      ? `/uploads/${req.file.filename}`
+      : pickExistingImageUrl(req.body.imageUrl)
 
     // Verify ownership
     const existing = await prisma.product.findFirst({
