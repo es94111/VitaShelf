@@ -1,5 +1,9 @@
 name: Build & Push Docker Image
 
+# 多平台 Docker 建置：amd64 與 arm64 各自跑在原生 runner（不再走 QEMU），
+# 第三個 job 用 imagetools 把兩個 digest 合成 multi-arch manifest。
+# 參考：https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
+
 on:
   push:
     branches: [main]
@@ -10,36 +14,45 @@ env:
   IMAGE_NAME: vitashelf
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  # ── 建置：amd64 與 arm64 並行，各自 push 「by digest」到兩個 registry ──
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner:   ubuntu-latest
+          - platform: linux/arm64
+            runner:   ubuntu-24.04-arm   # 原生 ARM runner（公開 repo 免費）
+
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       packages: write
 
     steps:
+      - name: Prepare platform pair name
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2026-04-23：新版 node:20-alpine 於 QEMU 模擬 linux/arm64 時會發生
-      # SIGILL（Illegal instruction）、`npm ci` exit code 132。
-      # 固定 binfmt image 至已知可用版本以迴避。
-      # Issue: https://github.com/docker/setup-qemu-action/issues/198
-      - name: Set up QEMU (for multi-platform builds)
-        uses: docker/setup-qemu-action@v3
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          image: tonistiigi/binfmt:qemu-v8.1.5
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # ── Docker Hub ──
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # ── GitHub Container Registry (備用) ──
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -47,7 +60,71 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── 產生標籤 ──
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 同時 push 到 Docker Hub 與 GHCR（comma-separated name）；
+      # push-by-digest 模式不會打 tag、只把 manifest digest 推上去，
+      # 留待 merge job 統一建立 multi-arch tag。
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: |
+            type=image,"name=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }},ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}",push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ env.PLATFORM_PAIR }}
+          cache-to:   type=gha,mode=max,scope=${{ env.PLATFORM_PAIR }}
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # ── 合併：把兩個 arch 的 digest 合成 multi-arch manifest 並打上 tag ──
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -61,15 +138,24 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
 
-      # ── 建置 & 推送（支援 AMD64 + ARM64） ──
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      # 對每個 registry 各執行一次 imagetools create，組合 amd64 + arm64 的 digest
+      - name: Create manifest lists and push
+        working-directory: /tmp/digests
+        env:
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          GHCR_REPO:      ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+        run: |
+          # 從 metadata 取 -t 參數列表（每個 registry 都有對應的 tag）
+          dockerhub_tags=$(jq -cr --arg p "$DOCKERHUB_REPO" '.tags | map(select(startswith($p))) | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          ghcr_tags=$(jq -cr     --arg p "$GHCR_REPO"      '.tags | map(select(startswith($p))) | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+
+          docker buildx imagetools create $dockerhub_tags \
+            $(printf "$DOCKERHUB_REPO@sha256:%s " *)
+          docker buildx imagetools create $ghcr_tags \
+            $(printf "$GHCR_REPO@sha256:%s " *)
+
+      - name: Inspect image
+        env:
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+        run: |
+          docker buildx imagetools inspect "${DOCKERHUB_REPO}:${{ steps.meta.outputs.version }}"
