@@ -2,7 +2,7 @@
 // DO NOT EDIT MANUALLY. Run `npm run build:weak-passwords` to refresh.
 //
 // Source: fallback
-// Generated: 2026-04-23T15:07:00.673Z
+// Generated: 2026-04-29T15:02:57.158Z
 // Count: 159
 
 export const WEAK_PASSWORDS: ReadonlySet<string> = new Set([
