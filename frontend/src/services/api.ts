@@ -188,6 +188,17 @@ export const dashboardApi = {
 
 // ─── Import ───────────────────────────────────────────────────────────────────
 
+export interface BackupImportReport {
+  productsCreated:  number
+  productsUpdated:  number
+  purchasesCreated: number
+  stockLogsCreated: number
+  tagsCreated:      number
+  imagesAdded:      number
+  imagesReused:     number
+  errors:           string[]
+}
+
 export const importApi = {
   products: (file: File) => {
     const form = new FormData()
@@ -200,6 +211,14 @@ export const importApi = {
     const form = new FormData()
     form.append('file', file)
     return api.post<{ imported: number; errors: string[] }>('/import/purchases', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  /** 一鍵還原備份（產生於 GET /api/export/all 的 ZIP） */
+  backup: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post<BackupImportReport>('/import/backup', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
@@ -235,8 +254,12 @@ export const usersApi = {
 
 export const adminApi = {
   getSettings: () =>
-    api.get<{ id: string; registrationOpen: boolean; registrationNotice: string }>('/admin/settings'),
-  updateSettings: (data: { registrationOpen: boolean; registrationNotice?: string }) =>
+    api.get<{
+      id: string; registrationOpen: boolean; registrationNotice: string; maxImportSizeMb: number
+    }>('/admin/settings'),
+  updateSettings: (data: {
+    registrationOpen: boolean; registrationNotice?: string; maxImportSizeMb?: number
+  }) =>
     api.put('/admin/settings', data),
   listUsers: () =>
     api.get<Array<{

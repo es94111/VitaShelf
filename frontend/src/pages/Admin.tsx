@@ -6,7 +6,7 @@ import {
   Trash2, CheckCircle, XCircle, ChevronDown,
   Download, Upload, FileText, AlertCircle, Database,
 } from 'lucide-react'
-import { adminApi, exportApi, importApi } from '@/services/api'
+import { adminApi, exportApi, importApi, type BackupImportReport } from '@/services/api'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -61,18 +61,24 @@ function RegistrationSettings() {
 
   const [open, setOpen] = useState(settings?.registrationOpen ?? true)
   const [notice, setNotice] = useState(settings?.registrationNotice ?? '')
+  const [maxImportSizeMb, setMaxImportSizeMb] = useState<number>(settings?.maxImportSizeMb ?? 200)
 
   useEffect(() => {
     if (!settings) return
     setOpen(settings.registrationOpen)
     setNotice(settings.registrationNotice ?? '')
+    setMaxImportSizeMb(settings.maxImportSizeMb ?? 200)
   }, [settings])
 
   const mutation = useMutation({
-    mutationFn: () => adminApi.updateSettings({ registrationOpen: open, registrationNotice: notice }),
+    mutationFn: () => adminApi.updateSettings({
+      registrationOpen:   open,
+      registrationNotice: notice,
+      maxImportSizeMb,
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-settings'] })
-      toast.success('註冊政策已更新')
+      toast.success('設定已更新')
     },
     onError: (e: unknown) => toast.error(errMsg(e, '更新失敗')),
   })
@@ -110,6 +116,25 @@ function RegistrationSettings() {
           onChange={e => setNotice(e.target.value)}
           placeholder="例如：系統維護中，暫停註冊"
         />
+      </div>
+
+      <div>
+        <label htmlFor="maxImportSize" className="block text-sm font-medium text-ink dark:text-gray-200 mb-1">
+          完整備份匯入大小上限（MB）
+        </label>
+        <input
+          id="maxImportSize"
+          type="number"
+          min={0}
+          max={1024}
+          step={10}
+          className="input dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 w-32"
+          value={maxImportSizeMb}
+          onChange={(e) => setMaxImportSizeMb(Math.max(0, Math.min(1024, Number(e.target.value) || 0)))}
+        />
+        <p className="text-xs text-ink-muted dark:text-gray-500 mt-1">
+          0 = 不限制（仍受系統硬上限 1024 MB 保護）。預設 200 MB。
+        </p>
       </div>
 
       <button className="btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
@@ -400,10 +425,12 @@ function DataManagement() {
   const qc          = useQueryClient()
   const productFileRef  = useRef<HTMLInputElement>(null)
   const purchaseFileRef = useRef<HTMLInputElement>(null)
+  const backupFileRef   = useRef<HTMLInputElement>(null)
   const [exportingProducts,  setExportingProducts]  = useState(false)
   const [exportingPurchases, setExportingPurchases] = useState(false)
   const [exportingAll,       setExportingAll]       = useState(false)
   const [result, setResult] = useState<{ type: 'products' | 'purchases'; imported: number; errors: string[] } | null>(null)
+  const [backupResult, setBackupResult] = useState<BackupImportReport | null>(null)
 
   async function handleExportProducts() {
     setExportingProducts(true)
@@ -462,6 +489,25 @@ function DataManagement() {
     onError: (e: unknown) => toast.error(errMsg(e, '匯入失敗')),
   })
 
+  const backupMutation = useMutation({
+    mutationFn: (file: File) => importApi.backup(file).then((r) => r.data),
+    onSuccess: (data) => {
+      setBackupResult(data)
+      const total = data.productsCreated + data.productsUpdated + data.purchasesCreated + data.stockLogsCreated
+      if (total > 0 || data.imagesAdded > 0) {
+        qc.invalidateQueries({ queryKey: ['products'] })
+        qc.invalidateQueries({ queryKey: ['purchases'] })
+        qc.invalidateQueries({ queryKey: ['dashboard'] })
+        qc.invalidateQueries({ queryKey: ['tags'] })
+        toast.success('完整備份已匯入')
+      } else {
+        toast.error('未匯入任何資料，請檢查 ZIP 格式')
+      }
+      if (backupFileRef.current) backupFileRef.current.value = ''
+    },
+    onError: (e: unknown) => toast.error(errMsg(e, '匯入失敗')),
+  })
+
   return (
     <div className="space-y-6">
       {/* Export */}
@@ -515,6 +561,30 @@ function DataManagement() {
           </div>
 
           <div className="rounded-md border border-surface-border dark:border-gray-700 p-3 space-y-2">
+            <h4 className="text-sm font-medium text-ink dark:text-gray-200">完整備份匯入（ZIP）</h4>
+            <p className="text-xs text-ink-muted dark:text-gray-500">
+              上傳由「匯出完整備份」產生的 ZIP，將以 <strong>合併</strong> 模式還原（產品以 name + brand 為比對鍵；既有資料保留；圖片以內容雜湊比對，相同則略過、不同則改名）。
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <label className="btn btn-primary cursor-pointer">
+                {backupMutation.isPending ? <LoadingSpinner size="sm" /> : <Database size={15} />}
+                {backupMutation.isPending ? '還原中…' : '上傳備份 ZIP'}
+                <input
+                  ref={backupFileRef}
+                  type="file"
+                  accept=".zip,application/zip"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) { setBackupResult(null); setResult(null); backupMutation.mutate(f) }
+                  }}
+                  disabled={backupMutation.isPending}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="rounded-md border border-surface-border dark:border-gray-700 p-3 space-y-2">
             <h4 className="text-sm font-medium text-ink dark:text-gray-200">購買紀錄匯入</h4>
             <div className="bg-surface dark:bg-gray-800 rounded-md p-3 text-xs font-mono text-ink-muted dark:text-gray-400 overflow-x-auto">
               {PURCHASE_CSV_TEMPLATE_HEADERS}
@@ -545,6 +615,29 @@ function DataManagement() {
             {result.errors.length > 0 && (
               <ul className="text-xs text-status-danger space-y-0.5 max-h-32 overflow-y-auto bg-red-50 dark:bg-red-900/20 rounded p-2">
                 {result.errors.map((e, i) => <li key={i}>{e}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {backupResult && (
+          <div className="space-y-2 mt-4">
+            <p className="text-sm flex items-center gap-1.5 text-status-ok">
+              <CheckCircle size={14} /> 完整備份匯入完成
+            </p>
+            <div className="text-xs text-ink-muted dark:text-gray-400 grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 bg-surface dark:bg-gray-800 rounded p-2">
+              <div>產品新增：<strong className="text-ink dark:text-gray-200">{backupResult.productsCreated}</strong></div>
+              <div>產品更新：<strong className="text-ink dark:text-gray-200">{backupResult.productsUpdated}</strong></div>
+              <div>購買紀錄：<strong className="text-ink dark:text-gray-200">{backupResult.purchasesCreated}</strong></div>
+              <div>庫存紀錄：<strong className="text-ink dark:text-gray-200">{backupResult.stockLogsCreated}</strong></div>
+              <div>標籤新增：<strong className="text-ink dark:text-gray-200">{backupResult.tagsCreated}</strong></div>
+              <div>圖片新增：<strong className="text-ink dark:text-gray-200">{backupResult.imagesAdded}</strong></div>
+              <div>圖片沿用：<strong className="text-ink dark:text-gray-200">{backupResult.imagesReused}</strong></div>
+              <div>錯誤筆數：<strong className={backupResult.errors.length > 0 ? 'text-status-danger' : 'text-ink dark:text-gray-200'}>{backupResult.errors.length}</strong></div>
+            </div>
+            {backupResult.errors.length > 0 && (
+              <ul className="text-xs text-status-danger space-y-0.5 max-h-32 overflow-y-auto bg-red-50 dark:bg-red-900/20 rounded p-2">
+                {backupResult.errors.map((e, i) => <li key={i}>{e}</li>)}
               </ul>
             )}
           </div>
