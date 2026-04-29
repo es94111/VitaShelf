@@ -280,6 +280,9 @@ export const exportApi = {
     api.get('/export/products', { responseType: 'blob' }),
   purchases: () =>
     api.get('/export/purchases', { responseType: 'blob' }),
+  /** 一鍵打包：products.csv + purchases.csv + stock_logs.csv + tags.csv + images/ + manifest.json */
+  all: () =>
+    api.get('/export/all', { responseType: 'blob' }),
 }
 
 export default api

@@ -402,6 +402,7 @@ function DataManagement() {
   const purchaseFileRef = useRef<HTMLInputElement>(null)
   const [exportingProducts,  setExportingProducts]  = useState(false)
   const [exportingPurchases, setExportingPurchases] = useState(false)
+  const [exportingAll,       setExportingAll]       = useState(false)
   const [result, setResult] = useState<{ type: 'products' | 'purchases'; imported: number; errors: string[] } | null>(null)
 
   async function handleExportProducts() {
@@ -422,6 +423,16 @@ function DataManagement() {
       toast.success('購買紀錄已匯出')
     } catch { toast.error('匯出失敗') }
     finally { setExportingPurchases(false) }
+  }
+
+  async function handleExportAll() {
+    setExportingAll(true)
+    try {
+      const res = await exportApi.all()
+      downloadBlob(res.data as Blob, `vitashelf-backup-${todayStr().replace(/-/g, '')}.zip`)
+      toast.success('完整備份已匯出')
+    } catch { toast.error('匯出失敗') }
+    finally { setExportingAll(false) }
   }
 
   const productMutation = useMutation({
@@ -458,8 +469,11 @@ function DataManagement() {
         <h3 className="text-sm font-semibold text-ink dark:text-gray-200 flex items-center gap-2 mb-3">
           <Download size={15} /> 資料匯出
         </h3>
-        <p className="text-sm text-ink-muted dark:text-gray-400 mb-3">以 CSV 格式匯出資料，可用 Excel 或 Numbers 開啟。</p>
+        <p className="text-sm text-ink-muted dark:text-gray-400 mb-3">以 CSV 格式匯出資料，可用 Excel 或 Numbers 開啟；或選擇「完整備份」一次打包所有資料與圖片。</p>
         <div className="flex flex-wrap gap-3">
+          <button className="btn-primary" onClick={handleExportAll} disabled={exportingAll}>
+            {exportingAll ? <LoadingSpinner size="sm" /> : <Database size={15} />} 匯出完整備份（含圖片）
+          </button>
           <button className="btn-secondary" onClick={handleExportProducts} disabled={exportingProducts}>
             {exportingProducts ? <LoadingSpinner size="sm" /> : <Download size={15} />} 匯出產品清單
           </button>
