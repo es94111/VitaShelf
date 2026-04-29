@@ -12,31 +12,31 @@
     "api:types": "node scripts/generate-api-types.mjs ../specs/001-auth-module/contracts/auth.openapi.yaml src/types/auth-api.d.ts"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.62.8",
-    "axios": "^1.15.0",
+    "@tanstack/react-query": "^5.100.6",
+    "axios": "^1.15.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "lucide-react": "^1.7.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-is": "^19.2.4",
-    "react-router-dom": "^7.13.2",
+    "lucide-react": "^1.14.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-is": "^19.2.5",
+    "react-router-dom": "^7.14.2",
     "recharts": "^3.8.1",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.18.2",
-    "@typescript-eslint/parser": "^8.18.2",
-    "@vitejs/plugin-react": "^4.7.0",
-    "eslint": "^9.39.4",
-    "eslint-plugin-react-hooks": "^5.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "openapi-typescript": "^7.13.0",
-    "prettier": "^3.4.2",
-    "tailwindcss": "^4.2.2",
+    "prettier": "^3.8.3",
+    "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3",
-    "vite": "^6.4.2"
+    "vite": "^8.0.10"
   }
 }
