@@ -24,6 +24,20 @@ import requestLogger from './middleware/logger'
 export function createApp(): Express {
   const app = express()
 
+  // 後端通常位於 reverse proxy（容器內 nginx、Traefik、Cloudflare 等）之後；
+  // 預設信任 1 跳，讓 req.ip 正確還原為終端使用者 IP，避免 express-rate-limit
+  // 因 X-Forwarded-For 而觸發 ERR_ERL_UNEXPECTED_X_FORWARDED_FOR。
+  // 可由 TRUST_PROXY 環境變數覆寫（整數 = hop count；'true'/'false' 亦支援）。
+  const tpRaw = process.env.TRUST_PROXY
+  if (tpRaw === undefined) {
+    app.set('trust proxy', 1)
+  } else if (tpRaw === 'true' || tpRaw === 'false') {
+    app.set('trust proxy', tpRaw === 'true')
+  } else {
+    const n = Number(tpRaw)
+    app.set('trust proxy', Number.isFinite(n) ? n : tpRaw)
+  }
+
   app.use(cors({
     origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
     credentials: true,

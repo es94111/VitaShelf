@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken'
 import prisma from '../utils/prisma'
 import { getClientIp, lookupCountry } from '../utils/ipCountry'
 import { authRateLimit } from '../middleware/rateLimit'
+import { authCookieSetHeader } from '../utils/jwt'
 
 const router = Router()
 
@@ -116,6 +117,9 @@ router.post('/google', authRateLimit, async (req: Request, res: Response, next: 
       process.env.JWT_SECRET!,
       { expiresIn: '7d' },
     )
+
+    // 以 Set-Cookie 下發 JWT（與一般登入一致；前端走 cookie-only 模式）
+    res.setHeader('Set-Cookie', authCookieSetHeader(token))
 
     // Log login
     const ip = getClientIp(req)
