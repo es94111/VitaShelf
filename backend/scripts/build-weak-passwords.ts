@@ -24,7 +24,7 @@ import https from 'node:https'
 const SOURCE_URL =
   'https://raw.githubusercontent.com/danielmiessler/SecLists/' +
   // pinned commit (update when refreshing list)
-  'master' +
+  'main' +
   '/Passwords/Common-Credentials/10-million-password-list-top-10000.txt'
 
 // Set to real SHA-256 once verified in a dev env with internet:
