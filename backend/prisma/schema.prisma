@@ -38,6 +38,8 @@ model AdminSettings {
   id                 String  @id @default("singleton")
   registrationOpen   Boolean @default(true)
   registrationNotice String  @default("")
+  // 完整備份匯入大小上限（MB）。0 = 不限制（仍受硬上限保護）。
+  maxImportSizeMb    Int     @default(200)
 }
 
 // ─── LoginLog ───────────────────────────────────────────────────────────────────

@@ -79,6 +79,8 @@ router.put(
   [
     body('registrationOpen').isBoolean().withMessage('registrationOpen 必須是布林值'),
     body('registrationNotice').optional().isString(),
+    body('maxImportSizeMb').optional().isInt({ min: 0, max: 1024 })
+      .withMessage('maxImportSizeMb 必須是 0–1024 的整數（0 = 不限制）'),
   ],
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
@@ -88,16 +90,21 @@ router.put(
         return
       }
 
+      const maxImportSizeMb =
+        typeof req.body.maxImportSizeMb === 'number' ? req.body.maxImportSizeMb : undefined
+
       const settings = await prisma.adminSettings.upsert({
         where: { id: 'singleton' },
         update: {
-          registrationOpen: req.body.registrationOpen,
+          registrationOpen:   req.body.registrationOpen,
           registrationNotice: req.body.registrationNotice ?? '',
+          ...(maxImportSizeMb !== undefined ? { maxImportSizeMb } : {}),
         },
         create: {
           id: 'singleton',
-          registrationOpen: req.body.registrationOpen,
+          registrationOpen:   req.body.registrationOpen,
           registrationNotice: req.body.registrationNotice ?? '',
+          ...(maxImportSizeMb !== undefined ? { maxImportSizeMb } : {}),
         },
       })
       res.json(settings)
