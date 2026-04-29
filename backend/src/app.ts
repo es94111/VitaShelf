@@ -18,6 +18,7 @@ import tagRoutes from './routes/tags'
 import exportRoutes from './routes/export'
 import importRoutes from './routes/import'
 import changelogRoutes from './routes/changelog'
+import uploadsRoutes from './routes/uploads'
 import requestLogger from './middleware/logger'
 
 export function createApp(): Express {
@@ -63,6 +64,7 @@ export function createApp(): Express {
   app.use('/api/export',    exportRoutes)
   app.use('/api/import',    importRoutes)
   app.use('/api/changelog', changelogRoutes)
+  app.use('/api/uploads',   uploadsRoutes)
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', version: '2.0.0', timestamp: new Date().toISOString() })

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Upload } from 'lucide-react'
-import { productsApi, tagsApi } from '@/services/api'
+import { Upload, Server, X } from 'lucide-react'
+import { productsApi, tagsApi, uploadsApi } from '@/services/api'
 import { useToast } from '@/components/ui/Toast'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import type { Product } from '@/types'
@@ -82,6 +82,13 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
   )
   const [imageFile,    setImageFile]    = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>(() => sanitizeImageSrc(product?.imageUrl))
+  // 若使用者「從伺服器選擇」既有圖片，於此記錄路徑（如 /uploads/abc.jpg），
+  // 提交時改以 imageUrl 欄位送出而非檔案。
+  const [existingImageUrl, setExistingImageUrl] = useState<string>(() => {
+    const u = product?.imageUrl ?? ''
+    return u.startsWith('/uploads/') ? u : ''
+  })
+  const [showPicker,   setShowPicker]   = useState(false)
   const [errors,       setErrors]       = useState<Partial<Record<keyof FormState, string>>>({})
 
   // Fetch tags
@@ -129,13 +136,23 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
     const file = e.target.files?.[0]
     if (!file) return
     setImageFile(file)
+    setExistingImageUrl('')
     setImagePreview(URL.createObjectURL(file))
   }
 
   function clearImage() {
     setImageFile(null)
+    setExistingImageUrl('')
     setImagePreview('')
     if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function pickServerImage(url: string) {
+    setImageFile(null)
+    setExistingImageUrl(url)
+    setImagePreview(url)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    setShowPicker(false)
   }
 
   // Revoke object URL on unmount
@@ -165,7 +182,11 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
     if (form.barcode)     fd.append('barcode',     form.barcode.trim())
     if (form.notes)       fd.append('notes',       form.notes.trim())
     form.tagIds.forEach((id) => fd.append('tagIds', id))
-    if (imageFile)        fd.append('image', imageFile)
+    if (imageFile) {
+      fd.append('image', imageFile)
+    } else if (existingImageUrl) {
+      fd.append('imageUrl', existingImageUrl)
+    }
 
     mutation.mutate(fd)
   }
@@ -217,9 +238,18 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
           )}
         </div>
         <div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button type="button" className="btn-secondary text-xs px-3 py-1.5" onClick={() => fileInputRef.current?.click()}>
-              選擇圖片
+              <Upload size={12} className="inline mr-1" aria-hidden="true" />
+              上傳新圖片
+            </button>
+            <button
+              type="button"
+              className="btn-secondary text-xs px-3 py-1.5"
+              onClick={() => setShowPicker(true)}
+            >
+              <Server size={12} className="inline mr-1" aria-hidden="true" />
+              從伺服器選擇
             </button>
             {imagePreview && (
               <button type="button" className="btn-secondary text-xs px-3 py-1.5" onClick={clearImage} aria-label="移除圖片">
@@ -227,7 +257,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
               </button>
             )}
           </div>
-          <p className="text-xs text-ink-muted mt-1.5">JPG、PNG、WebP，最大 5MB</p>
+          <p className="text-xs text-ink-muted mt-1.5">JPG、PNG、WebP、AVIF，最大 5MB</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -238,6 +268,15 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
           />
         </div>
       </div>
+
+      {/* Server image picker modal */}
+      {showPicker && (
+        <ServerImagePicker
+          selectedUrl={existingImageUrl}
+          onSelect={pickServerImage}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
 
       {/* Name */}
       <Field label="產品名稱" required error={errors.name}>
@@ -363,6 +402,100 @@ export default function ProductForm({ product, onSuccess, onCancel }: Props) {
         </button>
       </div>
     </form>
+  )
+}
+
+// ─── Server image picker ──────────────────────────────────────────────────────
+
+function ServerImagePicker({
+  selectedUrl,
+  onSelect,
+  onClose,
+}: {
+  selectedUrl: string
+  onSelect:    (url: string) => void
+  onClose:     () => void
+}) {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['server-images'],
+    queryFn:  () => uploadsApi.list().then((r) => r.data.data),
+  })
+
+  // 關閉於 Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="從伺服器選擇圖片"
+      onClick={onClose}
+    >
+      <div
+        className="bg-surface rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border">
+          <h3 className="font-medium text-ink">從伺服器選擇圖片</h3>
+          <button
+            type="button"
+            className="p-1 hover:bg-surface-muted rounded"
+            onClick={onClose}
+            aria-label="關閉"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto p-4 flex-1">
+          {isLoading && (
+            <div className="flex justify-center py-12">
+              <LoadingSpinner />
+            </div>
+          )}
+          {isError && (
+            <p className="text-center text-status-danger py-12">載入失敗，請重試</p>
+          )}
+          {!isLoading && !isError && data && data.length === 0 && (
+            <p className="text-center text-ink-muted py-12">伺服器內尚無圖片</p>
+          )}
+          {!isLoading && !isError && data && data.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+              {data.map((img) => {
+                const safeUrl = sanitizeImageSrc(img.url)
+                const selected = img.url === selectedUrl
+                return (
+                  <button
+                    key={img.url}
+                    type="button"
+                    onClick={() => onSelect(img.url)}
+                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-colors
+                      ${selected ? 'border-primary' : 'border-surface-border hover:border-primary/50'}`}
+                    title={img.name}
+                  >
+                    {safeUrl && (
+                      <img
+                        src={safeUrl}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
 

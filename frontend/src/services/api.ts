@@ -117,6 +117,19 @@ export const productsApi = {
   restore: (id: string) => api.post(`/products/${id}/restore`),
 }
 
+// ─── Uploads ─────────────────────────────────────────────────────────────────
+
+export interface ServerImage {
+  name:      string
+  url:       string
+  size:      number
+  updatedAt: string
+}
+
+export const uploadsApi = {
+  list: () => api.get<{ data: ServerImage[] }>('/uploads'),
+}
+
 // ─── Purchases ───────────────────────────────────────────────────────────────
 
 export const purchasesApi = {
