@@ -133,16 +133,33 @@ export default defineConfig({
   "db:seed": "prisma db seed"
 ```
 
-### Phase 7：驗證
+### Phase 7：驗證 ✅
 
-- [ ] `npm install` / `db:generate` / `typecheck` / `db:migrate` / `db:seed` / `test` / `build` 全綠
-- [ ] Docker build & run 成功
-- [ ] 手動驗證關鍵流程：登入、商品 CRUD、匯出/匯入、儀表板
+- [x] `npm install` / `db:generate` / `typecheck` / `db:migrate` / `test` / `build` 全綠
+- [x] Local smoke test: `node dist/index.js` 啟動 + `/health` 200 OK
+- [ ] Docker build & run 驗證（待 CI 跑完）
+- [ ] 手動驗證關鍵流程：登入、商品 CRUD、匯出/匯入、儀表板（待 staging）
 
-### Phase 8：文件 & 收尾
+### Phase 8：文件 & 收尾 ✅
 
-- [ ] 更新 README/CLAUDE.md
-- [ ] PR 標註 BREAKING CHANGE
+- [x] 更新 README.md（技術棧、前置需求、專案結構、版本時間軸、文件連結）
+- [x] PR 標註 BREAKING CHANGE（PR #27）
+- [x] 三段式 PR 結構：計畫(#25) → ESM 遷移(#26) → Prisma 7 升級(#27)
+
+---
+
+## 八、實際執行紀錄
+
+| 階段 | PR | Commit | 結果 |
+|---|---|---|---|
+| 計畫 + Phase 0 baseline | [#25](https://github.com/es94111/VitaShelf/pull/25) | `a4baa62` | ✅ Merged |
+| Phase 1：ESM 遷移 | [#26](https://github.com/es94111/VitaShelf/pull/26) | `df06fd0` | ✅ Merged |
+| Phase 2–7：Prisma 7 升級 | [#27](https://github.com/es94111/VitaShelf/pull/27) | `66d6a93` | ✅ Merged |
+| Phase 8：文件 | (this PR) | — | 🟡 In progress |
+
+**驗證摘要**：typecheck 0 errors、tests 43/43 pass、build 成功、`/health` 200 OK，全部與 baseline 一致。
+
+**Review 發現並修正**：Dockerfile `apk del g++` 會連帶移除 `libstdc++`（better-sqlite3 runtime 必要），改用 `--virtual .build-deps` 標籤確保 libstdc++ 保留（commit `7a91889`）。
 
 ---
 
