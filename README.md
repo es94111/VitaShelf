@@ -44,8 +44,8 @@
 | 層級 | 技術 |
 |------|------|
 | 前端 | React 19 + TypeScript + Vite 6 + Tailwind CSS 4 |
-| 後端 | Node.js + Express 5 + TypeScript |
-| 資料庫 | SQLite（.db 檔案）+ Prisma ORM |
+| 後端 | Node.js + Express 5 + TypeScript（ESM 模組） |
+| 資料庫 | SQLite（.db 檔案）+ Prisma 7（driver adapter 模式，better-sqlite3） |
 | 容器化 | Docker（單一 Image：Nginx + Node.js） + Docker Compose |
 | CI/CD | GitHub Actions → Docker Hub / GHCR |
 
@@ -53,7 +53,7 @@
 
 ### 前置需求
 
-- [Node.js](https://nodejs.org/) ≥ 20
+- [Node.js](https://nodejs.org/) ≥ 20.19（Prisma 7 最低需求，建議 22+）
 - [Docker](https://www.docker.com/) + Docker Compose
 - [Git](https://git-scm.com/)
 
@@ -154,14 +154,17 @@ VitaShelf/
 │   │   ├── hooks/        # 自訂 Hooks
 │   │   └── services/     # API 服務層
 │   └── Dockerfile
-├── backend/           # Express 後端 API
+├── backend/           # Express 後端 API（ESM）
 │   ├── src/
-│   │   ├── routes/       # API 路由
-│   │   ├── middleware/   # 中間件
-│   │   └── utils/        # 工具函式
+│   │   ├── routes/         # API 路由
+│   │   ├── middleware/     # 中間件
+│   │   ├── utils/          # 工具函式
+│   │   └── generated/      # Prisma 7 client 產出（.gitignore）
 │   ├── prisma/
-│   │   ├── schema.prisma
+│   │   ├── schema.prisma   # Schema（datasource url 移至 prisma.config.ts）
+│   │   ├── migrations/
 │   │   └── seed.ts
+│   ├── prisma.config.ts    # Prisma 7 設定檔（datasource / migrations / seed）
 │   └── package.json
 ├── scripts/           # 工具腳本
 ├── Dockerfile         # 單一 Docker Image（Nginx + Node.js）
@@ -201,11 +204,13 @@ VitaShelf/
 | —       | v2.2.2 | 匯出產品清單格式對齊下載產品範本 | ✅ |
 | —       | v2.2.3 | 修正管理員子選單在權限驗證失敗時自動消失問題 | ✅ |
 | —       | v2.2.4 | 匯出購買紀錄格式對齊下載購買紀錄範本 | ✅ |
+| —       | v2.5.x | 後端遷移至 ESM 模組系統 + 升級至 Prisma 7（driver adapter） | ✅ |
 
 ## 文件
 
 - [軟體需求規格書 (SRS)](./SRS.md)
 - [變更紀錄 (Changelog)](./changelog.json)
+- [Prisma 7 升級計畫與實作紀錄](./docs/plans/prisma-7-upgrade.md)
 
 ## 版本資訊
 
