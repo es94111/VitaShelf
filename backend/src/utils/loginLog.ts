@@ -4,8 +4,8 @@
 // 此函式 **不重拋** 任何資料庫錯誤，而是以 logger.error 紀錄
 // 供運維事後察覺稽核遺失事件（事件名 "loginlog_write_failed"）。
 
-import prisma from './prisma'
-import { logger } from './logger'
+import prisma from './prisma.js'
+import { logger } from './logger.js'
 
 export type LoginLogReason =
   | 'wrong_password'

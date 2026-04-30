@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import prisma from '../utils/prisma'
-import { authenticate, type AuthRequest } from '../middleware/auth'
-import { readRateLimit, writeRateLimit } from '../middleware/rateLimit'
+import prisma from '../utils/prisma.js'
+import { authenticate, type AuthRequest } from '../middleware/auth.js'
+import { readRateLimit, writeRateLimit } from '../middleware/rateLimit.js'
 
 const router = Router()
 

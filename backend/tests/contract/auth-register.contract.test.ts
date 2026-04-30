@@ -9,8 +9,8 @@
 import { describe, it, before, after, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import request from 'supertest'
-import { app, prisma, resetAuthTables, closePrisma, TEST_ORIGIN } from '../integration/helper'
-import { getResponseValidator, formatErrors } from './helper'
+import { app, prisma, resetAuthTables, closePrisma, TEST_ORIGIN } from '../integration/helper.js'
+import { getResponseValidator, formatErrors } from './helper.js'
 
 describe('Contract: POST /auth/register', () => {
   before(async () => { await resetAuthTables() })

@@ -3,7 +3,7 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import request from 'supertest'
-import { app, prisma, resetAuthTables, closePrisma, TEST_ORIGIN } from './helper'
+import { app, prisma, resetAuthTables, closePrisma, TEST_ORIGIN } from './helper.js'
 
 describe('POST /api/auth/login 限流 — US6', () => {
   before(async () => {

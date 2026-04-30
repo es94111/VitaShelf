@@ -3,7 +3,7 @@
 import { describe, it, before, after, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import request from 'supertest'
-import { app, resetAuthTables, closePrisma, TEST_ORIGIN } from './helper'
+import { app, resetAuthTables, closePrisma, TEST_ORIGIN } from './helper.js'
 
 async function loginAsAlice(): Promise<string | string[]> {
   await request(app).post('/api/auth/register').set('Origin', TEST_ORIGIN).send({

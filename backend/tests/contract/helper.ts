@@ -6,10 +6,13 @@
 // 為 draft-2020-12。
 
 import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import yaml from 'js-yaml'
 import Ajv2020, { type ValidateFunction } from 'ajv/dist/2020'
 import addFormats from 'ajv-formats'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const SPEC_PATH = resolve(__dirname, '../../../specs/001-auth-module/contracts/auth.openapi.yaml')
 

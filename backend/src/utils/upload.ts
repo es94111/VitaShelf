@@ -2,6 +2,9 @@ import multer, { type FileFilterCallback } from 'multer'
 import path from 'path'
 import crypto from 'crypto'
 import type { Request } from 'express'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR ?? path.resolve(__dirname, '../../uploads')
 const MAX_SIZE   = 5 * 1024 * 1024  // 5 MB

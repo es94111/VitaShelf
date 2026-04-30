@@ -8,7 +8,7 @@ import {
   verifyPasswordConstantTime,
   isWeakPassword,
   DUMMY_HASH,
-} from '../../src/utils/password'
+} from '../../src/utils/password.js'
 
 describe('password.ts — hashPassword / verifyPassword', () => {
   it('hashPassword 產出 bcrypt 格式（$2[aby]$ 開頭、長度 60）', async () => {

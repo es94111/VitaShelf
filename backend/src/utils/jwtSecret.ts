@@ -1,6 +1,9 @@
 import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const PLACEHOLDER = 'change-me-to-a-long-random-secret'
 const MIN_LENGTH  = 32

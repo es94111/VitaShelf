@@ -5,9 +5,12 @@ import AdmZip from 'adm-zip'
 import crypto from 'crypto'
 import path from 'path'
 import fs from 'fs'
-import prisma from '../utils/prisma'
-import { authenticate, type AuthRequest } from '../middleware/auth'
-import { heavyRateLimit } from '../middleware/rateLimit'
+import prisma from '../utils/prisma.js'
+import { authenticate, type AuthRequest } from '../middleware/auth.js'
+import { heavyRateLimit } from '../middleware/rateLimit.js'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const router = Router()
 

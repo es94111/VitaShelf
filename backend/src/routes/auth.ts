@@ -6,19 +6,19 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
 import rateLimit from 'express-rate-limit'
 import { body, validationResult } from 'express-validator'
-import prisma from '../utils/prisma'
-import { authenticate, type AuthRequest } from '../middleware/auth'
-import { loginRateLimit, authRateLimit } from '../middleware/rateLimit'
-import { requireSameOrigin } from '../middleware/csrf'
-import { getClientIp, lookupCountry } from '../utils/ipCountry'
+import prisma from '../utils/prisma.js'
+import { authenticate, type AuthRequest } from '../middleware/auth.js'
+import { loginRateLimit, authRateLimit } from '../middleware/rateLimit.js'
+import { requireSameOrigin } from '../middleware/csrf.js'
+import { getClientIp, lookupCountry } from '../utils/ipCountry.js'
 import {
   hashPassword,
   verifyPassword,
   verifyPasswordConstantTime,
   isWeakPassword,
-} from '../utils/password'
-import { signToken, authCookieSetHeader, clearAuthCookieHeader } from '../utils/jwt'
-import { writeLoginLog, type LoginLogReason } from '../utils/loginLog'
+} from '../utils/password.js'
+import { signToken, authCookieSetHeader, clearAuthCookieHeader } from '../utils/jwt.js'
+import { writeLoginLog, type LoginLogReason } from '../utils/loginLog.js'
 
 const router = Router()
 

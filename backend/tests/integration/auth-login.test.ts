@@ -3,7 +3,7 @@
 import { describe, it, before, after, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import request from 'supertest'
-import { app, prisma, resetAuthTables, closePrisma, TEST_ORIGIN } from './helper'
+import { app, prisma, resetAuthTables, closePrisma, TEST_ORIGIN } from './helper.js'
 
 async function registerUser(email: string, password: string, displayName: string) {
   return request(app).post('/api/auth/register').set('Origin', TEST_ORIGIN).send({
