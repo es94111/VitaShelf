@@ -17,10 +17,13 @@ RUN npm run build
 # ─── Stage 2: Production ───────────────────────────────────────────────────────
 FROM node:24-alpine AS production
 
-# Runtime deps for better-sqlite3 native binding (libstdc++ is included in alpine).
-# Re-install build deps so `npm ci --omit=dev` can rebuild better-sqlite3 against
-# this image's libc / node ABI.
-RUN apk add --no-cache python3 make g++
+# better-sqlite3 native binding needs libstdc++ at runtime. Install it
+# explicitly so it survives the `apk del` of build toolchain below.
+RUN apk add --no-cache libstdc++
+
+# Build toolchain so `npm ci --omit=dev` can rebuild better-sqlite3 against
+# this image's libc / node ABI. Stripped after rebuild to keep image small.
+RUN apk add --no-cache --virtual .build-deps python3 make g++
 
 RUN addgroup -S vitashelf && adduser -S vitashelf -G vitashelf
 
@@ -30,8 +33,8 @@ WORKDIR /app
 COPY package*.json .npmrc ./
 RUN npm ci --omit=dev --prefer-offline && npm cache clean --force
 
-# Strip build toolchain after rebuild to keep image small
-RUN apk del python3 make g++
+# Strip build toolchain (keeps libstdc++ since it was installed separately)
+RUN apk del .build-deps
 
 # Copy compiled output (includes generated Prisma client at dist/generated/prisma)
 COPY --from=builder /app/dist ./dist
