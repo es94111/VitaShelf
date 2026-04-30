@@ -11,7 +11,9 @@ COPY package*.json .npmrc ./
 RUN npm ci --prefer-offline
 
 COPY . .
-RUN npx prisma generate
+# DATABASE_URL placeholder needed because Prisma 7 prisma.config.ts evaluates
+# env('DATABASE_URL') eagerly at config load — even for `prisma generate`.
+RUN DATABASE_URL=file:/tmp/build-placeholder.db npx prisma generate
 RUN npm run build
 
 # ─── Stage 2: Production ───────────────────────────────────────────────────────
