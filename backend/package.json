@@ -25,17 +25,17 @@
     "archiver": "^7.0.1",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.4.1",
     "express-validator": "^7.3.2",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "node-cron": "^4.2.1",
     "prisma": "^6.19.3",
-    "winston": "^3.17.0"
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -52,7 +52,7 @@
     "ajv-formats": "^3.0.1",
     "js-yaml": "^4.1.1",
     "supertest": "^7.2.2",
-    "tsx": "^4.19.2",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }
 }
