@@ -39,7 +39,7 @@ COPY backend/prisma.config.ts                     ./prisma.config.ts
 # ── Backend production deps ──
 # Build toolchain installed temporarily so `npm ci --omit=dev` can rebuild
 # better-sqlite3 against this image's libc / node ABI. Stripped after install.
-COPY backend/package*.json backend/.npmrc ./
+COPY backend/package*.json ./
 RUN apk add --no-cache --virtual .build-deps python3 make g++ \
  && npm ci --omit=dev --prefer-offline && npm cache clean --force \
  && apk del .build-deps

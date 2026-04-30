@@ -7,7 +7,7 @@ WORKDIR /app
 # python3 + make + g++ to compile on alpine.
 RUN apk add --no-cache python3 make g++
 
-COPY package*.json .npmrc ./
+COPY package*.json ./
 RUN npm ci --prefer-offline
 
 COPY . .
@@ -32,7 +32,7 @@ RUN addgroup -S vitashelf && adduser -S vitashelf -G vitashelf
 WORKDIR /app
 
 # Only copy production dependencies
-COPY package*.json .npmrc ./
+COPY package*.json ./
 RUN npm ci --omit=dev --prefer-offline && npm cache clean --force
 
 # Strip build toolchain (keeps libstdc++ since it was installed separately)
