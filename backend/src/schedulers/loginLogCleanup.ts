@@ -4,7 +4,7 @@
 // 由後端常駐行程持有排程（憲法 Principle V — 單一 image、不依賴容器外 cron）。
 
 import * as cron from 'node-cron'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 import type { Logger } from 'winston'
 
 const RETENTION_DAYS = 90

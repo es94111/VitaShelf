@@ -2,7 +2,12 @@
 FROM node:24-alpine AS builder
 
 WORKDIR /app
-COPY package*.json ./
+
+# better-sqlite3 (Prisma 7 driver adapter dep) ships native bindings — needs
+# python3 + make + g++ to compile on alpine.
+RUN apk add --no-cache python3 make g++
+
+COPY package*.json .npmrc ./
 RUN npm ci --prefer-offline
 
 COPY . .
@@ -12,18 +17,26 @@ RUN npm run build
 # ─── Stage 2: Production ───────────────────────────────────────────────────────
 FROM node:24-alpine AS production
 
+# Runtime deps for better-sqlite3 native binding (libstdc++ is included in alpine).
+# Re-install build deps so `npm ci --omit=dev` can rebuild better-sqlite3 against
+# this image's libc / node ABI.
+RUN apk add --no-cache python3 make g++
+
 RUN addgroup -S vitashelf && adduser -S vitashelf -G vitashelf
 
 WORKDIR /app
 
 # Only copy production dependencies
-COPY package*.json ./
+COPY package*.json .npmrc ./
 RUN npm ci --omit=dev --prefer-offline && npm cache clean --force
 
-# Copy compiled output and prisma client
+# Strip build toolchain after rebuild to keep image small
+RUN apk del python3 make g++
+
+# Copy compiled output (includes generated Prisma client at dist/generated/prisma)
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY prisma ./prisma
+COPY prisma.config.ts ./
 
 # Uploads directory
 RUN mkdir -p /app/uploads && chown vitashelf:vitashelf /app/uploads
