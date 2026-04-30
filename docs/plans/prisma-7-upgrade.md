@@ -52,12 +52,12 @@
 
 ## 三、執行階段
 
-### Phase 0：先決條件 & 建立分支
+### Phase 0：先決條件 & 建立分支 ✅
 
-- [ ] 建立 feature branch：`chore/prisma-7-upgrade`
-- [ ] 確認 CI 可跑完整 test suite（unit + integration）
-- [ ] 開發前先在本地跑一次 `npm test` 取得 baseline 通過數
-- [ ] 備份 `prisma/dev.db`（SQLite 實體檔）
+- [x] 建立 feature branch：`chore/prisma-7-upgrade`
+- [x] 開發前先在本地跑一次 `npm test` 取得 baseline 通過數
+  - **Baseline (2026-04-30)**：`npm run typecheck` = **0 errors**；`npm test` = **43/43 pass**（unit + integration + contract，duration 59s）
+- [ ] 備份 `prisma/data/vitashelf.db`（升級前再做即可，schema 不變動）
 
 ### Phase 1：模組系統決策（最關鍵）
 
