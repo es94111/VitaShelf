@@ -1,10 +1,10 @@
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import prisma from '../utils/prisma'
-import { authenticate, type AuthRequest } from '../middleware/auth'
-import { readRateLimit, writeRateLimit } from '../middleware/rateLimit'
-import { handleUpload } from '../utils/upload'
-import { computeStockFromLogs, getAlertLevel, getNearestExpiry } from '../utils/stock'
+import prisma from '../utils/prisma.js'
+import { authenticate, type AuthRequest } from '../middleware/auth.js'
+import { readRateLimit, writeRateLimit } from '../middleware/rateLimit.js'
+import { handleUpload } from '../utils/upload.js'
+import { computeStockFromLogs, getAlertLevel, getNearestExpiry } from '../utils/stock.js'
 
 const router = Router()
 

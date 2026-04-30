@@ -20,7 +20,7 @@
 
 import { createHash, randomBytes } from 'node:crypto'
 import bcrypt from 'bcryptjs'
-import { isWeakPassword } from './weakPasswords'
+import { isWeakPassword } from './weakPasswords.js'
 
 const BCRYPT_COST = 12
 

@@ -1,4 +1,4 @@
-import prisma from './prisma'
+import prisma from './prisma.js'
 import { addDays, differenceInDays, isPast } from 'date-fns'
 
 

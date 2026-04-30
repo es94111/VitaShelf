@@ -2,6 +2,9 @@ import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
 import path from 'path'
 import fs from 'fs'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const router = Router()
 

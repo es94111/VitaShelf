@@ -1,8 +1,8 @@
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import prisma from '../utils/prisma'
-import { authenticate, type AuthRequest } from '../middleware/auth'
-import { readRateLimit } from '../middleware/rateLimit'
+import prisma from '../utils/prisma.js'
+import { authenticate, type AuthRequest } from '../middleware/auth.js'
+import { readRateLimit } from '../middleware/rateLimit.js'
 import { startOfMonth, endOfMonth, subMonths, format, isPast, addDays } from 'date-fns'
 
 const router = Router()

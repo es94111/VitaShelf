@@ -8,10 +8,10 @@ import jwt from 'jsonwebtoken'
 process.env.JWT_SECRET = 'unit-test-secret-at-least-32-chars-long-aaaaaaaa'
 
 // 動態 import 以確保上面的環境變數生效
-let jwtUtil: typeof import('../../src/utils/jwt')
+let jwtUtil: typeof import('../../src/utils/jwt.js')
 
 before(async () => {
-  jwtUtil = await import('../../src/utils/jwt')
+  jwtUtil = await import('../../src/utils/jwt.js')
 })
 
 describe('jwt.ts — signToken / verifyToken', () => {

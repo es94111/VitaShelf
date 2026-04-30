@@ -1,8 +1,8 @@
 import { Router, type Response, type NextFunction } from 'express'
 import rateLimit from 'express-rate-limit'
 import { body, validationResult } from 'express-validator'
-import prisma from '../utils/prisma'
-import { authenticate, type AuthRequest } from '../middleware/auth'
+import prisma from '../utils/prisma.js'
+import { authenticate, type AuthRequest } from '../middleware/auth.js'
 
 const router = Router()
 

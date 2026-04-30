@@ -14,8 +14,11 @@
 
 import { createHash } from 'node:crypto'
 import { writeFileSync, readFileSync, existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import https from 'node:https'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ────────────────────────────────────────────────────────────────────────────
 // Configuration

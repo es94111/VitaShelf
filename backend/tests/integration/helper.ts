@@ -13,9 +13,9 @@ process.env.NODE_ENV = process.env.NODE_ENV ?? 'test'
 // 關閉 request logger 輸出以保持測試報告清潔
 process.env.LOG_LEVEL = process.env.LOG_LEVEL ?? 'error'
 
-import { createApp } from '../../src/app'
-import prisma from '../../src/utils/prisma'
-import { loginRateLimitStore } from '../../src/middleware/rateLimit'
+import { createApp } from '../../src/app.js'
+import prisma from '../../src/utils/prisma.js'
+import { loginRateLimitStore } from '../../src/middleware/rateLimit.js'
 
 export const app = createApp()
 

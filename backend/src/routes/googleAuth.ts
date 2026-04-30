@@ -5,10 +5,10 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
 import https from 'node:https'
 import jwt from 'jsonwebtoken'
-import prisma from '../utils/prisma'
-import { getClientIp, lookupCountry } from '../utils/ipCountry'
-import { authRateLimit } from '../middleware/rateLimit'
-import { authCookieSetHeader } from '../utils/jwt'
+import prisma from '../utils/prisma.js'
+import { getClientIp, lookupCountry } from '../utils/ipCountry.js'
+import { authRateLimit } from '../middleware/rateLimit.js'
+import { authCookieSetHeader } from '../utils/jwt.js'
 
 const router = Router()
 

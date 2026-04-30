@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import prisma from '../utils/prisma'
-import { authenticate, type AuthRequest } from '../middleware/auth'
+import prisma from '../utils/prisma.js'
+import { authenticate, type AuthRequest } from '../middleware/auth.js'
 import { addDays, differenceInDays, isPast } from 'date-fns'
 
 const router = Router()

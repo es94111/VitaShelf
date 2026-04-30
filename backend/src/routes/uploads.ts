@@ -1,8 +1,11 @@
 import { Router } from 'express'
 import fs from 'fs/promises'
 import path from 'path'
-import { authenticate, type AuthRequest } from '../middleware/auth'
-import { readRateLimit } from '../middleware/rateLimit'
+import { authenticate, type AuthRequest } from '../middleware/auth.js'
+import { readRateLimit } from '../middleware/rateLimit.js'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const router = Router()
 

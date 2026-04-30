@@ -6,8 +6,8 @@
 // 以達到「密碼變更後所有裝置下次請求即失效」的全裝置吊銷語意（FR-020c）。
 
 import type { Request, Response, NextFunction } from 'express'
-import prisma from '../utils/prisma'
-import { verifyToken, COOKIE_NAME, type JwtPayload } from '../utils/jwt'
+import prisma from '../utils/prisma.js'
+import { verifyToken, COOKIE_NAME, type JwtPayload } from '../utils/jwt.js'
 
 export type { JwtPayload }
 
