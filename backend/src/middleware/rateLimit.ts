@@ -1,4 +1,4 @@
-import rateLimit, { MemoryStore } from 'express-rate-limit'
+import rateLimit, { MemoryStore, ipKeyGenerator } from 'express-rate-limit'
 import type { RequestHandler, Request } from 'express'
 
 /**
@@ -15,7 +15,7 @@ import type { RequestHandler, Request } from 'express'
 const keyByUserOrIp = (req: Request): string => {
   const userId = (req as { user?: { userId?: string } }).user?.userId
   if (userId) return `u:${userId}`
-  return `ip:${req.ip ?? 'unknown'}`
+  return `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`
 }
 
 const tooManyRequests: RequestHandler = (_req, res) => {
@@ -62,7 +62,7 @@ export const loginRateLimit = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   skipSuccessfulRequests: true,
-  keyGenerator: (req) => `login-ip:${req.ip ?? 'unknown'}`,  // 以 IP 為維度（FR-023）
+  keyGenerator: (req) => `login-ip:${ipKeyGenerator(req.ip ?? 'unknown')}`,  // 以 IP 為維度（FR-023）
   store: loginRateLimitStore,
   handler: (req, res) => {
     const rl = (req as Request & { rateLimit?: { resetTime?: Date } }).rateLimit
