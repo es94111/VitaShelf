@@ -13,6 +13,10 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR ?? path.resolve(__dirname, '../../uplo
 const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
 
 // GET /api/uploads — 列出伺服器內所有已上傳的產品圖片
+// readRateLimit 已套用（與 products.ts/dashboard.ts/purchases.ts 等相同模式，
+// 該些路由並無對應 open alert）；若下次掃描仍未生效，需於 GitHub Security
+// 頁面手動以「false positive」附理由 dismiss alert #83。
+// codeql[js/missing-rate-limiting]
 router.get('/', authenticate, readRateLimit, async (_req: AuthRequest, res, next) => {
   try {
     let entries: string[] = []

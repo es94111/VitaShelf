@@ -10,8 +10,12 @@
 //
 // 這是 **輸入正規化**、不是最終雜湊；實際儲存的密碼一律為 bcrypt 雜湊。
 //
-// CodeQL `js/insufficient-password-hash` 對此模式會誤報；保留此註解以
-// 說明設計意圖，不做規則抑制（讓未來 reviewer 可重新評估）。
+// CodeQL `js/insufficient-password-hash` 對此模式會誤報；下方改用現行
+// GitHub code scanning 官方支援的 `codeql[query-id]` 行內抑制語法
+// （原先的 `lgtm[...]` 為 lgtm.com 服務時代語法，實測未能抑制此 repo
+// 的 alert #77/#78/#79 — 該語法失效期間 alert 持續存在超過三個月）。
+// 若此 codeql[...] 語法下次掃描仍未生效，需於 GitHub Security 頁面
+// 手動以「false positive」附理由 dismiss alert #77/#78/#79。
 //
 // Dummy hash（對應 M-003 與 SC-006 時序一致性）：
 //   模組載入時預計算一個 dummy hash；verifyPasswordConstantTime 於 user
@@ -29,20 +33,20 @@ const BCRYPT_COST = 12
  *   SHA-256 正規化（繞過 bcrypt 72-byte 限制）→ bcrypt cost=12（最終雜湊）。
  */
 export async function hashPassword(plain: string): Promise<string> {
-  // lgtm[js/insufficient-password-hash] — SHA-256 為輸入正規化，非最終雜湊
+  // codeql[js/insufficient-password-hash] — SHA-256 為輸入正規化，非最終雜湊
   const normalized = createHash('sha256').update(plain, 'utf8').digest('base64')
   return bcrypt.hash(normalized, BCRYPT_COST)
 }
 
 /** 驗證使用者提供的明文與資料庫儲存的 bcrypt 雜湊是否相符。 */
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
-  // lgtm[js/insufficient-password-hash] — SHA-256 為輸入正規化，非最終雜湊
+  // codeql[js/insufficient-password-hash] — SHA-256 為輸入正規化，非最終雜湊
   const normalized = createHash('sha256').update(plain, 'utf8').digest('base64')
   return bcrypt.compare(normalized, hash)
 }
 
 /** 模組載入時產生的 dummy hash；隨機輸入以避免可預測性。 */
-// lgtm[js/insufficient-password-hash] — SHA-256 為輸入正規化，非最終雜湊
+// codeql[js/insufficient-password-hash] — SHA-256 為輸入正規化，非最終雜湊
 const DUMMY_INPUT = createHash('sha256')
   .update(randomBytes(24).toString('base64'), 'utf8')
   .digest('base64')
@@ -56,7 +60,7 @@ export async function verifyPasswordConstantTime(
   plain: string,
   hash: string | null,
 ): Promise<boolean> {
-  // lgtm[js/insufficient-password-hash] — SHA-256 為輸入正規化，非最終雜湊
+  // codeql[js/insufficient-password-hash] — SHA-256 為輸入正規化，非最終雜湊
   const normalized = createHash('sha256').update(plain, 'utf8').digest('base64')
   if (hash === null) {
     await bcrypt.compare(normalized, DUMMY_HASH)

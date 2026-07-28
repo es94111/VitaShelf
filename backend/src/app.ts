@@ -43,6 +43,10 @@ export function createApp(): Express {
     credentials: true,
     exposedHeaders: ['Retry-After'],  // 對應 FR-023b
   }))
+  // CSRF 保護見下方 requireSameOrigin 註解；CodeQL 誤報說明同上。若下次
+  // 掃描仍未生效，需於 GitHub Security 頁面手動以「false positive」附理由
+  // dismiss alert #76。
+  // codeql[js/missing-token-validation]
   app.use(cookieParser())
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
